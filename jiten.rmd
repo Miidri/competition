@@ -1,0 +1,208 @@
+---
+zstitle: "CM時点データ"
+author: "Midori Omura"
+date: "2018/10/4"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+```{r set_up}
+#パッケージのインストールと読み込み
+#持ってないパッケージはインストールする
+targetPackages <- c('DBI','RPostgreSQL','tidyverse',"reshape2","lubridate","dpplot","DT") 
+newPackages <- targetPackages[!(targetPackages %in% installed.packages()[,"Package"])]
+if(length(newPackages)) install.packages(newPackages, repos = "http://cran.us.r-project.org")
+for(package in targetPackages) library(package, character.only = T)
+
+
+drv <- dbDriver("PostgreSQL")
+con <- dbConnect(drv,dbname="video",host="localhost",port=5431,
+                 user="b4" ,password="takayuki")
+```
+
+```{r get_data}
+cm <- con %>% 
+  tbl(from = dbplyr::in_schema("processed", "jiten_data")) 
+sta <- con %>% 
+  tbl(from = dbplyr::in_schema("processed", "sta_mst"))
+advT <- con %>% 
+  tbl(from = dbplyr::in_schema("sub_mst", "adv_type_mst"))
+adv <- con %>% 
+  tbl(from = dbplyr::in_schema("processed", "m_cm_tv_advertiser"))
+brand <- con %>% 
+  tbl(from = dbplyr::in_schema("processed", "m_cm_tv_brand"))
+data <- cm %>% 
+  head(1000) %>% 
+  collect()
+
+#cm <- dbGetQuery(con,"SELECT * FROM processed.jiten_data")
+#sta <- dbGetQuery(con,"SELECT * FROM processed.sta_mst")
+#advT <- dbGetQuery(con,"SELECT * FROM sub_mst.adv_type_mst")
+#adv <- dbGetQuery(con,"SELECT * FROM processed.m_cm_tv_advertiser")
+#brand <- dbGetQuery(con,"SELECT * FROM processed.m_cm_tv_brand")
+```
+
+###CM時点データ
+***
+|CM時点データ   |jiten_data     |データ型   |主キー|外部キーNo.|種目数|最小値|最大値|
+|---------------|---------------|-----------|------|-----------|------|------|------|
+|局コード       |station_code   |int        |PK    |FK4      | 5 | 1 | 5 |
+|放送日	        |cm_date	      |date		    |      |         | 365 | 2017/4/1 |	2018/3/31 |
+|CM挿入時刻     |cm_start_time  |timestamp  |PK    |         | 1310361 | 2017/4/1 5:00 | 2018/4/1 4:59 |
+|広告種類       |adv_type	      |int		    |      |FK13     | 3 | 0 | 5 |
+|広告主コード   |adv_code	      |char		    |      |FK1      | 2011 |	5	| 5 |
+|銘柄コード     |brand_code	    |char  		  |      |FK5      | 5481	| 8	| 8 |
+|CM秒数         |cm_time	      |int		    |      |         | 17 |	5	| 360 |
+
+```{r CM時点データ}
+#dim(cm)
+#summary(cm)
+head(cm)
+```
+  
+2017年4月1日朝5時から，2018年4月1日朝5時までの丸1年のデータ.  
+
+
+###局コード 外部キー4 局マスタ
+|局マスタ       |sta_mst        |データ型   |主キー|外部キーNo.|
+|---------------|---------------|-----------|------|-----------|
+|局コード       |station_code   |int        |PK    |     |
+|局名称	        |station_jp	    |char		    |      |     |
+|局略称         |station_ab     |char       |      |     |
+
+```{r 局マスタ}
+hist(cm$station_code, xlim = c(1,7))
+```
+
+```{r count_station}
+#cm %>% 
+#  group_by(station_code) %>% 
+#  summarise(count = n()) %>% 
+#  left_join(sta, by = "station_code") %>% 
+#  arrange(count) %>% 
+#  kable(caption = "station_code ごとのログ数")
+
+cm %>% 
+  left_join(sta, by = "station_code") %>% 
+  dbplot_bar(station_ab)
+```
+
+  
+6,7はNHK系列のため, CMはない.
+だいたいどの局もCMも本数は変わらないことがわかった.
+
+```{r 放送日}
+#head(cm$cm_date)
+```
+
+####CM挿入時刻
+```{r CM挿入時刻}
+#head(cm$cm_start_time)
+#hist(cm$cm_start_time)
+```
+
+基本統計量
+- min : 2017-04-03 05:07:00
+- med : 2017-10-02 23:55:22
+- ave : 2017-10-02 13:33:09
+- max : 2018-04-02 04:59:40
+
+```{r}
+count_hourly <- dbGetQuery(con,"
+                           SELECT
+                             EXTRACT(HOUR FROM cm_start_time),
+                             COUNT(*)
+                           FROM 
+                             processed.jiten_data
+                           GROUP BY
+                             EXTRACT(HOUR FROM cm_start_time)")
+count_hourly %>% 
+  as_tibble() %>% 
+  rename(hour = date_part) %>% 
+  ggplot(aes(hour, count))+
+  geom_bar(stat = "identity")+
+  labs(title = "時間帯ごとのCM本数")
+```
+
+
+
+###広告種類 外部キー13 広告種類マスタ
+|広告種類マスタ |adv_type_mst   |データ型   |主キー|外部キーNo.|
+|---------------|---------------|-----------|------|-----------|
+|               |adv_type	      |int		    |PK    |     |
+|               |adv_type_name  |char  		  |      |     |
+
+```{r 広告種類マスタ}
+advT
+hist(cm$adv_type)
+```
+  
+0~1:タイムCM    ：放送番組中に挟んで放送されるコマーシャルメッセージ 
+2~4:スポットCM  ：前の放送番組から次の放送番組までの間に放送されるコマーシャルメッセージ  
+5  :            ：?
+
+
+###広告主コード 外部キー1 広告主マスタ
+|広告主マスタ   |m_cm_tv_advertiser|データ型   |主キー|外部キーNo.|
+|---------------|------------------|-----------|------|-----------|
+|広告主コード   |adv_code	      |char		    |PK    |     |
+|広告主カナ名称 |adv_kana	      |char  		  |      |     |
+|広告主漢字名称 |adv_name	      |char		    |      |     |
+|初出稿日       |adb_start      |date       |      |     |
+|最終出稿日     |adb_lastup     |date       |      |     |
+
+
+```{r 広告主マスタ}
+#dim(adv)
+head(adv)
+```
+
+###銘柄コード 外部キー5 銘柄マスタ
+|銘柄マスタ     |m_cm_tv_brand  |データ型   |主キー|外部キーNo.|
+|---------------|---------------|-----------|------|-----------|
+|銘柄コード     |brand_code	    |char  		  |PK    |     |
+|広告主コード   |adv_code	      |char		    |      |FK1  |
+|銘柄カナ名称   |brand_kana	    |char  		  |      |     |
+|銘柄漢字名称   |brand_name	    |char		    |      |     |
+|初出稿日       |brand_start    |date       |      |     |
+|最終出稿日     |brand_lastup   |date       |      |     |	
+
+```{r 銘柄マスタ}
+#dim(brand)
+head(brand)
+```
+
+###CM秒数
+```{r cm秒数}
+cm %>% distinct(cm$cm_time,.keep_all=FALSE)
+```
+  
+基本統計量  
+- min : 5sec  
+- med : 15sec  
+- ave : 17.95sec  
+- max : 360sec  
+CM秒数は17種類.  
+max 360秒のCMは27時間テレビで流したドラクエのCM.  
+360,300秒の長編CMは1本ずつで, ほとんどが60秒以内のCMである事がわかった.
+
+```{r}
+hist(cm$cm_time)
+hist(cm$cm_time, xlim = c(100,200),ylim = c(0,3000))
+hist(cm$cm_time, xlim = c(0,100))
+```
+  
+
+```{r collabolation}
+plot(cm$cm_start_time, cm$cm_time)
+#plot(cm$cm_start_time, cm$adv_type)
+```
+
+cmの長さの分布は1年を通してあまり大きな差は見られなかった.
+年末年始は生放送が多いイメージがあったので多いと思ったが, 検討違いだったみたいです.

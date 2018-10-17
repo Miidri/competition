@@ -15,17 +15,18 @@ knitr::opts_chunk$set(echo = FALSE)
 ```{r set_up}
 #パッケージのインストールと読み込み
 #持ってないパッケージはインストールする
-targetPackages <- c('DBI','RPostgreSQL','tidyverse',"reshape2","lubridate","dpplot","DT") 
+targetPackages <- c('knitr','DBI','RPostgreSQL','tidyverse',"reshape2","lubridate","dbplot","DT") 
 newPackages <- targetPackages[!(targetPackages %in% installed.packages()[,"Package"])]
 if(length(newPackages)) install.packages(newPackages, repos = "http://cran.us.r-project.org")
 for(package in targetPackages) library(package, character.only = T)
+
 
 
 drv <- dbDriver("PostgreSQL")
 con <- dbConnect(drv,dbname="video",host="localhost",port=5431,
                  user="b4" ,password="takayuki")
 ```
-練習
+
 
 ```{r get_data}
 cm <- con %>% 
@@ -42,7 +43,7 @@ data <- cm %>%
   head(1000) %>% 
   collect()
 
-#cm <- dbGetQuery(con,"SELECT * FROM processed.jiten_data")
+cm1 <- dbGetQuery(con,"SELECT * FROM processed.jiten_data")
 #sta <- dbGetQuery(con,"SELECT * FROM processed.sta_mst")
 #advT <- dbGetQuery(con,"SELECT * FROM sub_mst.adv_type_mst")
 #adv <- dbGetQuery(con,"SELECT * FROM processed.m_cm_tv_advertiser")
@@ -65,6 +66,7 @@ data <- cm %>%
 #dim(cm)
 #summary(cm)
 head(cm)
+#head(cm1)
 ```
   
 2017年4月1日朝5時から，2018年4月1日朝5時までの丸1年のデータ.  
@@ -77,21 +79,18 @@ head(cm)
 |局名称	        |station_jp	    |char		    |      |     |
 |局略称         |station_ab     |char       |      |     |
 
-```{r 局マスタ}
-hist(cm$station_code, xlim = c(1,7))
-```
 
 ```{r count_station}
-#cm %>% 
-#  group_by(station_code) %>% 
-#  summarise(count = n()) %>% 
-#  left_join(sta, by = "station_code") %>% 
-#  arrange(count) %>% 
-#  kable(caption = "station_code ごとのログ数")
+cm %>% 
+  group_by(station_code) %>% 
+  summarise(count = n()) %>% 
+  left_join(sta, by = "station_code") %>% 
+  arrange(count) %>% 
+  kable(caption = "station_code ごとのログ数")
 
 cm %>% 
   left_join(sta, by = "station_code") %>% 
-  dbplot_bar(station_ab)
+  dbplot_bar(station_jp)
 ```
 
   
@@ -123,6 +122,13 @@ count_hourly <- dbGetQuery(con,"
                              processed.jiten_data
                            GROUP BY
                              EXTRACT(HOUR FROM cm_start_time)")
+
+count_hourly  %>% 
+  summarise(count = n()) %>% 
+  arrange(date_part) %>% 
+  kable()
+
+
 count_hourly %>% 
   as_tibble() %>% 
   rename(hour = date_part) %>% 
@@ -140,15 +146,18 @@ count_hourly %>%
 |               |adv_type_name  |char  		  |      |     |
 
 ```{r 広告種類マスタ}
-advT
-hist(cm$adv_type)
+cm %>% 
+  group_by(adv_type) %>% 
+  summarise(count = n()) %>% 
+  left_join(advT, by = "adv_type") %>% 
+  arrange(count) %>% 
+  kable(caption = "adv_type ごとのログ数")
+cm %>% 
+  left_join(advT, by = "adv_type") %>% 
+  dbplot_bar(adv_type_name)
 ```
   
-0~1:タイムCM    ：放送番組中に挟んで放送されるコマーシャルメッセージ 
-2~4:スポットCM  ：前の放送番組から次の放送番組までの間に放送されるコマーシャルメッセージ  
-5  :            ：?
-
-
+  
 ###広告主コード 外部キー1 広告主マスタ
 |広告主マスタ   |m_cm_tv_advertiser|データ型   |主キー|外部キーNo.|
 |---------------|------------------|-----------|------|-----------|
@@ -176,12 +185,22 @@ head(adv)
 
 ```{r 銘柄マスタ}
 #dim(brand)
-head(brand)
+head(brand) 
 ```
 
 ###CM秒数
 ```{r cm秒数}
-cm %>% distinct(cm$cm_time,.keep_all=FALSE)
+
+cm_time_count <- dbGetQuery(con,"
+                           SELECT
+                             distinct(cm_time),
+                             count(cm_time)
+                           FROM 
+                             processed.jiten_data
+                          group by(cm_time)
+                          ")
+
+cm_time_count
 ```
   
 基本統計量  
@@ -194,14 +213,14 @@ max 360秒のCMは27時間テレビで流したドラクエのCM.
 360,300秒の長編CMは1本ずつで, ほとんどが60秒以内のCMである事がわかった.
 
 ```{r}
-hist(cm$cm_time)
-hist(cm$cm_time, xlim = c(100,200),ylim = c(0,3000))
-hist(cm$cm_time, xlim = c(0,100))
+hist(cm1$cm_time)
+hist(cm1$cm_time, xlim = c(100,200),ylim = c(0,3000))
+hist(cm1$cm_time, xlim = c(0,100))
 ```
   
 
 ```{r collabolation}
-plot(cm$cm_start_time, cm$cm_time)
+plot(cm1$cm_start_time, cm1$cm_time)
 #plot(cm$cm_start_time, cm$adv_type)
 ```
 

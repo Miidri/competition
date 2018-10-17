@@ -43,7 +43,7 @@ data <- cm %>%
   head(1000) %>% 
   collect()
 
-cm1 <- dbGetQuery(con,"SELECT * FROM processed.jiten_data")
+#cm1 <- dbGetQuery(con,"SELECT * FROM processed.jiten_data")
 #sta <- dbGetQuery(con,"SELECT * FROM processed.sta_mst")
 #advT <- dbGetQuery(con,"SELECT * FROM sub_mst.adv_type_mst")
 #adv <- dbGetQuery(con,"SELECT * FROM processed.m_cm_tv_advertiser")

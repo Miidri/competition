@@ -169,7 +169,7 @@ cm %>%
 
 ```{r 広告主マスタ}
 #dim(adv)
-head(adv)
+#head(adv)
 ```
 
 ###銘柄コード 外部キー5 銘柄マスタ
@@ -184,7 +184,7 @@ head(adv)
 
 ```{r 銘柄マスタ}
 #dim(brand)
-head(brand)
+#head(brand)
 
 adv_brand <- dbGetQuery(con,"SELECT
   *
@@ -196,7 +196,7 @@ FROM
   ON processed.m_cm_tv_advertiser.adv_code = processed.m_cm_tv_brand.adv_code; --結合の条件
   ")
 
-kable(adv_brand, format = "markdown")
+kable(head(adv_brand), format = "markdown")
 
 ```
 

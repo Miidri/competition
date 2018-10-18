@@ -1,0 +1,203 @@
+---
+title: "program"
+author: "Midori Omura"
+date: "2018/10/18"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+```{r set_up}
+#パッケージのインストールと読み込み
+#持ってないパッケージはインストールする
+targetPackages <- c('knitr','DBI','RPostgreSQL','tidyverse',"reshape2","lubridate","dbplot","DT") 
+newPackages <- targetPackages[!(targetPackages %in% installed.packages()[,"Package"])]
+if(length(newPackages)) install.packages(newPackages, repos = "http://cran.us.r-project.org")
+for(package in targetPackages) library(package, character.only = T)
+
+
+
+drv <- dbDriver("PostgreSQL")
+con <- dbConnect(drv,dbname="video",host="192.168.11.52",port=5431,
+                 user="b4" ,password="takayuki")
+```
+
+
+```{r get_data}
+pro <- con %>% 
+  tbl(from = dbplyr::in_schema("processed", "tv_program")) 
+sta <- con %>% 
+  tbl(from = dbplyr::in_schema("processed", "sta_mst"))
+ban <- con %>% 
+  tbl(from = dbplyr::in_schema("processed", "bancluster_mst"))
+sintoku <- con %>% 
+  tbl(from = dbplyr::in_schema("sub_mst", "sin_toku_mst"))
+form <- con %>% 
+  tbl(from = dbplyr::in_schema("sub_mst", "br_format_mst"))
+week <- con %>% 
+  tbl(from = dbplyr::in_schema("sub_mst", "day_week_mst"))
+```
+
+###番組情報
+***
+|番組情報   |_data     |データ型   |主キー|外部キーNo.|種目数|最小値|最大値|
+|---------------|---------------|-----------|------|-----------|------|------|------|
+|局コード         |station_code       |int        |PK    |FK4      | 7 | 1 | 7 |
+|番組コード       |program_code       |char        |PK    |         | 707 | 4 | 4 |
+|曜日コード       |program_day_week      |int        |      |FK14     | 7 | 1 | 7 |
+|放送日	          |program_date       |date		    |PK    |         | 364 | 2017/4/3 |	2018/4/1 |
+|開始時刻         |program_start_time |timestamp  |      |         | 68192 | 2017/4/3 5:00 | 2018/4/2 4:55 |
+|放送分数         |program_time	      |int		    |      |         | 242 |	1	| 410 |
+|終了時刻         |program_end_time   |timestamp  |      |         | 68236 | 2017/4/3 5:20 | 2018/4/2 5:00 |
+|大分類コード     |ban_code1	        |int		    |      |FK10      | 8 |	1	| 8 |
+|中分類コード     |ban_code2	        |int		    |      |FK11      | 16 |	1	| 16 |
+|分類コード       |ban_code3	        |char		    |      |FK12      | 70 |	3	| 3 |
+|新番・特番フラグ |sin_toku	          |char		    |      |FK19      | 2 |	1	| 1 |
+|放送形式         |br_format	        |int		    |      |FK20      | 5 |	0	| 4 |
+|最終回コード     |final_code	        |int  		  |      |          | 2	| 0	| 1 |
+|番組名（漢字）   |program_name	      |char  		  |      |          | 8134	| 2	| 41 |
+|番組名（カナ）   |program_name_kana  |char  		  |      |          | 3877	| 1	| 20 |
+
+```{r CM時点データ}
+#dim(cm)
+#summary(cm)
+head(pro)
+#head(cm1)
+```
+  
+2017年4月1日朝5時から，2018年4月1日朝5時までの丸1年のデータ.  
+
+
+###局コード 外部キー4 局マスタ
+|局マスタ       |sta_mst        |データ型   |主キー|外部キーNo.|
+|---------------|---------------|-----------|------|-----------|
+|局コード       |station_code   |int        |PK    |     |
+|局名称	        |station_jp	    |char		    |      |     |
+|局略称         |station_ab     |char       |      |     |
+
+
+```{r count_station}
+pro %>% 
+  group_by(station_code) %>% 
+  summarise(count = n()) %>% 
+  left_join(sta, by = "station_code") %>% 
+  arrange(count) %>% 
+  kable(caption = "station_code ごとのログ数")
+
+pro %>% 
+  left_join(sta, by = "station_code") %>% 
+  dbplot_bar(station_jp)
+```
+  
+単純な番組数はNHKが多い→番組分数と相関強そう？  
+
+
+####曜日
+やり直し
+```{r count_week}
+pro %>% 
+  group_by(program_day_week) %>% 
+  summarise(count = n()) %>% 
+  left_join(week, by = "day_week") %>% 
+  arrange(count) %>% 
+  kable(caption = "曜日ごとのログ数")
+
+pro %>% 
+  left_join(sta, by = "station_code") %>% 
+  dbplot_bar(station_jp)
+```
+
+####CM挿入時刻
+```{r CM挿入時刻}
+summary(pro)
+#head(cm$cm_start_time)
+#hist(cm$cm_start_time)
+```
+
+基本統計量
+- min : 2017-04-03 05:07:00
+- med : 2017-10-02 23:55:22
+- ave : 2017-10-02 13:33:09
+- max : 2018-04-02 04:59:40
+
+```{r}
+count_hourly <- dbGetQuery(con,"
+                           SELECT
+                             EXTRACT(HOUR FROM cm_start_time),
+                             COUNT(*)
+                           FROM 
+                             processed.jiten_data
+                           GROUP BY
+                             EXTRACT(HOUR FROM cm_start_time)")
+
+count_hourly  %>% 
+  arrange(date_part) %>% 
+  kable()
+
+
+count_hourly %>% 
+  as_tibble() %>% 
+  rename(hour = date_part) %>% 
+  ggplot(aes(hour, count))+
+  geom_bar(stat = "identity")+
+  labs(title = "時間帯ごとのCM本数")
+```
+
+
+###放送分数
+```{r 放送分数}
+
+pro_time_count <- dbGetQuery(con,"
+                           SELECT
+                             distinct(program_time),
+                             count(program_time)
+                           FROM 
+                             processed.tv_program
+                          group by
+                             program_time
+                          ")
+
+pro_time_count %>% 
+  kable()
+```
+  
+基本統計量  
+- min : 5sec  
+- med : 15sec  
+- ave : 17.95sec  
+- max : 360sec  
+CM秒数は17種類.  
+max 360秒のCMは27時間テレビで流したドラクエのCM.  
+360,300秒の長編CMは1本ずつで, ほとんどが60秒以内のCMである事がわかった.
+
+```{r}
+cm_time1 <- dbGetQuery(con,"
+                           SELECT
+                             cm_time
+                           FROM 
+                             processed.jiten_data
+                          ")
+hist(cm_time1$cm_time)
+hist(cm_time1$cm_time, xlim = c(100,200),ylim = c(0,3000))
+hist(cm_time1$cm_time, xlim = c(0,100))
+```
+  
+
+```{r collabolation}
+cm_start <- dbGetQuery(con,"
+                           SELECT
+                             cm_start_time
+                           FROM 
+                             processed.jiten_data
+                          ")
+plot(cm_start$cm_start_time, cm_time1$cm_time)
+#plot(cm_start$cm_start_time, cm$adv_type)
+```
+
+cmの長さの分布は1年を通してあまり大きな差は見られなかった.
+年末年始は生放送が多いイメージがあったので多いと思ったが, 検討違いだったみたいです.

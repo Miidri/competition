@@ -21,7 +21,7 @@ if(length(newPackages)) install.packages(newPackages, repos = "http://cran.us.r-
 for(package in targetPackages) library(package, character.only = T)
 
 drv <- dbDriver("PostgreSQL")
-con <- dbConnect(drv,dbname="video",host="localhost",port=5431,
+con <- dbConnect(drv,dbname="video",host="192.168.11.52",port=5431,
                  user="b4" ,password="takayuki")
 ```
 
@@ -42,37 +42,25 @@ prof <- con %>%
 ```
 
 ***
-```{r}
-houseNo <- dbGetQuery(con,"SELECT  
-	distinct(house_num),
-	count(house_num)
-FROM
-	processed.tv_orgn_p_cv
-group by (house_num)")
-
-head(houseNo)
-```
-
-```{r}
-houseDate <- dbGetQuery(con,"SELECT  
-	distinct(br_date),
-	count(br_date)
-FROM
-	processed.tv_orgn_p_cv
-group by (br_date)")
-
-head(houseDate)
-
+```{r 日程ごとのログ数}
+ houseDate <- dbGetQuery(con,"SELECT  
+ 	distinct(br_date),
+ 	count(br_date)
+ FROM
+ 	processed.tv_orgn_p_cv
+ group by (br_date)")
+ head(houseDate)
 ```
 
 
-
+```{r 世帯Noごとの終了, 開始, ログ日数, ログ数}
 houseDetail <- dbGetQuery(con,"
 SELECT
 	distinct(house_num),
 	max(br_date),
 	min(br_date),
-	count(distinct(br_date))
+  count(distinct(br_date)),
+	count(br_date)
 
 FROM
 	processed.tv_orgn_p_cv
@@ -81,4 +69,51 @@ group by (house_num)")
 
 head(houseDetail)
 
+```
+
+
+```{r 日程ごとのサンプル数}
+sample_num<- dbGetQuery(con,"
+SELECT
+	distinct(sample_date),
+	count(sample_date)
+
+FROM	
+	processed.tv_sample_p_cv
+
+GROUP BY
+	tv_sample_p_cv.sample_date;
+")
+
+
+sample_numP <-
+  ggplot(sample_num, aes(x = sample_date, y = count))+
+  geom_line()
+
+sample_numP
+
+```
+
+```{r}
+sample_att<- dbGetQuery(con,"
+SELECT
+	house_num,
+	sample_date
+FROM	
+	processed.tv_sample_p_cv
+GROUP BY
+	house_num,
+	sample_date
+ORDER BY
+house_num,
+	sample_date DESC;")
+
+
+
+sample_attP<-
+  ggplot(sample_att, aes(x = sample_date, y = house_num, color = house_num))+
+  geom_bin2d(binwidth = c(1,1))# + ylim(c(0,20))+xlim(c(as.Date('2017-03-28'),as.Date('2017-04-20')))
+
+sample_attP
+```
 

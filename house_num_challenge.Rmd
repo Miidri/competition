@@ -20,8 +20,6 @@ newPackages <- targetPackages[!(targetPackages %in% installed.packages()[,"Packa
 if(length(newPackages)) install.packages(newPackages, repos = "http://cran.us.r-project.org")
 for(package in targetPackages) library(package, character.only = T)
 
-
-
 drv <- dbDriver("PostgreSQL")
 con <- dbConnect(drv,dbname="video",host="localhost",port=5431,
                  user="b4" ,password="takayuki")
@@ -43,10 +41,7 @@ prof <- con %>%
 
 ```
 
-###CM時点データ
 ***
-
-
 ```{r}
 houseNo <- dbGetQuery(con,"SELECT  
 	distinct(house_num),

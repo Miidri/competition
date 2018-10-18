@@ -124,7 +124,6 @@ count_hourly <- dbGetQuery(con,"
                              EXTRACT(HOUR FROM cm_start_time)")
 
 count_hourly  %>% 
-  summarise(count = n()) %>% 
   arrange(date_part) %>% 
   kable()
 
@@ -185,7 +184,20 @@ head(adv)
 
 ```{r 銘柄マスタ}
 #dim(brand)
-head(brand) 
+head(brand)
+
+adv_brand <- dbGetQuery(con,"SELECT
+  *
+FROM
+	processed.m_cm_tv_advertiser
+-- ここから結合の部分
+  LEFT JOIN --practice.dataを左において次のテーブルを結合する
+   	processed.m_cm_tv_brand
+  ON processed.m_cm_tv_advertiser.adv_code = processed.m_cm_tv_brand.adv_code; --結合の条件
+  ")
+
+kable(adv_brand, format = "markdown")
+
 ```
 
 ###CM秒数
@@ -200,7 +212,8 @@ cm_time_count <- dbGetQuery(con,"
                           group by(cm_time)
                           ")
 
-cm_time_count
+cm_time_count %>% 
+  kable()
 ```
   
 基本統計量  
@@ -213,15 +226,27 @@ max 360秒のCMは27時間テレビで流したドラクエのCM.
 360,300秒の長編CMは1本ずつで, ほとんどが60秒以内のCMである事がわかった.
 
 ```{r}
-hist(cm1$cm_time)
-hist(cm1$cm_time, xlim = c(100,200),ylim = c(0,3000))
-hist(cm1$cm_time, xlim = c(0,100))
+cm_time1 <- dbGetQuery(con,"
+                           SELECT
+                             cm_time
+                           FROM 
+                             processed.jiten_data
+                          ")
+hist(cm_time1$cm_time)
+hist(cm_time1$cm_time, xlim = c(100,200),ylim = c(0,3000))
+hist(cm_time1$cm_time, xlim = c(0,100))
 ```
   
 
 ```{r collabolation}
-plot(cm1$cm_start_time, cm1$cm_time)
-#plot(cm$cm_start_time, cm$adv_type)
+cm_start <- dbGetQuery(con,"
+                           SELECT
+                             cm_start_time
+                           FROM 
+                             processed.jiten_data
+                          ")
+plot(cm_start$cm_start_time, cm_time1$cm_time)
+#plot(cm_start$cm_start_time, cm$adv_type)
 ```
 
 cmの長さの分布は1年を通してあまり大きな差は見られなかった.

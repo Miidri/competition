@@ -1,14 +1,25 @@
 ---
 zstitle: "CM時点データ"
-author: "Midori Omura"
-date: "2018/10/4"
-output: html_document
+output:
+  html_document:
+    number_sections: true
+    fig_caption: true
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    fig_width: 7
+    fig_height: 4.5
+    theme: cosmo
+    highlight: tango
+    code_folding: hide
 editor_options: 
   chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = FALSE, 
+                      warning = FALSE,
+                      message = FALSE)
 ```
 
 
@@ -50,7 +61,7 @@ data <- cm %>%
 #brand <- dbGetQuery(con,"SELECT * FROM processed.m_cm_tv_brand")
 ```
 
-###CM時点データ
+#CM時点データ
 ***
 |CM時点データ   |jiten_data     |データ型   |主キー|外部キーNo.|種目数|最小値|最大値|
 |---------------|---------------|-----------|------|-----------|------|------|------|
@@ -72,7 +83,7 @@ head(cm)
 2017年4月1日朝5時から，2018年4月1日朝5時までの丸1年のデータ.  
 
 
-###局コード 外部キー4 局マスタ
+#局コード 外部キー4 局マスタ
 |局マスタ       |sta_mst        |データ型   |主キー|外部キーNo.|
 |---------------|---------------|-----------|------|-----------|
 |局コード       |station_code   |int        |PK    |     |
@@ -101,7 +112,7 @@ cm %>%
 #head(cm$cm_date)
 ```
 
-####CM挿入時刻
+#CM挿入時刻
 ```{r CM挿入時刻}
 #head(cm$cm_start_time)
 #hist(cm$cm_start_time)
@@ -138,7 +149,7 @@ count_hourly %>%
 
 
 
-###広告種類 外部キー13 広告種類マスタ
+#広告種類 外部キー13 広告種類マスタ
 |広告種類マスタ |adv_type_mst   |データ型   |主キー|外部キーNo.|
 |---------------|---------------|-----------|------|-----------|
 |               |adv_type	      |int		    |PK    |     |
@@ -157,7 +168,7 @@ cm %>%
 ```
   
   
-###広告主コード 外部キー1 広告主マスタ
+#広告主コード 外部キー1 広告主マスタ
 |広告主マスタ   |m_cm_tv_advertiser|データ型   |主キー|外部キーNo.|
 |---------------|------------------|-----------|------|-----------|
 |広告主コード   |adv_code	      |char		    |PK    |     |
@@ -172,7 +183,7 @@ cm %>%
 #head(adv)
 ```
 
-###銘柄コード 外部キー5 銘柄マスタ
+#銘柄コード 外部キー5 銘柄マスタ
 |銘柄マスタ     |m_cm_tv_brand  |データ型   |主キー|外部キーNo.|
 |---------------|---------------|-----------|------|-----------|
 |銘柄コード     |brand_code	    |char  		  |PK    |     |

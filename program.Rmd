@@ -26,7 +26,7 @@ knitr::opts_chunk$set(echo = FALSE,
 ```{r set_up}
 #パッケージのインストールと読み込み
 #持ってないパッケージはインストールする
-targetPackages <- c('knitr','DBI','RPostgreSQL','tidyverse',"reshape2","lubridate","dbplot","DT") 
+targetPackages <- c('knitr','DBI','RPostgreSQL','tidyverse',"reshape2","lubridate","dbplot","DT","gridExtra") 
 newPackages <- targetPackages[!(targetPackages %in% installed.packages()[,"Package"])]
 if(length(newPackages)) install.packages(newPackages, repos = "http://cran.us.r-project.org")
 for(package in targetPackages) library(package, character.only = T)
@@ -231,14 +231,163 @@ time_countP1
 time_countP2
 
 ```
+
+##局別放送分数
+```{r 局コード別放送分数}
+sta11 <- dbGetQuery(con,"
+                                SELECT
+                                  DISTINCT(program_time),
+                            			COUNT(*) 
+                            		FROM 
+                            			processed.tv_program
+                                WHERE
+                                  station_code =1
+                            		GROUP BY
+                            			station_code,
+                                  program_time
+                            		ORDER BY
+                            			program_time
+                                  ")
+sta22 <- dbGetQuery(con,"
+                                SELECT
+                                  DISTINCT(program_time),
+                            			COUNT(*) 
+                            		FROM 
+                            			processed.tv_program
+                                WHERE
+                                  station_code =2
+                            		GROUP BY
+                            			station_code,
+                                  program_time
+                            		ORDER BY
+                            			program_time
+                                  ")
+sta33 <- dbGetQuery(con,"
+                                SELECT
+                                  DISTINCT(program_time),
+                            			COUNT(*) 
+                            		FROM 
+                            			processed.tv_program
+                                WHERE
+                                  station_code =3
+                            		GROUP BY
+                            			station_code,
+                                  program_time
+                            		ORDER BY
+                            			program_time
+                                  ")
+sta44 <- dbGetQuery(con,"
+                                SELECT
+                                  DISTINCT(program_time),
+                            			COUNT(*) 
+                            		FROM 
+                            			processed.tv_program
+                                WHERE
+                                  station_code =4
+                            		GROUP BY
+                            			station_code,
+                                  program_time
+                            		ORDER BY
+                            			program_time
+                                  ")
+sta55 <- dbGetQuery(con,"
+                                SELECT
+                                  DISTINCT(program_time),
+                            			COUNT(*) 
+                            		FROM 
+                            			processed.tv_program
+                                WHERE
+                                  station_code =5
+                            		GROUP BY
+                            			station_code,
+                                  program_time
+                            		ORDER BY
+                            			program_time
+                                  ")
+sta66 <- dbGetQuery(con,"
+                                SELECT
+                                  DISTINCT(program_time),
+                            			COUNT(*) 
+                            		FROM 
+                            			processed.tv_program
+                                WHERE
+                                  station_code =6
+                            		GROUP BY
+                            			station_code,
+                                  program_time
+                            		ORDER BY
+                            			program_time
+                                  ")
+sta77 <- dbGetQuery(con,"
+                                SELECT
+                                  DISTINCT(program_time),
+                            			COUNT(*) 
+                            		FROM 
+                            			processed.tv_program
+                                WHERE
+                                  station_code =7
+                            		GROUP BY
+                            			station_code,
+                                  program_time
+                            		ORDER BY
+                            			program_time
+                                  ")
+
+sta11P <-
+  ggplot(sta11, aes(x =program_time, y = count))+
+  geom_bar(stat = "identity", position = "stack")+
+  xlim(c(0.5, 23.5))+
+  labs(title = "日本テレビにおける放送分数分布")
+sta22P <-
+  ggplot(sta22, aes(x =program_time, y = count))+
+  geom_bar(stat = "identity", position = "stack")+
+  xlim(c(0.5, 23.5))+
+  labs(title = "ＴＢＳにおける番組コード分布")
+sta33P <-
+  ggplot(sta33, aes(x =program_time, y = count))+
+  geom_bar(stat = "identity", position = "stack")+
+  xlim(c(0.5, 23.5))+
+  labs(title = "フジテレビにおける番組コード分布")
+sta44P <-
+  ggplot(sta44, aes(x =program_time, y = count))+
+  geom_bar(stat = "identity", position = "stack")+
+  xlim(c(0.5, 23.5))+
+  labs(title = "テレビ朝日における番組コード分布")
+sta55P <-
+  ggplot(sta55, aes(x =program_time, y = count))+
+  geom_bar(stat = "identity", position = "stack")+
+  xlim(c(0.5, 23.5))+
+  labs(title = "テレビ東京における番組コード分布")
+sta66P <-
+  ggplot(sta66, aes(x =program_time, y = count))+
+  geom_bar(stat = "identity", position = "stack")+
+  xlim(c(0.5, 23.5))+
+  labs(title = "ＮＨＫ総合における番組コード分布")
+sta77P <-
+  ggplot(sta77, aes(x =program_time, y = count))+
+  geom_bar(stat = "identity", position = "stack")+
+  xlim(c(0.5, 23.5))+
+  labs(title = "ＮＨＫＥテレにおける番組コード分布")
+
+grid.arrange(sta11P, sta22P,sta33P, sta44P,
+             ncol = 2) 
+
+grid.arrange(sta55P, sta66P, sta77P,
+             ncol = 2)
+```
+
   
-
-
+##24時間テレビの区分
+![](figures/fb_24h.jpg)
 ```{r 24jikan}
 
 jikan_24 <- dbGetQuery(con,"
               SELECT
-               *
+               program_start_time,
+               program_end_time,
+               program_time,
+               program_name,
+               sin_toku
               FROM 
                processed.tv_program
               where
@@ -254,10 +403,20 @@ jikan_24 <- dbGetQuery(con,"
 
 jikan_24 %>% 
   kable()
-
+```
+  
+24時間テレビは間にニュースなども挟むため,番組が複数に区切られていた.
+  
+##410分番組
+![](figures/main.png)
+```{r}
 jikan_max <- dbGetQuery(con,"
               SELECT
-               *
+               program_start_time,
+               program_end_time,
+               program_time,
+               program_name,
+               sin_toku
               FROM 
                processed.tv_program
               where
@@ -266,5 +425,498 @@ jikan_max <- dbGetQuery(con,"
 						 	 program_start_time; ")
 jikan_max %>% 
   kable()
+```
+
+#分類コード
+##大分類コード
+```{r}
+ban1 <- dbGetQuery(con,"
+                        SELECT
+                        		distinct(ban_code1) ,
+                        		count(ban_code1)
+                        FROM
+                        		processed.tv_program 
+                        GROUP BY 
+                          		ban_code1;
+  
+")
+ban1_naiyou <- c("報道","教育・教養・実用","音楽","ドラマ","アニメ","映画","スポーツ","その他の娯楽番組")
+ban1 <- cbind(ban1, ban1_naiyou)
+
+ban1 %>% 
+  kable(caption = "大分類別本数")
 
 ```
+
+##大分類コード別時間分布
+```{r hour}
+ban1_1 <- dbGetQuery(con,"
+                                SELECT
+                                  EXTRACT(HOUR FROM  program_start_time),
+                            			COUNT(*) 
+                            		FROM 
+                            			processed.tv_program
+                                WHERE
+                                  ban_code1 =1
+                            		GROUP BY
+                            			EXTRACT(HOUR FROM program_start_time),
+                                  ban_code1
+                            		ORDER BY
+                            			date_part
+                                  ")
+ban1_2 <- dbGetQuery(con,"
+                                SELECT
+                                  EXTRACT(HOUR FROM  program_start_time),
+                            			COUNT(*) 
+                            		FROM 
+                            			processed.tv_program
+                                WHERE
+                                  ban_code1 =2
+                            		GROUP BY
+                            			EXTRACT(HOUR FROM program_start_time),
+                                  ban_code1
+                            		ORDER BY
+                            			date_part
+                                  ")
+ban1_3 <- dbGetQuery(con,"
+                                SELECT
+                                  EXTRACT(HOUR FROM  program_start_time),
+                            			COUNT(*) 
+                            		FROM 
+                            			processed.tv_program
+                                WHERE
+                                  ban_code1 =3
+                            		GROUP BY
+                            			EXTRACT(HOUR FROM program_start_time),
+                                  ban_code1
+                            		ORDER BY
+                            			date_part
+                                  ")
+ban1_4 <- dbGetQuery(con,"
+                                SELECT
+                                  EXTRACT(HOUR FROM  program_start_time),
+                            			COUNT(*) 
+                            		FROM 
+                            			processed.tv_program
+                                WHERE
+                                  ban_code1 =4
+                            		GROUP BY
+                            			EXTRACT(HOUR FROM program_start_time),
+                                  ban_code1
+                            		ORDER BY
+                            			date_part
+                                  ")
+ban1_5 <- dbGetQuery(con,"
+                                SELECT
+                                  EXTRACT(HOUR FROM  program_start_time),
+                            			COUNT(*) 
+                            		FROM 
+                            			processed.tv_program
+                                WHERE
+                                  ban_code1 =5
+                            		GROUP BY
+                            			EXTRACT(HOUR FROM program_start_time),
+                                  ban_code1
+                            		ORDER BY
+                            			date_part
+                                  ")
+ban1_6 <- dbGetQuery(con,"
+                                SELECT
+                                  EXTRACT(HOUR FROM  program_start_time),
+                            			COUNT(*) 
+                            		FROM 
+                            			processed.tv_program
+                                WHERE
+                                  ban_code1 =6
+                            		GROUP BY
+                            			EXTRACT(HOUR FROM program_start_time),
+                                  ban_code1
+                            		ORDER BY
+                            			date_part
+                                  ")
+ban1_7 <- dbGetQuery(con,"
+                                SELECT
+                                  EXTRACT(HOUR FROM  program_start_time),
+                            			COUNT(*) 
+                            		FROM 
+                            			processed.tv_program
+                                WHERE
+                                  ban_code1 =7
+                            		GROUP BY
+                            			EXTRACT(HOUR FROM program_start_time),
+                                  ban_code1
+                            		ORDER BY
+                            			date_part
+                                  ")
+ban1_8 <- dbGetQuery(con,"
+                                SELECT
+                                  EXTRACT(HOUR FROM  program_start_time),
+                            			COUNT(*) 
+                            		FROM 
+                            			processed.tv_program
+                                WHERE
+                                  ban_code1 =8
+                            		GROUP BY
+                            			EXTRACT(HOUR FROM program_start_time),
+                                  ban_code1
+                            		ORDER BY
+                            			date_part
+                                  ")
+
+ban1P <-
+  ggplot(ban1_1, aes(x = date_part, y = count))+
+  geom_bar(stat = "identity", position = "stack")+
+  xlim(c(0, 23.5))+
+  labs(title = "報道番組の時間分布")
+
+ban2P <-
+  ggplot(ban1_2, aes(x = date_part, y = count))+
+  geom_bar(stat = "identity", position = "stack")+
+  xlim(c(0, 23.5))+
+  labs(title = "教育・教養・実用番組の時間分布")
+
+ban3P <-
+  ggplot(ban1_3, aes(x = date_part, y = count))+
+  geom_bar(stat = "identity", position = "stack")+
+  xlim(c(0, 23.5))+
+  labs(title = "音楽番組の時間分布")
+
+ban4P <-
+  ggplot(ban1_4, aes(x = date_part, y = count))+
+  geom_bar(stat = "identity", position = "stack")+
+  xlim(c(0, 23.5))+
+  labs(title = "ドラマ番組の時間分布")
+
+ban5P <-
+  ggplot(ban1_5, aes(x = date_part, y = count))+
+  geom_bar(stat = "identity", position = "stack")+
+  xlim(c(0, 23.5))+
+  labs(title = "アニメ番組の時間分布")
+
+ban6P <-
+  ggplot(ban1_6, aes(x = date_part, y = count))+
+  geom_bar(stat = "identity", position = "stack")+
+  xlim(c(0, 23.5))+
+  labs(title = "映画番組の時間分布")
+
+ban7P <-
+  ggplot(ban1_7, aes(x = date_part, y = count))+
+  geom_bar(stat = "identity", position = "stack")+
+  xlim(c(0, 23.5))+
+  labs(title = "スポーツ番組の時間分布")
+
+ban8P <-
+  ggplot(ban1_8, aes(x = date_part, y = count))+
+  geom_bar(stat = "identity", position = "stack")+
+  xlim(c(0, 23.5))+
+  labs(title = "その他の娯楽番組の時間分布")
+
+
+grid.arrange(ban1P, ban2P, ban3P, ban4P,
+             ncol = 2) 
+grid.arrange( ban5P, ban6P, ban7P, ban8P,
+             ncol = 2)
+
+```
+
+##局コード別番組コード分布
+```{r 局コード別番組コード}
+sta1 <- dbGetQuery(con,"
+                                SELECT
+                                  DISTINCT(ban_code1),
+                            			COUNT(*) 
+                            		FROM 
+                            			processed.tv_program
+                                WHERE
+                                  station_code =1
+                            		GROUP BY
+                            			station_code,
+                                  ban_code1
+                            		ORDER BY
+                            			ban_code1
+                                  ")
+sta2 <- dbGetQuery(con,"
+                                SELECT
+                                  DISTINCT(ban_code1),
+                            			COUNT(*) 
+                            		FROM 
+                            			processed.tv_program
+                                WHERE
+                                  station_code =2
+                            		GROUP BY
+                            			station_code,
+                                  ban_code1
+                            		ORDER BY
+                            			ban_code1
+                                  ")
+sta3 <- dbGetQuery(con,"
+                                SELECT
+                                  DISTINCT(ban_code1),
+                            			COUNT(*) 
+                            		FROM 
+                            			processed.tv_program
+                                WHERE
+                                  station_code =3
+                            		GROUP BY
+                            			station_code,
+                                  ban_code1
+                            		ORDER BY
+                            			ban_code1
+                                  ")
+sta4 <- dbGetQuery(con,"
+                                SELECT
+                                  DISTINCT(ban_code1),
+                            			COUNT(*) 
+                            		FROM 
+                            			processed.tv_program
+                                WHERE
+                                  station_code =4
+                            		GROUP BY
+                            			station_code,
+                                  ban_code1
+                            		ORDER BY
+                            			ban_code1
+                                  ")
+sta5 <- dbGetQuery(con,"
+                                SELECT
+                                  DISTINCT(ban_code1),
+                            			COUNT(*) 
+                            		FROM 
+                            			processed.tv_program
+                                WHERE
+                                  station_code =5
+                            		GROUP BY
+                            			station_code,
+                                  ban_code1
+                            		ORDER BY
+                            			ban_code1
+                                  ")
+sta6 <- dbGetQuery(con,"
+                                SELECT
+                                  DISTINCT(ban_code1),
+                            			COUNT(*) 
+                            		FROM 
+                            			processed.tv_program
+                                WHERE
+                                  station_code =6
+                            		GROUP BY
+                            			station_code,
+                                  ban_code1
+                            		ORDER BY
+                            			ban_code1
+                                  ")
+sta7 <- dbGetQuery(con,"
+                                SELECT
+                                  DISTINCT(ban_code1),
+                            			COUNT(*) 
+                            		FROM 
+                            			processed.tv_program
+                                WHERE
+                                  station_code =7
+                            		GROUP BY
+                            			station_code,
+                                  ban_code1
+                            		ORDER BY
+                            			ban_code1
+                                  ")
+
+sta1P <-
+  ggplot(sta1, aes(x = ban_code1, y = count))+
+  geom_bar(stat = "identity", position = "stack")+
+  xlim(c(0.5, 8.5))+
+  labs(title = "日本テレビにおける番組コード分布")
+sta2P <-
+  ggplot(sta3, aes(x = ban_code1, y = count))+
+  geom_bar(stat = "identity", position = "stack")+
+  xlim(c(0.5, 8.5))+
+  labs(title = "ＴＢＳにおける番組コード分布")
+sta3P <-
+  ggplot(sta3, aes(x = ban_code1, y = count))+
+  geom_bar(stat = "identity", position = "stack")+
+  xlim(c(0.5, 8.5))+
+  labs(title = "フジテレビにおける番組コード分布")
+sta4P <-
+  ggplot(sta4, aes(x = ban_code1, y = count))+
+  geom_bar(stat = "identity", position = "stack")+
+  xlim(c(0.5, 8.5))+
+  labs(title = "テレビ朝日における番組コード分布")
+sta5P <-
+  ggplot(sta5, aes(x = ban_code1, y = count))+
+  geom_bar(stat = "identity", position = "stack")+
+  xlim(c(0.5, 8.5))+
+  labs(title = "テレビ東京における番組コード分布")
+sta6P <-
+  ggplot(sta6, aes(x = ban_code1, y = count))+
+  geom_bar(stat = "identity", position = "stack")+
+  xlim(c(0.5, 8.5))+
+  labs(title = "ＮＨＫ総合における番組コード分布")
+sta7P <-
+  ggplot(sta7, aes(x = ban_code1, y = count))+
+  geom_bar(stat = "identity", position = "stack")+
+  xlim(c(0.5, 8.5))+
+  labs(title = "ＮＨＫＥテレにおける番組コード分布")
+
+grid.arrange(sta1P, sta2P,sta3P, sta4P,
+             ncol = 2) 
+
+grid.arrange(sta5P, sta6P, sta7P,
+             ncol = 2)
+```
+
+#新番特番
+```{r}
+s_t <- dbGetQuery(con,"
+                          SELECT
+                          	A.st,
+                          	A.count,
+                          	B.sin_toku_naiyou
+                          FROM
+                          	sub_mst.sin_toku_mst AS B
+                          LEFT JOIN
+                          	(SELECT
+                          		distinct(sin_toku) AS st,
+                          		count(sin_toku) AS count
+                          	FROM
+                          		processed.tv_program 
+                          	GROUP BY 
+                          		sin_toku) AS A
+                          ON
+                          	A.st = B.sin_toku
+                          ORDER BY
+                          	A.st;")
+s_t %>% 
+  kable(caption = "新番・特番のログ数")
+
+barplot(s_t$count, names.arg=s_t$sin_toku_naiyou)
+
+
+s_tS<- dbGetQuery(con,"
+    SELECT
+			EXTRACT(MONTH FROM  program_date) ,
+			COUNT(*) as sinban
+		FROM 
+			processed.tv_program
+		WHERE 
+			sin_toku = 'S'
+		GROUP BY
+			EXTRACT(MONTH FROM program_date)
+		ORDER BY
+			date_part")
+			
+s_tN<- dbGetQuery(con,"
+    SELECT
+			EXTRACT(MONTH FROM  program_date) ,
+			COUNT(*) as normal
+		FROM 
+			processed.tv_program
+		WHERE 
+			sin_toku = 'N'
+		GROUP BY
+			EXTRACT(MONTH FROM program_date)
+		ORDER BY
+			date_part")		
+			
+s_t1<- merge ( s_tN, s_tS, all=TRUE ) 
+
+s_t1  %>% 
+  kable()
+
+s_tP1 <-
+  ggplot(s_t1, aes(x = date_part, y = normal))+
+  geom_bar(stat = "identity", position = "stack", fill = "skyblue")+
+  xlim(c(0, 12.5))+
+  labs(title = "年間の普通番組の分布")
+
+s_tP2 <-
+  ggplot(s_t1, aes(x = date_part, y = sinban))+
+  geom_bar(stat = "identity", position = "stack", fill = "pink")+
+  xlim(c(0, 12.5))+
+  labs(title = "年間の新番の分布")
+
+s_t1P <- ggplot(s_t1, aes(date_part)) +
+  geom_line(aes(y = normal, color = "skyblue")) +
+  geom_line(aes(y = sinban, color = "pink")) +
+  ylab("count")
+
+s_tP1
+s_tP2
+s_t1P
+
+```
+    
+Tとして特番コードは用意されていたが, 該当する番組はなかった.   
+新番組は4月と10月が多く, 上期下期の境であると考えられる.  
+次いで多かったのは7月と1月で, ドラマのクールと一致する.
+
+#放送形式
+```{r}
+b_f <- dbGetQuery(con,"
+                          SELECT
+                          	A.br,
+                          	A.count,
+                          	B.br_format_naiyou
+                          FROM
+                          	sub_mst.br_format_mst AS B
+                          LEFT JOIN
+                          	(SELECT
+                          		distinct(br_format) AS br,
+                          		count(br_format) AS count
+                          	FROM
+                          		processed.tv_program 
+                          	GROUP BY 
+                          		br_format) AS A
+                          ON
+                          	A.br = B.br_format
+                          ORDER BY
+                          	A.br;")
+b_f %>% 
+  kable(caption = "放送形式別ログ数")
+
+barplot(b_f$count, names.arg=b_f$br_format)
+
+```
+
+#最終回コード
+```{r}
+final <- dbGetQuery(con,"
+                            SELECT
+                          		distinct(final_code) AS br,
+                          		count(final_code) AS count
+                          	FROM
+                          		processed.tv_program 
+                          	GROUP BY 
+                          		final_code;")
+final_naiyou <- c("通常回", "最終回")
+final <- cbind(final, final_naiyou)
+
+final %>% 
+  kable(caption = "放送形式別ログ数")
+
+
+finalD <- dbGetQuery(con,"
+    SELECT
+			EXTRACT(MONTH FROM  program_date) ,
+			COUNT(*) 
+		FROM 
+			processed.tv_program
+		WHERE 
+			final_code = 1
+		GROUP BY
+			EXTRACT(MONTH FROM program_date)
+		ORDER BY
+			date_part")		
+			
+finalD  %>% 
+  kable()
+
+finalP <-
+  ggplot(finalD, aes(x = date_part, y = count))+
+  geom_bar(stat = "identity", position = "stack")+
+  xlim(c(0, 12.5))+
+  labs(title = "年間の最終回の分布")
+
+finalP
+```
+  
+3月, 9月に最終回を迎える番組が多かった.  
+これは新番が多かった4月, 10月の前月であり, 同様に7月, 1月の前月である6月, 12月も次いで多いことが確認できた.

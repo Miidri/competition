@@ -75,18 +75,26 @@ week <- con %>%
 |番組名（漢字）   |program_name	      |char  		  |      |          | 8134	| 2	| 41 |
 |番組名（カナ）   |program_name_kana  |char  		  |      |          | 3877	| 1	| 20 |
 
-```{r 番組情報}
-head(pro)
+##番組情報詳細
+最初の100件をチェックしてみた.  
+```{r head_pro, result = "asis"}
+data <- pro %>% 
+  head(100) %>% 
+  collect()
+
+data %>% 
+  datatable(style="bootstrap", class="table-condensed", options = list(dom = 'tp',scrollX = TRUE))
 ```
 
-###局コード 外部キー4 局マスタ
+#局コード
+##局マスタの中身
 |局マスタ       |sta_mst        |データ型   |主キー|外部キーNo.|
 |---------------|---------------|-----------|------|-----------|
 |局コード       |station_code   |int        |PK    |     |
 |局名称	        |station_jp	    |char		    |      |     |
 |局略称         |station_ab     |char       |      |     |
 
-
+#局別番組本数
 ```{r count_station}
 
 count_sta <- dbGetQuery(con,"
@@ -118,11 +126,12 @@ barplot(count_sta$count, names.arg=count_sta$station_jp, ylim = c(0,30000))
 
 ```
   
-単純な番組数はNHKが多い→番組分数と相関強そう？  
+番組数が圧倒的に多いのはNHK系列. 
+民放ではテレ東が多め.
 
 
 #曜日
-
+##曜日ごとの番組本数
 ```{r count_week}
 count_week <- dbGetQuery(con,"
                           SELECT
@@ -148,6 +157,8 @@ count_week %>%
 
 barplot(count_week$count, names.arg=count_week$day_week_name)
 ```
+  
+曜日ごとに大きな差は見られなかった.
 
 #番組開始/終了時刻
 ## 基本統計量
@@ -170,8 +181,9 @@ summary(pro_start) %>%
 ```
 
 
-## 番組開始時間
-```{r}
+## 番組開始時間の分布
+###1時間ごと
+```{r hourly}
 count_hourly <- dbGetQuery(con,"
                            SELECT
                              EXTRACT(HOUR FROM  program_start_time),
@@ -189,10 +201,37 @@ count_hourly %>%
   as_tibble() %>% 
   rename(hour = date_part) %>% 
   ggplot(aes(hour, count))+
-  geom_bar(stat = "identity")+
+  geom_bar(stat = "identity")+  
+  xlim(c(0, 23.5))+
   labs(title = "時間帯ごとの番組本数")
 ```
 
+11時台が1番多い.  
+次いで, 深夜も多かった.
+
+###1カ月ごと
+```{r monthly}
+count_monthly <- dbGetQuery(con,"
+                           SELECT
+                             EXTRACT(MONTH FROM  program_start_time),
+                             COUNT(*)
+                           FROM 
+                             processed.tv_program
+                           GROUP BY
+                             EXTRACT(MONTH FROM program_start_time)")
+
+count_monthly  %>% 
+  arrange(date_part) %>% 
+  kable()
+
+count_monthly %>% 
+  as_tibble() %>% 
+  rename(month = date_part) %>% 
+  ggplot(aes(month, count))+
+  geom_bar(stat = "identity")+
+  xlim(c(0, 12.5))+
+  labs(title = "月ごとの番組本数")
+```
 
 #放送分数
 ##基本統計量
@@ -214,7 +253,7 @@ summary(time_count$program_time)
     
 放送分数は242種類.    
 
-##放送分数プロット
+##放送分数分布
 ```{r 放送分数2}
 time_countP1 <-
   ggplot(time_count, aes(x = program_time, y = count))+
@@ -332,50 +371,87 @@ sta77 <- dbGetQuery(con,"
                             		ORDER BY
                             			program_time
                                   ")
-
 sta11P <-
   ggplot(sta11, aes(x =program_time, y = count))+
-  geom_bar(stat = "identity", position = "stack")+
-  xlim(c(0.5, 23.5))+
-  labs(title = "日本テレビにおける放送分数分布")
+  geom_bar(stat = "identity")+
+  labs(title = "日本テレビ")
 sta22P <-
   ggplot(sta22, aes(x =program_time, y = count))+
-  geom_bar(stat = "identity", position = "stack")+
-  xlim(c(0.5, 23.5))+
-  labs(title = "ＴＢＳにおける番組コード分布")
+  geom_bar(stat = "identity")+
+  labs(title = "ＴＢＳ")
 sta33P <-
   ggplot(sta33, aes(x =program_time, y = count))+
-  geom_bar(stat = "identity", position = "stack")+
-  xlim(c(0.5, 23.5))+
-  labs(title = "フジテレビにおける番組コード分布")
+  geom_bar(stat = "identity")+
+  labs(title = "フジテレビ")
 sta44P <-
   ggplot(sta44, aes(x =program_time, y = count))+
-  geom_bar(stat = "identity", position = "stack")+
-  xlim(c(0.5, 23.5))+
-  labs(title = "テレビ朝日における番組コード分布")
+  geom_bar(stat = "identity")+
+  labs(title = "テレビ朝日")
 sta55P <-
   ggplot(sta55, aes(x =program_time, y = count))+
-  geom_bar(stat = "identity", position = "stack")+
-  xlim(c(0.5, 23.5))+
-  labs(title = "テレビ東京における番組コード分布")
+  geom_bar(stat = "identity")+
+  labs(title = "テレビ東京")
 sta66P <-
   ggplot(sta66, aes(x =program_time, y = count))+
-  geom_bar(stat = "identity", position = "stack")+
-  xlim(c(0.5, 23.5))+
-  labs(title = "ＮＨＫ総合における番組コード分布")
+  geom_bar(stat = "identity")+
+  labs(title = "ＮＨＫ総合")
 sta77P <-
   ggplot(sta77, aes(x =program_time, y = count))+
-  geom_bar(stat = "identity", position = "stack")+
-  xlim(c(0.5, 23.5))+
-  labs(title = "ＮＨＫＥテレにおける番組コード分布")
+  geom_bar(stat = "identity")+
+  labs(title = "ＮＨＫＥテレ")
+
+sta111P <-
+  ggplot(sta11, aes(x =program_time, y = count))+
+  geom_bar(stat = "identity")+
+  xlim(c(0.5, 125))+
+  labs(title = "日本テレビ(120分まで)")
+sta222P <-
+  ggplot(sta22, aes(x =program_time, y = count))+
+  geom_bar(stat = "identity")+
+  xlim(c(0.5, 125))+
+  labs(title = "ＴＢＳ(120分まで)")
+sta333P <-
+  ggplot(sta33, aes(x =program_time, y = count))+
+  geom_bar(stat = "identity")+
+  xlim(c(0.5, 125))+
+  labs(title = "フジテレビ(120分まで)")
+sta444P <-
+  ggplot(sta44, aes(x =program_time, y = count))+
+  geom_bar(stat = "identity")+
+  xlim(c(0.5, 125))+
+  labs(title = "テレビ朝日(120分まで)")
+sta555P <-
+  ggplot(sta55, aes(x =program_time, y = count))+
+  geom_bar(stat = "identity")+
+  xlim(c(0.5, 125))+
+  labs(title = "テレビ東京(120分まで)")
+sta666P <-
+  ggplot(sta66, aes(x =program_time, y = count))+
+  geom_bar(stat = "identity")+
+  xlim(c(0.5, 125))+
+  labs(title = "ＮＨＫ総合(120分まで)")
+sta777P <-
+  ggplot(sta77, aes(x =program_time, y = count))+
+  geom_bar(stat = "identity")+
+  xlim(c(0.5, 125))+
+  labs(title = "ＮＨＫＥテレ(120分まで)")
 
 grid.arrange(sta11P, sta22P,sta33P, sta44P,
              ncol = 2) 
 
 grid.arrange(sta55P, sta66P, sta77P,
              ncol = 2)
-```
 
+grid.arrange(sta111P, sta222P,sta333P, sta444P,
+             ncol = 2) 
+
+grid.arrange(sta555P, sta666P, sta777P,
+             ncol = 2)
+```
+  
+テレ東以外の民放は5分, 30分, 60分近辺に番組数が集中していた.  
+テレ東は30分番組が圧倒的に多かった.
+NHK系列は基本的に30分以内, 特に5分ほどの短い番組に偏りがあった.
   
 ##24時間テレビの区分
 ![](figures/fb_24h.jpg)
@@ -405,9 +481,11 @@ jikan_24 %>%
   kable()
 ```
   
-24時間テレビは間にニュースなども挟むため,番組が複数に区切られていた.
-  
-##410分番組
+最長の番組が410分と, 24時間テレビなどはどう記録されているか気になり調べた.  
+間にニュースなども挟むため, 番組が複数に区切られていたため, 長くても4.5hほどであった.
+特筆すべきは新番・特番コードで, 特番ではなく普通番組に記録されていた. → 新番・特番コードにて説明
+
+##最長の410分番組
 ![](figures/main.png)
 ```{r}
 jikan_max <- dbGetQuery(con,"
@@ -618,6 +696,11 @@ grid.arrange( ban5P, ban6P, ban7P, ban8P,
              ncol = 2)
 
 ```
+  
+それぞれの特徴がとても出た分布となっていた.  
+特に教育・教養・実用番組は番組本数が他より圧倒的に多く, 短い番組が多いことがうかがえた.  
+映画やアニメは特有のゴールデンタイムがあると考えられた.
+
 
 ##局コード別番組コード分布
 ```{r 局コード別番組コード}
@@ -763,6 +846,9 @@ grid.arrange(sta5P, sta6P, sta7P,
              ncol = 2)
 ```
 
+局ごとの強みが顕著に表れた.  
+ここでも, 民放とNHK系列で大まかな分布の差が見て取れた.
+
 #新番特番
 ```{r}
 s_t <- dbGetQuery(con,"
@@ -844,11 +930,13 @@ s_t1P
 
 ```
     
-Tとして特番コードは用意されていたが, 該当する番組はなかった.   
+Tとして特番コードは用意されていたが, 該当する番組はなかった. 
+（24時間テレビがNであった理由）
 新番組は4月と10月が多く, 上期下期の境であると考えられる.  
 次いで多かったのは7月と1月で, ドラマのクールと一致する.
 
 #放送形式
+##基本統計量
 ```{r}
 b_f <- dbGetQuery(con,"
                           SELECT
@@ -876,7 +964,102 @@ barplot(b_f$count, names.arg=b_f$br_format)
 
 ```
 
+##月ごとの放送形式分布
+```{r}
+bf0 <- dbGetQuery(con,"
+SELECT
+	EXTRACT(MONTH FROM  program_date) ,
+	count(*)
+FROM
+	processed.tv_program
+WHERE 
+	br_format = 0
+GROUP BY
+	EXTRACT(MONTH FROM program_date),
+	br_format
+ORDER BY
+			date_part")
+
+bf1 <- dbGetQuery(con,"
+SELECT
+	EXTRACT(MONTH FROM  program_date) ,
+	count(*)
+FROM
+	processed.tv_program
+WHERE 
+	br_format = 1
+GROUP BY
+	EXTRACT(MONTH FROM program_date),
+	br_format
+ORDER BY
+			date_part")
+
+bf2 <- dbGetQuery(con,"
+SELECT
+	EXTRACT(MONTH FROM  program_date) ,
+	count(*)
+FROM
+	processed.tv_program
+WHERE 
+	br_format = 2
+GROUP BY
+	EXTRACT(MONTH FROM program_date),
+	br_format
+ORDER BY
+			date_part")
+
+bf3 <- dbGetQuery(con,"
+SELECT
+	EXTRACT(MONTH FROM  program_date) ,
+	count(*)
+FROM
+	processed.tv_program
+WHERE 
+	br_format = 3
+GROUP BY
+	EXTRACT(MONTH FROM program_date),
+	br_format
+ORDER BY
+			date_part")
+
+bf4 <- dbGetQuery(con,"
+SELECT
+	EXTRACT(MONTH FROM  program_date) ,
+	count(*)
+FROM
+	processed.tv_program
+WHERE 
+	br_format = 4
+GROUP BY
+	EXTRACT(MONTH FROM program_date),
+	br_format
+ORDER BY
+			date_part")
+bf1 <- bf1[,-1]
+bf2 <- bf2[,-1]
+bf3 <- bf3[,-1]
+bf4 <- bf4[,-1]
+
+bfA <- cbind(bf0, bf1, bf2, bf3, bf4)
+bfA  %>% 
+  kable()
+
+bfAP <- ggplot(bfA, aes(date_part)) +
+  geom_line(aes(y = count, color = "Eテレ")) +
+  geom_line(aes(y = bf1, color = "レギュラー箱")) +
+  geom_line(aes(y = bf2, color = "レギュラー帯")) +
+  geom_line(aes(y = bf3, color = "単発箱")) +
+  geom_line(aes(y = bf4, color = "単発帯")) +
+  xlim(c(0, 12.5))+
+  ylab("count")
+
+bfAP
+```
+
+
 #最終回コード
+
+##基本統計量
 ```{r}
 final <- dbGetQuery(con,"
                             SELECT
@@ -891,8 +1074,10 @@ final <- cbind(final, final_naiyou)
 
 final %>% 
   kable(caption = "放送形式別ログ数")
+```
 
-
+##月ごとの最終回番組数
+```{r}
 finalD <- dbGetQuery(con,"
     SELECT
 			EXTRACT(MONTH FROM  program_date) ,
@@ -917,6 +1102,6 @@ finalP <-
 
 finalP
 ```
-  
-3月, 9月に最終回を迎える番組が多かった.  
+
+  3月, 9月に最終回を迎える番組が多かった.  
 これは新番が多かった4月, 10月の前月であり, 同様に7月, 1月の前月である6月, 12月も次いで多いことが確認できた.

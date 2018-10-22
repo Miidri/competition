@@ -94,7 +94,7 @@ data %>%
 |局名称	        |station_jp	    |char		    |      |     |
 |局略称         |station_ab     |char       |      |     |
 
-#局別番組本数
+##局別番組本数
 ```{r count_station}
 
 count_sta <- dbGetQuery(con,"
@@ -119,10 +119,13 @@ ORDER BY
 	A.st_code;
 ")
 
-count_sta %>% 
-  kable(caption = "station_code ごとのログ数")
+count_sta
+count_staP <-
+  ggplot(count_sta, aes(x = station_jp, y = count))+
+  geom_bar(stat = "identity")+
+  labs(title = "局別視聴CM数")
 
-barplot(count_sta$count, names.arg=count_sta$station_jp, ylim = c(0,30000))
+count_staP
 
 ```
   
@@ -471,7 +474,7 @@ jikan_24 <- dbGetQuery(con,"
 							 and
 							 program_start_time >= TO_TIMESTAMP('2017/08/26 18:30:00', 'YYYY-MM-DD HH24:MI:SS')
               and
-							 program_start_time <= TO_TIMESTAMP('2017/08/27 19:00:00', 'YYYY-MM-DD HH24:MI:SS')
+							 program_start_time <= TO_TIMESTAMP('2017/08/27 19:00:00', 'YYYY-MM-DD HH24:MI:SS');
 
                )
 						 order by 

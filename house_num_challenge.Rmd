@@ -1,0 +1,241 @@
+---
+title: "house_num_challenge"
+output:
+  html_document:
+    number_sections: true
+    fig_caption: true
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    fig_width: 7
+    fig_height: 4.5
+    theme: cosmo
+    highlight: tango
+    code_folding: hide
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, 
+                      warning = FALSE,
+                      message = FALSE)
+```
+
+
+```{r set_up}
+#パッケージのインストールと読み込み
+#持ってないパッケージはインストールする
+targetPackages <- c('knitr','DBI','RPostgreSQL','tidyverse',"reshape2","lubridate","dbplot","DT") 
+newPackages <- targetPackages[!(targetPackages %in% installed.packages()[,"Package"])]
+if(length(newPackages)) install.packages(newPackages, repos = "http://cran.us.r-project.org")
+for(package in targetPackages) library(package, character.only = T)
+
+
+theme_set(theme_bw(base_family = "HiraKakuPro-W3"))
+
+source("psql.R")
+```
+
+
+```{r get_data}
+play <- con %>% 
+  tbl(from = dbplyr::in_schema("processed", "tv_play_p_cv")) 
+orgn <- con %>% 
+  tbl(from = dbplyr::in_schema("processed", "tv_orgn_p_cv"))
+prof <- con %>% 
+  tbl(from = dbplyr::in_schema("processed", "profiledata"))
+
+
+#play1<- dbGetQuery(con,"SELECT * FROM processed.tv_play_p_cv")
+#orgn1 <- dbGetQuersy(con,"SELECT * FROM processed.tv_orgn_p_cv")
+#prof1 <- dbGetQuery(con,"SELECT * FROM prcessed.profiledata")
+
+```
+
+#日程ごとのログ数
+```{r 日程ごとのログ数}
+ houseDate <- dbGetQuery(con,"SELECT  
+ 	distinct(br_date),
+ 	count(br_date)
+ FROM
+ 	processed.tv_orgn_p_cv
+ group by (br_date)")
+ head(houseDate)
+```
+
+#世帯Noごとの終了, 開始, ログ日数, ログ数
+```{r 世帯Noごとの終了, 開始, ログ日数, ログ数}
+houseDetail <- dbGetQuery(con,"
+SELECT
+	distinct(house_num),
+	max(br_date),
+	min(br_date),
+  count(distinct(br_date)),
+	count(br_date)
+
+FROM
+	processed.tv_orgn_p_cv
+group by (house_num)")
+
+
+head(houseDetail)
+
+```
+
+#日程ごとのサンプル数
+```{r 日程ごとのサンプル数}
+sample_num<- dbGetQuery(con,"
+SELECT
+	distinct(sample_date),
+	count(sample_date)
+
+FROM	
+	processed.tv_sample_p_cv
+
+GROUP BY
+	tv_sample_p_cv.sample_date;
+")
+
+
+sample_numP <-
+  ggplot(sample_num, aes(x = sample_date, y = count))+
+  geom_line()
+
+sample_numP
+
+```
+
+#誰がいつサンプリングされたのか
+```{r 誰がいつサンプリングされたのか}
+sample_att<- dbGetQuery(con,"
+SELECT
+	house_num,
+	sample_date
+FROM	
+	processed.tv_sample_p_cv
+GROUP BY
+	house_num,
+	sample_date
+ORDER BY
+house_num,
+	sample_date DESC;")
+
+sample_attP<-
+  ggplot(sample_att, aes(x = sample_date, y = house_num, color = house_num))+
+  geom_bin2d(binwidth = c(1,1))# + ylim(c(0,20))+xlim(c(as.Date('2017-03-28'),as.Date('2017-04-20')))
+
+sample_attP
+
+```
+
+#再生ログと閲覧ログの一致確認
+```{r 再生ログと閲覧ログの一致確認}
+time9 <- dbGetQuery(con,"
+SELECT
+	br_start_datetime,
+	house_num
+FROM
+	processed.tv_orgn_p_cv
+WHERE
+	data_agg_type = 9
+ORDER BY 
+	br_start_datetime;
+")
+head(time9)
+
+time1 <- dbGetQuery(con,"
+SELECT
+	count(br_start_datetime)
+FROM
+	processed.tv_orgn_p_cv
+WHERE
+	data_agg_type = 9;
+")
+time1
+```
+
+
+```{r}
+time_check <- dbGetQuery(con,"
+SELECT 	
+    count(*)
+FROM 
+(SELECT
+	br_start_datetime,
+	house_num
+FROM
+	processed.tv_orgn_p_cv
+WHERE
+	data_agg_type = 9
+ORDER BY 
+	br_start_datetime) AS A
+
+LEFT OUTER JOIN 
+(SELECT
+	timeshift_datetime,
+	house_num
+FROM
+	processed.tv_play_p_cv
+WHERE
+	(timeshift_datetime > TO_TIMESTAMP('2017/04/03 05:08:59', 'YYYY-MM-DD HH24:MI:SS'))
+ORDER BY 
+	timeshift_datetime) AS B
+  
+ON
+  A.br_start_datetime = B.timeshift_datetime
+   AND
+  A.house_num = B.house_num;
+")
+
+time_check
+```
+
+  
+<!--同じ番組を113回見ていた異常者について
+```{r}
+ijo1 <- dbGetQuery(con,"
+
+SELECT
+	*
+FROM
+	processed.tv_orgn_p_cv
+WHERE
+	dataseq = 113;
+")
+
+ijo2 <- dbGetQuery(con,"
+SELECT
+	action_datetime
+FROM
+	processed.tv_play_p_cv
+WHERE
+	timeshift_datetime = TO_TIMESTAMP('2017/12/29 23:45:00', 'YYYY-MM-DD HH24:MI:SS')
+	and
+	house_num = 6702
+ORDER BY action_datetime;
+")
+
+ijo3 <- dbGetQuery(con,"
+SELECT
+	*
+FROM
+	processed.tv_program
+WHERE
+	(program_start_time = TO_TIMESTAMP('2017/12/29 23:45:00', 'YYYY-MM-DD HH24:MI:SS')
+	or
+  program_end_time =  TO_TIMESTAMP('2017/12/29 23:45:00', 'YYYY-MM-DD HH24:MI:SS'))
+  and
+	station_code = 6;
+")
+
+ijo1
+ijo2
+ijo3
+```
+
+どうも,2時間近く永遠1分間の再生をしていたらしい.  
+異常者というより, リピート再生をつけっぱなしにしてしまった?  
+
+-->
+

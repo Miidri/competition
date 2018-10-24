@@ -34,9 +34,7 @@ for(package in targetPackages) library(package, character.only = T)
 
 theme_set(theme_bw(base_family = "HiraKakuPro-W3"))
 
-drv <- dbDriver("PostgreSQL")
-con <- dbConnect(drv,dbname="video",host="192.168.11.52",port=5431,
-                 user="b4" ,password="takayuki")
+source("psql.R")
 ```
 
 

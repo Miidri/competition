@@ -508,8 +508,11 @@ jikan_max %>%
 ```
 
 #分類コード
+
+$ban\_code2=0 \cap \ ban\_code3 = 000$のときは大分類名を, $ban\_code2 \neq 0 \cap ban\_code3 = 000$のとき中分類名を表していた.  
+
 ##大分類コード
-```{r}
+```{r ban_code1}
 ban1 <- dbGetQuery(con,"
                         SELECT
                         		distinct(ban_code1) ,
@@ -703,6 +706,30 @@ grid.arrange( ban5P, ban6P, ban7P, ban8P,
 特に教育・教養・実用番組は番組本数が他より圧倒的に多く, 短い番組が多いことがうかがえた.  
 映画やアニメは特有のゴールデンタイムがあると考えられた.
 
+## 中分類コード
+```{r}
+ban2 <- dbGetQuery(con,"
+                        SELECT
+                            distinct(ban_code2),
+                        		ban_code1,
+                        		count(ban_code2)
+                        FROM
+                        		processed.tv_program 
+                        GROUP BY 
+                          		ban_code2,
+                              ban_code1
+                        ORDER BY
+                              ban_code1;
+  
+")
+ban2_naiyou <- c("報道","時事解説","教育教養","一般実用","音楽","一般劇","時代劇","スリラー･アクション","コメディ","アニメ","映画","スポーツ","クイズ・ゲーム", "芸能","子供向けの番組","その他")
+ban2 <- cbind(ban2, ban2_naiyou)
+ban2 <- ban2[,c(2,1,3,4)]
+
+ban2 %>% 
+  kable(caption = "中分類別本数")
+
+```
 
 ##局コード別番組コード分布
 ```{r 局コード別番組コード}
@@ -875,7 +902,10 @@ s_t <- dbGetQuery(con,"
 s_t %>% 
   kable(caption = "新番・特番のログ数")
 
-barplot(s_t$count, names.arg=s_t$sin_toku_naiyou)
+s_tP <-ggplot(s_t, aes(x = s_t$sin_toku_naiyou, y = s_t$count) )+
+  geom_bar(stat="identity")
+
+s_tP
 
 
 s_tS<- dbGetQuery(con,"
@@ -962,7 +992,10 @@ b_f <- dbGetQuery(con,"
 b_f %>% 
   kable(caption = "放送形式別ログ数")
 
-barplot(b_f$count, names.arg=b_f$br_format)
+b_fP <-ggplot(b_f, aes(x = b_f$br_format_naiyou, y = b_f$count) )+
+  geom_bar(stat="identity")
+
+b_fP
 
 ```
 

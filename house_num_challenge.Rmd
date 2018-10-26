@@ -35,6 +35,7 @@ for(package in targetPackages) library(package, character.only = T)
 theme_set(theme_bw(base_family = "HiraKakuPro-W3"))
 
 source("psql.R")
+
 ```
 
 
@@ -60,9 +61,41 @@ prof <- con %>%
  	count(br_date)
  FROM
  	processed.tv_orgn_p_cv
- group by (br_date)")
- head(houseDate)
+ group by
+  br_date")
+
+ head(houseDate) %>%
+   kable()
+ 
+ summary(houseDate) %>%
+   kable()
+ 
+ 
+houseDate60000 <- dbGetQuery(con,"  
+SELECT  
+ 	distinct(br_date),
+ 	count(br_date),
+	count(distinct(house_num))
+FROM
+ 	processed.tv_orgn_p_cv
+group by 
+	br_date
+HAVING
+ 	count(br_date) > 60000
+ORDER BY
+ 	count(br_date) DESC;")
+
+colnames(houseDate60000)<- c("date","log count","house count")
+
+houseDate60000 %>%
+  kable() 
+
+
 ```
+  
+年末年始はログの数が多い割には観測世帯数が少なかった.  
+帰省などが関係あるかも.
+
 
 #世帯Noごとの終了, 開始, ログ日数, ログ数
 ```{r 世帯Noごとの終了, 開始, ログ日数, ログ数}
@@ -100,7 +133,8 @@ GROUP BY
 
 sample_numP <-
   ggplot(sample_num, aes(x = sample_date, y = count))+
-  geom_line()
+  geom_line()+
+  ylim(c(5000,5300))
 
 sample_numP
 
@@ -118,19 +152,22 @@ GROUP BY
 	house_num,
 	sample_date
 ORDER BY
-house_num,
+  house_num,
 	sample_date DESC;")
+
+head(sample_att)
 
 sample_attP<-
   ggplot(sample_att, aes(x = sample_date, y = house_num, color = house_num))+
   geom_bin2d(binwidth = c(1,1))# + ylim(c(0,20))+xlim(c(as.Date('2017-03-28'),as.Date('2017-04-20')))
 
 sample_attP
-
 ```
 
 #再生ログと閲覧ログの一致確認
-```{r 再生ログと閲覧ログの一致確認}
+  
+リアルタイムのログ数と日程順に並べた最初の数行を示す.
+```{r realtime1}
 time9 <- dbGetQuery(con,"
 SELECT
 	br_start_datetime,
@@ -142,24 +179,41 @@ WHERE
 ORDER BY 
 	br_start_datetime;
 ")
-head(time9)
-
-time1 <- dbGetQuery(con,"
-SELECT
-	count(br_start_datetime)
-FROM
-	processed.tv_orgn_p_cv
-WHERE
-	data_agg_type = 9;
-")
-time1
+nrow(time9)
+head(time9) %>%
+  kable()
 ```
 
+これを, 家庭数ごとでまとめる.
+
+```{r realtime2}
+time9_house <- dbGetQuery(con,"
+SELECT
+	br_start_datetime,
+	count(distinct(house_num))
+ FROM
+	processed.tv_orgn_p_cv
+ WHERE
+	data_agg_type = 9
+ group by 
+	br_start_datetime
+ORDER BY 
+	br_start_datetime;
+")
+nrow(time9_house)
+head(time9_house) %>%
+  kable()
+```
+  
+閲覧ログとの一致を考える.
 
 ```{r}
+#1025万行だから重いよ
+
 time_check <- dbGetQuery(con,"
 SELECT 	
-    count(*)
+	A.br_start_datetime,
+	A.house_num
 FROM 
 (SELECT
 	br_start_datetime,
@@ -185,11 +239,64 @@ ORDER BY
 ON
   A.br_start_datetime = B.timeshift_datetime
    AND
-  A.house_num = B.house_num;
+  A.house_num = B.house_num
+ORDER BY 
+	A.br_start_datetime;
 ")
 
-time_check
+nrow(time_check)
+head(time_check)%>%
+  kable()
 ```
+  
+同じく家庭数で縛って一致を行う.
+
+```{r}
+time_check1 <- dbGetQuery(con,"
+SELECT 	
+	A.br_start_datetime,
+	C
+FROM 
+(SELECT
+	br_start_datetime,
+	count(distinct(house_num)) as C
+FROM
+	processed.tv_orgn_p_cv
+WHERE
+	data_agg_type = 9
+group by 
+	br_start_datetime
+ORDER BY 
+	br_start_datetime) AS A
+
+LEFT OUTER JOIN 
+(SELECT
+	timeshift_datetime,
+	count(distinct(house_num))
+FROM
+	processed.tv_play_p_cv
+WHERE
+	(timeshift_datetime > TO_TIMESTAMP('2017/04/03 05:08:59', 'YYYY-MM-DD HH24:MI:SS'))
+group by 
+	timeshift_datetime
+ORDER BY 
+	timeshift_datetime) AS B
+ON
+  A.br_start_datetime = B.timeshift_datetime
+ORDER BY 
+	A.br_start_datetime;
+   ")
+
+nrow(time_check1)
+head(time_check1) %>%
+  kable()
+#ggplot(time_check1, aes(x=time_check1$br_start_datetime, y = time_check1$c))+
+#geom_point()
+
+```
+
+閲覧ログと再生ログ
+
 
   
 <!--同じ番組を113回見ていた異常者について

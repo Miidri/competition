@@ -1,0 +1,201 @@
+---
+title: "performer"
+output:
+  html_document:
+    number_sections: true
+    fig_caption: true
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    fig_width: 7
+    fig_height: 4.5
+    theme: cosmo
+    highlight: tango
+    code_folding: hide
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      warning = FALSE,
+                      message = FALSE)
+```
+
+
+```{r set_up}
+#パッケージのインストールと読み込み
+#持ってないパッケージはインストールする
+targetPackages <- c('knitr','DBI','RPostgreSQL','tidyverse',"reshape2","lubridate","dbplot","DT") 
+newPackages <- targetPackages[!(targetPackages %in% installed.packages()[,"Package"])]
+if(length(newPackages)) install.packages(newPackages, repos = "http://cran.us.r-project.org")
+for(package in targetPackages) library(package, character.only = T)
+
+
+theme_set(theme_bw(base_family = "HiraKakuPro-W3"))
+
+source("psql.R")
+
+```
+
+#内容確認
+```{r head_performer, result = "asis"}
+performer <- con %>% 
+  tbl(from = dbplyr::in_schema("add_data", "performer")) 
+data <- performer %>% 
+  head(100) %>% 
+  collect()
+
+data %>% 
+  datatable(style="bootstrap", class="table-condensed", options = list(dom = 'tp',scrollX = TRUE))
+```
+
+
+#カウント
+##全体と局
+tv_programよりも期間が長いので, それを抜いたもののカウント, 局ごとのカウントを行う.  
+  
+```{r add data の件数}
+count0 <- dbGetQuery(con,"
+SELECT
+	count(*)
+FROM
+	add_data.performer
+WHERE
+	br_start_datetime_crow >= '20170403050000'
+	AND
+	br_start_datetime_crow <= '20180402045900'
+;")
+
+
+sta0 <- dbGetQuery(con,"
+SELECT
+	distinct(station_jp_crow),
+	count(br_start_datetime_crow)
+FROM
+	add_data.performer
+WHERE
+	br_start_datetime_crow >= '20170403050000'
+	AND
+	br_start_datetime_crow <= '20180402045900'
+GROUP BY
+	station_jp_crow;")
+
+sta0 %>%
+  kable()
+
+```
+  
+5局分しかない. ので,こっちもNHK抜く.
+
+```{r}
+count1 <- dbGetQuery(con,"
+SELECT
+	count(*)
+FROM
+	processed.tv_program
+WHERE
+	station_code >= 1
+	and
+	station_code <= 5;")
+
+sta1 <- dbGetQuery(con,"
+SELECT
+	A.st_code,
+	A.count,
+	B.station_jp
+FROM
+	processed.sta_mst AS B
+LEFT JOIN
+	(SELECT
+		distinct(station_code) AS st_code,
+		count(station_code) AS count
+	FROM
+		processed.tv_program 
+	GROUP BY 
+		station_code) AS A
+ON
+	A.st_code = B.station_code
+ORDER BY
+	A.st_code;
+")
+
+sta1 <- sta1[-7,]
+sta1 <- sta1[-6,]
+
+sta1 %>%
+  kable()
+
+compare <- cbind(count0, count1 )
+names(compare) <- c("add_d", "tv_p")
+compare %>%
+  kable()
+```
+  
+
+##月ごと
+  
+んんん？ずれている？  
+ちょっと月ごとでみてみよう
+```{r monthly}
+count_monthly <- dbGetQuery(con,"
+                           SELECT
+                             EXTRACT(MONTH FROM  br_start_datetime_crow),
+                             COUNT(*)
+                           FROM 
+                             add_data.performer
+                           GROUP BY
+                             EXTRACT(MONTH FROM br_start_datetime_crow)")
+
+
+count_monthly %>% 
+  as_tibble() %>% 
+  rename(hour = date_part) %>% 
+  ggplot(aes(hour, count))+
+  geom_bar(stat = "identity")+  
+  xlim(c(0, 12.5))+
+  labs(title = "月ごとの番組本数add_d")
+```
+
+
+
+##こっちも月ごと
+```{r monthly1}
+count_monthly1 <- dbGetQuery(con,"
+                           SELECT
+                             EXTRACT(MONTH FROM  program_start_time),
+                             COUNT(*)
+                           FROM 
+                             processed.tv_program
+                           WHERE
+                            	station_code = 2
+                            	or
+                            	station_code = 4
+                            	or
+                            	station_code = 3
+                            	or
+                            	station_code =1
+                            	or
+                            	station_code = 5
+                           GROUP BY
+                             EXTRACT(MONTH FROM program_start_time)
+                           ")
+
+count_monthly1 %>% 
+  as_tibble() %>% 
+  rename(hour = date_part) %>% 
+  ggplot(aes(hour, count))+
+  geom_bar(stat = "identity")+  
+  xlim(c(0, 12.5))+
+  labs(title = "月ごとの番組本数tv_p")
+
+count_all <- cbind(count_monthly, count_monthly1)
+count_all <- count_all[,-3]
+count_all <- count_all[order(count_all$date_part),]
+names(count_all) <- c("month","add_d", "tv_p")
+
+count_all %>%
+  kable()
+```
+
+

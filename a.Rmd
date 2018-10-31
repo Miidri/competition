@@ -60,42 +60,25 @@ data %>%
 ```{r add data の件数}
 count0 <- dbGetQuery(con,"
 SELECT
-	T.station_code,
-	A.station_code,
-	A.station_jp,
-	T.program_day_week,
-	T.program_start_time,
-	A.br_start_datetime_crow,
-	T.program_name,
-	A.program_name_crow
+	*
 FROM
 	processed.tv_program as T
 LEFT JOIN
 	(SELECT
-		M.station_code,
-		M.station_jp,
-		P.program_name_crow,
-		P.br_start_datetime_crow,
-		P.regular,
-		P.guest,
-		P.koe,
-		P.other,
-		P.chara
+		*
 	FROM
-	 	add_data.performer as P
-	LEFT JOIN
-	 	processed.sta_mst as M
-	 ON
-	 	M.station_jp = P.station_jp_crow
-	 WHERE
-		P.br_start_datetime_crow >= '20170403050000'
+	 	add_data.performer_tmp3
+	WHERE
+		(br_start_datetime_crow >= '20170403050000'
 	 AND
-		P.br_start_datetime_crow <= '20180402045900'
+		br_start_datetime_crow <= '20180402045900')
 	) as A
 ON
 	(A.station_code = T.station_code
 	AND
-	A.br_start_datetime_crow = T.program_start_time)
+	A.br_start_datetime_crow <= T.program_start_time
+	AND
+	A.br_end_datetime_crow > T.program_start_time)
 WHERE
 	T.station_code <= 5
 LIMIT 10;")
@@ -105,45 +88,35 @@ count0 %>%
 
 ```
   
-局ごとにカウントした．結果一致しなかった行は8288行.
+局ごとにカウントした．58812行全て！
 
 ```{r}
 count1 <- dbGetQuery(con,"
 SELECT
-	distinct(station_jp),
-	count(station_jp)
+	distinct(T.station_code),
+	count(T.station_code)
 FROM
 	processed.tv_program as T
 LEFT JOIN
 	(SELECT
-		M.station_code,
-		M.station_jp,
-		P.program_name_crow,
-		P.br_start_datetime_crow,
-		P.regular,
-		P.guest,
-		P.koe,
-		P.other,
-		P.chara
+		*
 	FROM
-	 	add_data.performer as P
-	LEFT JOIN
-	 	processed.sta_mst as M
-	 ON
-	 	M.station_jp = P.station_jp_crow
-	 WHERE
-		P.br_start_datetime_crow >= '20170403050000'
+	 	add_data.performer_tmp3
+	WHERE
+		br_start_datetime_crow >= '20170403050000'
 	 AND
-		P.br_start_datetime_crow <= '20180402045900'
+		br_start_datetime_crow <= '20180402045900'
 	) as A
 ON
 	(A.station_code = T.station_code
 	AND
-	A.br_start_datetime_crow = T.program_start_time)
+	A.br_start_datetime_crow <= T.program_start_time
+	AND
+	A.br_end_datetime_crow > T.program_start_time)
 WHERE
 	T.station_code <= 5
 GROUP BY
-	station_jp;
+	T.station_code;
 ")
 
 

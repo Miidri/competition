@@ -48,154 +48,195 @@ data <- performer %>%
 
 data %>% 
   datatable(style="bootstrap", class="table-condensed", options = list(dom = 'tp',scrollX = TRUE))
+
 ```
 
 
 #カウント
-##全体と局
-tv_programよりも期間が長いので, それを抜いたもののカウント, 局ごとのカウントを行う.  
+##番組情報ベース
   
+5局分でチェック
+
 ```{r add data の件数}
 count0 <- dbGetQuery(con,"
 SELECT
-	count(*)
+	T.station_code,
+	A.station_code,
+	A.station_jp,
+	T.program_day_week,
+	T.program_start_time,
+	A.br_start_datetime_crow,
+	T.program_name,
+	A.program_name_crow
 FROM
-	add_data.performer
-WHERE
-	br_start_datetime_crow >= '20170403050000'
+	processed.tv_program as T
+LEFT JOIN
+	(SELECT
+		M.station_code,
+		M.station_jp,
+		P.program_name_crow,
+		P.br_start_datetime_crow,
+		P.regular,
+		P.guest,
+		P.koe,
+		P.other,
+		P.chara
+	FROM
+	 	add_data.performer as P
+	LEFT JOIN
+	 	processed.sta_mst as M
+	 ON
+	 	M.station_jp = P.station_jp_crow
+	 WHERE
+		P.br_start_datetime_crow >= '20170403050000'
+	 AND
+		P.br_start_datetime_crow <= '20180402045900'
+	) as A
+ON
+	(A.station_code = T.station_code
 	AND
-	br_start_datetime_crow <= '20180402045900'
-;")
-
-
-sta0 <- dbGetQuery(con,"
-SELECT
-	distinct(station_jp_crow),
-	count(br_start_datetime_crow)
-FROM
-	add_data.performer
+	A.br_start_datetime_crow = T.program_start_time)
 WHERE
-	br_start_datetime_crow >= '20170403050000'
-	AND
-	br_start_datetime_crow <= '20180402045900'
-GROUP BY
-	station_jp_crow;")
+	T.station_code <= 5
+LIMIT 10;")
 
-sta0 %>%
+count0 %>%
   kable()
 
 ```
   
-5局分しかない. ので,こっちもNHK抜く.
+局ごとにカウントした．結果一致しなかった行は8288行.
 
 ```{r}
 count1 <- dbGetQuery(con,"
 SELECT
-	count(*)
+	distinct(station_jp),
+	count(station_jp)
 FROM
-	processed.tv_program
-WHERE
-	station_code >= 1
-	and
-	station_code <= 5;")
-
-sta1 <- dbGetQuery(con,"
-SELECT
-	A.st_code,
-	A.count,
-	B.station_jp
-FROM
-	processed.sta_mst AS B
+	processed.tv_program as T
 LEFT JOIN
 	(SELECT
-		distinct(station_code) AS st_code,
-		count(station_code) AS count
+		M.station_code,
+		M.station_jp,
+		P.program_name_crow,
+		P.br_start_datetime_crow,
+		P.regular,
+		P.guest,
+		P.koe,
+		P.other,
+		P.chara
 	FROM
-		processed.tv_program 
-	GROUP BY 
-		station_code) AS A
+	 	add_data.performer as P
+	LEFT JOIN
+	 	processed.sta_mst as M
+	 ON
+	 	M.station_jp = P.station_jp_crow
+	 WHERE
+		P.br_start_datetime_crow >= '20170403050000'
+	 AND
+		P.br_start_datetime_crow <= '20180402045900'
+	) as A
 ON
-	A.st_code = B.station_code
-ORDER BY
-	A.st_code;
+	(A.station_code = T.station_code
+	AND
+	A.br_start_datetime_crow = T.program_start_time)
+WHERE
+	T.station_code <= 5
+GROUP BY
+	station_jp;
 ")
 
-sta1 <- sta1[-7,]
-sta1 <- sta1[-6,]
 
-sta1 %>%
+count1 %>%
   kable()
 
-compare <- cbind(count0, count1 )
-names(compare) <- c("add_d", "tv_p")
-compare %>%
-  kable()
 ```
   
 
-##月ごと
+##出演者ベース
   
-んんん？ずれている？  
-ちょっと月ごとでみてみよう
-```{r monthly}
-count_monthly <- dbGetQuery(con,"
-                           SELECT
-                             EXTRACT(MONTH FROM  br_start_datetime_crow),
-                             COUNT(*)
-                           FROM 
-                             add_data.performer
-                           GROUP BY
-                             EXTRACT(MONTH FROM br_start_datetime_crow)")
+tv_programよりも期間が長いので, それを抜いたもののカウント, 局ごとのカウントを行う.  
 
-
-count_monthly %>% 
-  as_tibble() %>% 
-  rename(hour = date_part) %>% 
-  ggplot(aes(hour, count))+
-  geom_bar(stat = "identity")+  
-  xlim(c(0, 12.5))+
-  labs(title = "月ごとの番組本数add_d")
-```
-
-
-
-##こっちも月ごと
 ```{r monthly1}
-count_monthly1 <- dbGetQuery(con,"
-                           SELECT
-                             EXTRACT(MONTH FROM  program_start_time),
-                             COUNT(*)
-                           FROM 
-                             processed.tv_program
-                           WHERE
-                            	station_code = 2
-                            	or
-                            	station_code = 4
-                            	or
-                            	station_code = 3
-                            	or
-                            	station_code =1
-                            	or
-                            	station_code = 5
-                           GROUP BY
-                             EXTRACT(MONTH FROM program_start_time)
+count2 <- dbGetQuery(con,"
+SELECT
+	A.station_jp,
+	P.station_jp_crow,
+	A.station_code,
+	A.program_day_week,
+	A.program_start_time,
+	P.br_start_datetime_crow,
+	A.program_name,
+	P.program_name_crow,
+	P.station_jp_crow
+FROM
+	add_data.performer as P
+LEFT JOIN
+	(SELECT
+		station_jp,
+		T.*		
+	FROM
+	 	processed.tv_program as T
+	LEFT JOIN
+	 	processed.sta_mst as M
+	 ON
+	 	M.station_code = T.station_code
+	WHERE
+		T.station_code <= 5 
+	) as A
+ON
+	A.station_jp = P.station_jp_crow 
+	AND
+	A.program_start_time = P.br_start_datetime_crow 
+WHERE
+		P.br_start_datetime_crow >= '20170403050000'
+	 AND
+		P.br_start_datetime_crow <= '20180402045900'
+	limit  10;
                            ")
 
-count_monthly1 %>% 
-  as_tibble() %>% 
-  rename(hour = date_part) %>% 
-  ggplot(aes(hour, count))+
-  geom_bar(stat = "identity")+  
-  xlim(c(0, 12.5))+
-  labs(title = "月ごとの番組本数tv_p")
-
-count_all <- cbind(count_monthly, count_monthly1)
-count_all <- count_all[,-3]
-count_all <- count_all[order(count_all$date_part),]
-names(count_all) <- c("month","add_d", "tv_p")
-
-count_all %>%
+count2 %>%
   kable()
 ```
+  
+局ごとにカウントした．結果一致しなかった行は1006行.
+
+```{r}
+count3 <- dbGetQuery(con,"
+SELECT
+	distinct(station_jp),
+	count(station_jp)
+FROM
+	add_data.performer as P
+LEFT JOIN
+	(SELECT
+		station_jp,
+		T.*		
+	FROM
+	 	processed.tv_program as T
+	LEFT JOIN
+	 	processed.sta_mst as M
+	 ON
+	 	M.station_code = T.station_code
+	WHERE
+		T.station_code <= 5 
+	) as A
+ON
+	A.station_jp = P.station_jp_crow 
+	AND
+	A.program_start_time = P.br_start_datetime_crow 
+WHERE
+		P.br_start_datetime_crow >= '20170403050000'
+	 AND
+		P.br_start_datetime_crow <= '20180402045900'
+GROUP BY
+	station_jp;                           ")
+
+count3 %>%
+  kable()
+```
+
+
+
 
 

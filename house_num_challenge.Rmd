@@ -17,7 +17,7 @@ editor_options:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, 
+knitr::opts_chunk$set(echo = TRUE, 
                       warning = FALSE,
                       message = FALSE)
 ```
@@ -89,8 +89,6 @@ colnames(houseDate60000)<- c("date","log count","house count")
 
 houseDate60000 %>%
   kable() 
-
-
 ```
   
 年末年始はログの数が多い割には観測世帯数が少なかった.  
@@ -111,9 +109,8 @@ FROM
 	processed.tv_orgn_p_cv
 group by (house_num)")
 
-
-head(houseDetail)
-
+head(houseDetail) %>%
+  kable()
 ```
 
 #日程ごとのサンプル数
@@ -137,7 +134,6 @@ sample_numP <-
   ylim(c(5000,5300))
 
 sample_numP
-
 ```
 
 #誰がいつサンプリングされたのか
@@ -155,7 +151,8 @@ ORDER BY
   house_num,
 	sample_date DESC;")
 
-head(sample_att)
+head(sample_att) %>%
+  kable()
 
 sample_attP<-
   ggplot(sample_att, aes(x = sample_date, y = house_num, color = house_num))+
@@ -203,6 +200,9 @@ ORDER BY
 nrow(time9_house)
 head(time9_house) %>%
   kable()
+
+time9_house[time9_house$count > 500,]
+
 ```
   
 閲覧ログとの一致を考える.
@@ -235,7 +235,6 @@ WHERE
 	(timeshift_datetime > TO_TIMESTAMP('2017/04/03 05:08:59', 'YYYY-MM-DD HH24:MI:SS'))
 ORDER BY 
 	timeshift_datetime) AS B
-  
 ON
   A.br_start_datetime = B.timeshift_datetime
    AND
@@ -249,7 +248,10 @@ head(time_check)%>%
   kable()
 ```
   
-同じく家庭数で縛って一致を行う.
+重複カウントがあるため, こちらの方が数が多く現れてしまった.   
+  
+  
+同じく家庭数で縛って一致を行う
 
 ```{r}
 time_check1 <- dbGetQuery(con,"
@@ -290,16 +292,24 @@ ORDER BY
 nrow(time_check1)
 head(time_check1) %>%
   kable()
-#ggplot(time_check1, aes(x=time_check1$br_start_datetime, y = time_check1$c))+
-#geom_point()
+
+time_checkP <- ggplot(time_check, aes(x=time_check$br_start_datetime, y = time_check$house_num))+
+geom_point()
+
+time_check1P <- ggplot(time_check1, aes(x=time_check1$br_start_datetime, y = time_check1$c))+
+geom_point()
+
+#time_checkP
+time_check1P
 
 ```
 
-閲覧ログと再生ログ
+閲覧ログと再生ログが一致した.
+
 
 
   
-<!--同じ番組を113回見ていた異常者について
+# おまけ 同じ番組を113回見ていた異常者について
 ```{r}
 ijo1 <- dbGetQuery(con,"
 
@@ -343,6 +353,4 @@ ijo3
 
 どうも,2時間近く永遠1分間の再生をしていたらしい.  
 異常者というより, リピート再生をつけっぱなしにしてしまった?  
-
--->
 

@@ -17,7 +17,7 @@ editor_options:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, 
+knitr::opts_chunk$set(echo = TRUE, 
                       warning = FALSE,
                       message = FALSE)
 ```
@@ -330,16 +330,17 @@ FROM
 
 ```
 
-##CM銘柄が多い会社
+##CMの種類が多い会社
 ```{r}
 advbra <- dbGetQuery(con,"
         SELECT
  				   count((B.adv_code)),
-				   A.adv_name
+				   A.adv_name,
+           A.adv_code
 				FROM 
                    processed.m_cm_tv_brand as B  
                 LEFT JOIN 
-				   processed.m_cm_tv_advertiser as A
+				           processed.m_cm_tv_advertiser as A
                 ON
 				   A.adv_code = B.adv_code 
 				GROUP BY
@@ -355,6 +356,62 @@ head(advbra, 10) %>%
 ```
   
 トイレタリー業界の銘柄のCMが多かった.
+
+##CMの本数ランキング
+```{r}
+adv_max <- dbGetQuery(con,"
+SELECT
+	   count((J.adv_code)),
+	   A.adv_name
+FROM 
+           processed.jiten_data as J  
+LEFT JOIN 
+           processed.m_cm_tv_advertiser as A
+ON
+	   A.adv_code = J.adv_code 
+LEFT JOIN 
+           processed.m_cm_tv_brand as B
+ON
+	   B.brand_code = J.brand_code 
+
+GROUP BY
+     A.adv_code,
+	   A.adv_name,
+	   B.brand_code,
+	   B.brand_name
+ORDER BY
+	   count((J.brand_code)) DESC;")
+head(adv_max, 10) %>%
+  kable()
+
+brand_max <- dbGetQuery(con,"
+SELECT
+	   count(J.brand_code) as brand_count, 
+     count(J.adv_code) as adv_count, 
+	   A.adv_name,
+     B.brand_name
+FROM 
+           processed.jiten_data as J  
+LEFT JOIN 
+           processed.m_cm_tv_advertiser as A
+ON
+	   A.adv_code = J.adv_code 
+LEFT JOIN 
+           processed.m_cm_tv_brand as B
+ON
+	   B.brand_code = J.brand_code 
+GROUP BY
+           A.adv_code,
+	   A.adv_name,
+	   B.brand_code,
+	   B.brand_name
+ORDER BY
+	   count((J.brand_code)) DESC;")
+head(brand_max, 10) %>%
+  kable()
+
+
+```
 
 #CM秒数
 ##基本統計量

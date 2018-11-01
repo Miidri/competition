@@ -9,7 +9,7 @@ output:
     toc_depth: 2
     fig_width: 7
     fig_height: 4.5
-    theme: cosmo
+    theme: sandstone 
     highlight: tango
     code_folding: hide
 editor_options: 
@@ -26,7 +26,7 @@ knitr::opts_chunk$set(echo = TRUE,
 ```{r set_up}
 #パッケージのインストールと読み込み
 #持ってないパッケージはインストールする
-targetPackages <- c('knitr','DBI','RPostgreSQL','tidyverse',"reshape2","lubridate","dbplot","DT") 
+targetPackages <- c('knitr','DBI','RPostgreSQL','tidyverse',"reshape2","lubridate","dbplot","DT","prettydoc") 
 newPackages <- targetPackages[!(targetPackages %in% installed.packages()[,"Package"])]
 if(length(newPackages)) install.packages(newPackages, repos = "http://cran.us.r-project.org")
 for(package in targetPackages) library(package, character.only = T)
@@ -39,10 +39,14 @@ source("psql.R")
 ```
 
 #内容確認
+  
+- 曜日情報は抜けていたため消去.
+- 番組終了時刻はなかったため, 次の番組の開始時間として追加.
+- 局コードと各局ごとにシリアルナンバーを振ることで主キー登録.
 ```{r head_performer, result = "asis"}
-performer <- con %>% 
+performer_tmp3 <- con %>% 
   tbl(from = dbplyr::in_schema("add_data", "performer")) 
-data <- performer %>% 
+data <- performer_tmp3 %>% 
   head(100) %>% 
   collect()
 
@@ -55,7 +59,8 @@ data %>%
 #カウント
 ##番組情報ベース
   
-5局分でチェック
+- NHK系の出演者情報はないため民放5局でチェック.
+- 期間は tv_program にあわせた.  
 
 ```{r add data の件数}
 count0 <- dbGetQuery(con,"
@@ -87,8 +92,10 @@ count0 %>%
   kable()
 
 ```
+
+##局ごとにカウント
   
-局ごとにカウントした．58812行全て！
+- 全58812行
 
 ```{r}
 count1 <- dbGetQuery(con,"
@@ -124,90 +131,51 @@ count1 %>%
   kable()
 
 ```
-  
 
-##出演者ベース
-  
-tv_programよりも期間が長いので, それを抜いたもののカウント, 局ごとのカウントを行う.  
+##かぶる番組に関して
 
-```{r monthly1}
+```{r}
 count2 <- dbGetQuery(con,"
 SELECT
-	A.station_jp,
-	P.station_jp_crow,
 	A.station_code,
-	A.program_day_week,
-	A.program_start_time,
-	P.br_start_datetime_crow,
-	A.program_name,
-	P.program_name_crow,
-	P.station_jp_crow
+  A.serial_num,
+  A.br_start_datetime_crow,
+  T.program_start_time,
+  A.program_name_crow,
+  T.program_name,
+  A.regular
 FROM
-	add_data.performer as P
+	processed.tv_program as T
 LEFT JOIN
 	(SELECT
-		station_jp,
-		T.*		
+		*
 	FROM
-	 	processed.tv_program as T
-	LEFT JOIN
-	 	processed.sta_mst as M
-	 ON
-	 	M.station_code = T.station_code
+	 	add_data.performer_tmp3
 	WHERE
-		T.station_code <= 5 
+		(br_start_datetime_crow >= '20170403050000'
+	 AND
+		br_start_datetime_crow <= '20180402045900')
 	) as A
 ON
-	A.station_jp = P.station_jp_crow 
+	(A.station_code = T.station_code
 	AND
-	A.program_start_time = P.br_start_datetime_crow 
+	A.br_start_datetime_crow <= T.program_start_time
+	AND
+	A.br_end_datetime_crow > T.program_start_time)
 WHERE
-		P.br_start_datetime_crow >= '20170403050000'
-	 AND
-		P.br_start_datetime_crow <= '20180402045900'
-	limit  10;
-                           ")
+	T.station_code <= 5
+ORDER BY
+	T.station_code,
+	A.serial_num,
+  T.program_start_time
+LIMIT 5;
+")
 
 count2 %>%
   kable()
-```
-  
-局ごとにカウントした．結果一致しなかった行は1006行.
 
-```{r}
-count3 <- dbGetQuery(con,"
-SELECT
-	distinct(station_jp),
-	count(station_jp)
-FROM
-	add_data.performer as P
-LEFT JOIN
-	(SELECT
-		station_jp,
-		T.*		
-	FROM
-	 	processed.tv_program as T
-	LEFT JOIN
-	 	processed.sta_mst as M
-	 ON
-	 	M.station_code = T.station_code
-	WHERE
-		T.station_code <= 5 
-	) as A
-ON
-	A.station_jp = P.station_jp_crow 
-	AND
-	A.program_start_time = P.br_start_datetime_crow 
-WHERE
-		P.br_start_datetime_crow >= '20170403050000'
-	 AND
-		P.br_start_datetime_crow <= '20180402045900'
-GROUP BY
-	station_jp;                           ")
-
-count3 %>%
-  kable()
 ```
+
 
 
 

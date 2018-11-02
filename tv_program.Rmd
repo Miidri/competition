@@ -118,7 +118,9 @@ ORDER BY
 	A.st_code;
 ")
 
-count_sta
+count_sta %>%
+  kable()
+
 count_staP <-
   ggplot(count_sta, aes(x = station_jp, y = count))+
   geom_bar(stat = "identity")+
@@ -157,7 +159,12 @@ count_week <- dbGetQuery(con,"
 count_week %>% 
   kable(caption = "曜日ごとのログ数")
 
-barplot(count_week$count, names.arg=count_week$day_week_name)
+count_weekP <-
+  ggplot(count_week, aes(x = day_week_name, y = count))+
+  geom_bar(stat = "identity")+
+  labs(title = "曜日ごとのログ数")
+
+count_weekP
 ```
   
 曜日ごとに大きな差は見られなかった.
@@ -208,8 +215,7 @@ count_hourly %>%
   labs(title = "時間帯ごとの番組本数")
 ```
 
-11時台が1番多い.  
-次いで, 深夜も多かった.
+11時台が1番多く, 次いで深夜も多かった.
 
 ###1カ月ごと
 ```{r monthly}
@@ -969,6 +975,12 @@ Tとして特番コードは用意されていたが, 該当する番組はな�
 
 #放送形式
 ##基本統計量
+  
+- レギュラー：毎週同じ曜日の同じ時間
+- 単発：毎回違った内容の番組
+- 箱：一週間のうち1回しか放送されない番組
+- 帯：複数曜日の同じ時間帯に放送される番組
+  
 ```{r}
 b_f <- dbGetQuery(con,"
                           SELECT

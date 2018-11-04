@@ -60,9 +60,9 @@ sex_countP <-
   ggplot(sex_count, aes(x = sex, y = n))+
   geom_bar(stat = "identity",col=c("skyblue","pink"),,fill=c("skyblue","pink"))+
   labs(title = "ユーザの性別")
+
 sex_countP
 
-pie(sex_count$n, labels=c("male","female"),col=c("skyblue","pink"), clockwise=T, border="#ffffff",main="ユーザの性別")
 ```
 
 #婚姻
@@ -78,8 +78,14 @@ marriage_countP <-
   ggplot(marriage_count, aes(x = marriage, y = n))+
   geom_bar(stat = "identity",col=c("skyblue","pink"),,fill=c("skyblue","pink"))+
   labs(title = "婚姻情報")
-marriage_countP
 
+marriage_countP
+```
+
+##円グラフ
+```{r}
+par(mfrow=c(1,2)) 
+pie(sex_count$n, labels=c("male","female"),col=c("skyblue","pink"), clockwise=T, border="#ffffff",main="性別")
 pie(marriage_count$n, labels=c("未婚","既婚"),col=c("skyblue","pink"), clockwise=T, border="#ffffff",main="婚姻情報")
 
 ```
@@ -91,15 +97,11 @@ age_summarize = dplyr::summarise(x,max=max(age),min=min(age),mean=mean(age))
 summary(x$age)
 age_count = dplyr::count(x,age)
 
-age_count%>%
-  kable()
-
 age_countP <-
   ggplot(age_count, aes(x = age, y = n))+
   geom_bar(stat = "identity")+
   labs(title = "ユーザの年齢分布")
 
-age_countP
 
 ##5歳刻み
 #ヒストグラム
@@ -107,6 +109,8 @@ age_count5 <-
   ggplot(x, aes(x = age))+
   geom_histogram(binwidth=5, colour="white")+
   labs(title = "ユーザの年齢分布")
+
+age_countP
 age_count5
 
 #円グラフ

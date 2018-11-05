@@ -1,0 +1,378 @@
+---
+title: "performer_report"
+output:
+  html_document:
+    number_sections: true
+    fig_caption: true
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    fig_width: 7
+    fig_height: 4.5
+    theme: sandstone
+    highlight: tango
+    code_folding: hide
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, 
+                      warning = FALSE,
+                      message = FALSE)
+```
+
+
+```{r set_up}
+#パッケージのインストールと読み込み
+#持ってないパッケージはインストールする
+targetPackages <- c('knitr','DBI','RPostgreSQL','tidyverse',"reshape2","lubridate","dbplot","DT","gridExtra") 
+newPackages <- targetPackages[!(targetPackages %in% installed.packages()[,"Package"])]
+if(length(newPackages)) install.packages(newPackages, repos = "http://cran.us.r-project.org")
+for(package in targetPackages) library(package, character.only = T)
+
+source("psql.R")
+
+```
+
+```{r}
+PP<- con %>% 
+  tbl(from = dbplyr::in_schema("add_data", "pro_per")) 
+
+one<- con %>% 
+  tbl(from = dbplyr::in_schema("add_data", "performer_one"))
+
+reg<- con %>% 
+  tbl(from = dbplyr::in_schema("add_data", "regular"))
+
+guest<- con %>% 
+  tbl(from = dbplyr::in_schema("add_data", "guest")) 
+
+koe<- con %>% 
+  tbl(from = dbplyr::in_schema("add_data", "koe")) 
+
+chara<- con %>% 
+  tbl(from = dbplyr::in_schema("add_data", "chara")) 
+
+other<- con %>% 
+  tbl(from = dbplyr::in_schema("add_data", "other")) 
+
+```
+
+
+# 出演者情報
+##全体
+```{r head_pro, result = "asis"}
+data <- one %>% 
+  head(100) %>% 
+  collect()
+
+data %>% 
+  datatable(style="bootstrap", class="table-condensed", options = list(dom = 'tp',scrollX = TRUE))
+```
+
+
+
+
+# regular
+## top 10
+```{r reg top3}
+reg_top3 <- dbGetQuery(con,"
+SELECT
+	distinct(reg_name) as NAME,
+	count(reg_name)
+FROM
+	add_data.regular
+GROUP BY
+	reg_name
+ORDER BY
+	count(reg_name) desc
+LIMIT 3;")
+
+reg_top3 %>%
+  kable()
+```
+
+## MAX
+```{r}
+reg_MAX <- dbGetQuery(con,"
+SELECT
+	reg_num as MAX,
+	program_name
+	
+FROM
+	add_data.regular
+WHERE
+	reg_num = 102;
+")	
+reg_MAX %>%
+  kable()
+```
+	
+# guest
+## top 3
+
+```{r guest top3}
+guest_top3 <- dbGetQuery(con,"
+SELECT
+	distinct(guest_name) as NAME,
+	count(guest_name)
+FROM
+	add_data.guest
+GROUP BY
+	guest_name
+ORDER BY
+	count(guest_name) desc
+LIMIT 3;")
+
+guest_top3 %>%
+  kable()
+```
+
+## MAX
+```{r}
+guest_MAX <- dbGetQuery(con,"
+SELECT
+	guest_num as MAX,
+	station_code,
+  serial_num1,
+	program_name
+	
+FROM
+	add_data.guest
+WHERE
+	guest_num = 205
+ORDER BY
+  serial_num1;
+")	
+guest_MAX %>%
+  kable()
+```
+
+# koe
+## top 3
+
+```{r koe top3}
+koe_top3 <- dbGetQuery(con,"
+SELECT
+	distinct(koe_name) as NAME,
+	count(koe_name)
+FROM
+	add_data.koe
+GROUP BY
+	koe_name
+ORDER BY
+	count(koe_name) desc
+LIMIT 3;")
+
+koe_top3 %>%
+  kable()
+```
+
+## MAX
+```{r}
+koe_MAX <- dbGetQuery(con,"
+SELECT
+	koe_num as MAX,
+	station_code,
+  serial_num1,
+	program_name
+	
+FROM
+	add_data.koe
+WHERE
+	koe_num = 72;
+")	
+koe_MAX %>%
+  kable()
+```
+
+# chara
+## top 3
+
+```{r chara top3}
+chara_top3 <- dbGetQuery(con,"
+SELECT
+	distinct(chara_name) as NAME,
+	count(chara_name)
+FROM
+	add_data.chara
+GROUP BY
+	chara_name
+ORDER BY
+	count(chara_name) desc
+LIMIT 1;")
+
+chara_top3 <- rbind(chara_top3, c(' ぽつりん', 713), c('ぐでたま', 588) )
+
+chara_top3 %>%
+  kable()
+
+
+```
+
+## MAX
+```{r}
+chara_MAX <- dbGetQuery(con,"
+SELECT
+	chara_num as MAX,
+	station_code,
+  serial_num1,
+	program_name
+	
+FROM
+	add_data.chara
+WHERE
+	chara_num = 8;
+")	
+chara_MAX %>%
+  kable()
+```
+
+# other
+## top 3
+
+```{r other top3}
+other_top3 <- dbGetQuery(con,"
+SELECT
+	distinct(other_name) as NAME,
+	count(other_name)
+FROM
+	add_data.other
+GROUP BY
+	other_name
+ORDER BY
+	count(other_name) desc
+LIMIT 3;")
+
+other_top3 %>%
+  kable()
+```
+
+## MAX
+```{r}
+other_MAX <- dbGetQuery(con,"
+SELECT
+	other_num as MAX,
+	station_code,
+  serial_num1,
+  program_name
+FROM
+	add_data.other
+WHERE
+	other_num = 376
+ORDER BY
+  serial_num1;
+")	
+other_MAX %>%
+  kable()
+```
+
+```{r}
+reg_1 <- dbGetQuery(con,"
+SELECT
+	distinct(reg_name),
+	count(reg_name) 
+FROM
+	add_data.regular
+WHERE
+	station_code = 1
+GROUP BY
+	reg_name,
+	station_code
+ORDER BY 
+	count(reg_name) desc
+;")
+
+reg_2 <- dbGetQuery(con,"
+SELECT
+	distinct(reg_name),
+	count(reg_name) 
+FROM
+	add_data.regular
+WHERE
+	station_code = 2
+GROUP BY
+	reg_name,
+	station_code
+ORDER BY 
+	count(reg_name) desc
+;")
+
+reg_3 <- dbGetQuery(con,"
+SELECT
+	distinct(reg_name),
+	count(reg_name) 
+FROM
+	add_data.regular
+WHERE
+	station_code = 3
+GROUP BY
+	reg_name,
+	station_code
+ORDER BY 
+	count(reg_name) desc
+;")
+
+reg_4 <- dbGetQuery(con,"
+SELECT
+	distinct(reg_name),
+	count(reg_name) 
+FROM
+	add_data.regular
+WHERE
+	station_code = 4
+GROUP BY
+	reg_name,
+	station_code
+ORDER BY 
+	count(reg_name) desc
+;")
+
+reg_5 <- dbGetQuery(con,"
+SELECT
+	distinct(reg_name),
+	count(reg_name) 
+FROM
+	add_data.regular
+WHERE
+	station_code = 5
+GROUP BY
+	reg_name,
+	station_code
+ORDER BY 
+	count(reg_name) desc
+;")
+
+reg_1 <- c(max(reg_1$count),mean(reg_1$count))
+reg_2 <- c(max(reg_2$count),mean(reg_2$count))
+reg_3 <- c(max(reg_3$count),mean(reg_3$count))
+reg_4 <- c(max(reg_4$count),mean(reg_4$count))
+reg_5 <- c(max(reg_5$count),mean(reg_5$count))
+regA<- cbind(reg_1, reg_2, reg_3, reg_4, reg_5)
+regA
+
+```
+
+
+
+
+
+
+# ALL
+```{r}
+type <- c("regular","","","guest","","","koe","","","chara","","","other","","")
+top3 <- rbind(reg_top3, guest_top3, koe_top3, chara_top3, other_top3)
+top3 <- cbind(type, top3)
+
+top3 %>%
+  kable()
+
+
+```
+
+
+
+
+
+

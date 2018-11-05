@@ -344,16 +344,51 @@ ORDER BY
 	count(reg_name) desc
 ;")
 
-reg_1 <- c(max(reg_1$count),mean(reg_1$count))
-reg_2 <- c(max(reg_2$count),mean(reg_2$count))
-reg_3 <- c(max(reg_3$count),mean(reg_3$count))
-reg_4 <- c(max(reg_4$count),mean(reg_4$count))
-reg_5 <- c(max(reg_5$count),mean(reg_5$count))
-regA<- cbind(reg_1, reg_2, reg_3, reg_4, reg_5)
-regA
+reg_A1 <- c(max(reg_1$count),mean(reg_1$count))
+reg_A2 <- c(max(reg_2$count),mean(reg_2$count))
+reg_A3 <- c(max(reg_3$count),mean(reg_3$count))
+reg_A4 <- c(max(reg_4$count),mean(reg_4$count))
+reg_A5 <- c(max(reg_5$count),mean(reg_5$count))
+regA<- cbind(reg_A1, reg_A2, reg_A3, reg_A4, reg_A5)
+regA<- t(regA)
+colnames(regA) <- c("max","mean")
+regA%>%
+  kable()
+
+
+#dim(reg_1)
+#dim(reg_2)
+#dim(reg_3)
+#dim(reg_4)
+#dim(reg_5)
+reg_11 <- rep("日本テレビ", length=2760)
+reg_21 <- rep("TBS", length=2403)
+reg_31 <- rep("フジテレビ", length=2731)
+reg_41 <- rep("テレビ朝日", length=3211)
+reg_51 <- rep("テレビ東京", length=4379)
+reg_1 <- cbind(reg_1$count, reg_11)
+reg_2 <- cbind(reg_2$count, reg_21)
+reg_3 <- cbind(reg_3$count, reg_31)
+reg_4 <- cbind(reg_4$count, reg_41)
+reg_5 <- cbind(reg_5$count, reg_51)
+
+regB <- rbind(reg_1, reg_2, reg_3, reg_4, reg_5)
+colnames(regB) <- c("count", "station")
+
+regB<- data.frame(regB)
+
+head(regB)%>%
+  kable()
+
+dim(regB)
+
+box_reg<-
+  ggplot(regB, aes(x=station, y=count)) +
+  geom_boxplot()
+
+box_reg
 
 ```
-
 
 
 

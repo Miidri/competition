@@ -108,7 +108,47 @@ WHERE
 reg_MAX %>%
   kable()
 ```
-	
+
+##林修
+```{r}
+reg_hourly <- dbGetQuery(con,"
+SELECT
+    EXTRACT(HOUR FROM  A.program_start_time) as hour,
+                       COUNT(*)
+FROM 
+    (SELECT
+		R.station_code,
+		R.serial_num1,
+		P.program_name,
+		P.program_start_time,
+		R.reg_name
+	FROM
+		add_data.regular as R
+	LEFT JOIN
+		add_data.pro_per as P
+	ON
+		R.station_code = P.station_code
+		and
+		R.serial_num1 = P.serial_num1
+	WHERE
+		R.reg_name = ' 林修                                               ') AS A
+GROUP BY
+	EXTRACT(HOUR FROM A.program_start_time)
+;
+")
+
+reg_hourly  %>% 
+  arrange(hour) %>% 
+  kable()
+
+reg_hourly %>% 
+  as_tibble() %>% 
+  ggplot(aes(hour, count))+
+  geom_bar(stat = "identity")+  
+  xlim(c(0, 23.5))+
+  labs(title = "時間帯ごとの林修の出演本数")
+```
+
 # guest
 ## top 3
 
@@ -149,6 +189,47 @@ guest_MAX %>%
   kable()
 ```
 
+##ノブ（千鳥）
+```{r}
+guest_hourly <- dbGetQuery(con,"
+SELECT
+    EXTRACT(HOUR FROM  A.program_start_time) as hour,
+                       COUNT(*)
+FROM 
+    (SELECT
+		P.station_code,
+		P.serial_num1,
+		P.program_name,
+		P.program_start_time,
+		G.guest_name
+	FROM
+		add_data.guest as G
+	LEFT JOIN
+		add_data.pro_per as P
+	ON
+		G.station_code = P.station_code
+		and
+		G.serial_num1 = P.serial_num1
+	WHERE
+		G.guest_name = ' ノブ（千鳥）                                           ') AS A
+GROUP BY
+	EXTRACT(HOUR FROM A.program_start_time)
+;
+")
+
+guest_hourly  %>% 
+  arrange(hour) %>% 
+  kable()
+
+guest_hourly %>% 
+  as_tibble() %>% 
+  ggplot(aes(hour, count))+
+  geom_bar(stat = "identity",fill="steelblue")+  
+  theme_classic()+
+  xlim(c(0, 23.5))+
+  labs(title = "時間帯ごとのノブ（千鳥）の出演本数")
+```
+
 # koe
 ## top 3
 
@@ -185,6 +266,46 @@ WHERE
 ")	
 koe_MAX %>%
   kable()
+```
+
+##矢野忍
+```{r}
+koe_hourly <- dbGetQuery(con,"
+SELECT
+    EXTRACT(HOUR FROM  A.program_start_time) as hour,
+                       COUNT(*)
+FROM 
+    (SELECT
+		P.station_code,
+		P.serial_num1,
+		P.program_name,
+		P.program_start_time,
+		K.koe_name
+	FROM
+		add_data.koe as K
+	LEFT JOIN
+		add_data.pro_per as P
+	ON
+		K.station_code = P.station_code
+		and
+		K.serial_num1 = P.serial_num1
+	WHERE
+		K.koe_name = ' 矢野忍                                              ') AS A
+GROUP BY
+	EXTRACT(HOUR FROM A.program_start_time)
+;
+")
+
+koe_hourly  %>% 
+  arrange(hour) %>% 
+  kable()
+
+koe_hourly %>% 
+  as_tibble() %>% 
+  ggplot(aes(hour, count))+
+  geom_bar(stat = "identity")+  
+  xlim(c(0, 23.5))+
+  labs(title = "時間帯ごとの矢野忍の出演本数")
 ```
 
 # chara
@@ -229,6 +350,46 @@ chara_MAX %>%
   kable()
 ```
 
+##そらジロー
+```{r}
+chara_hourly <- dbGetQuery(con,"
+SELECT
+    EXTRACT(HOUR FROM  A.program_start_time) as hour,
+                       COUNT(*)
+FROM 
+    (SELECT
+		P.station_code,
+		P.serial_num1,
+		P.program_name,
+		P.program_start_time,
+		C.chara_name
+	FROM
+		add_data.chara as C
+	LEFT JOIN
+		add_data.pro_per as P
+	ON
+		C.station_code = P.station_code
+		and
+		C.serial_num1 = P.serial_num1
+	WHERE
+		C.chara_name = ' そらジロー                                            ') AS A
+GROUP BY
+	EXTRACT(HOUR FROM A.program_start_time)
+;
+")
+
+chara_hourly  %>% 
+  arrange(hour) %>% 
+  kable()
+
+chara_hourly %>% 
+  as_tibble() %>% 
+  ggplot(aes(hour, count))+
+  geom_bar(stat = "identity")+  
+  xlim(c(0, 23.5))+
+  labs(title = "時間帯ごとのそらジローの出演本数")
+```
+
 # other
 ## top 3
 
@@ -268,6 +429,48 @@ other_MAX %>%
   kable()
 ```
 
+##明山直未
+
+```{r}
+other_hourly <- dbGetQuery(con,"
+SELECT
+    EXTRACT(HOUR FROM  A.program_start_time) as hour,
+                       COUNT(*)
+FROM 
+    (SELECT
+		P.station_code,
+		P.serial_num1,
+		P.program_name,
+		P.program_start_time,
+		O.other_name
+	FROM
+		add_data.other as O
+	LEFT JOIN
+		add_data.pro_per as P
+	ON
+		O.station_code = P.station_code
+		and
+		O.serial_num1 = P.serial_num1
+	WHERE
+		O.other_name = ' 明山直未                                                       ') AS A
+GROUP BY
+	EXTRACT(HOUR FROM A.program_start_time)
+;
+")
+
+other_hourly  %>% 
+  arrange(hour) %>% 
+  kable()
+
+other_hourly %>% 
+  as_tibble() %>% 
+  ggplot(aes(hour, count))+
+  geom_bar(stat = "identity")+  
+  xlim(c(0, 23.5))+
+  labs(title = "時間帯ごとの明山直未の出演本数")
+```
+# BOXできた
+##reg
 ```{r}
 reg_1 <- dbGetQuery(con,"
 SELECT
@@ -344,16 +547,16 @@ ORDER BY
 	count(reg_name) desc
 ;")
 
-reg_A1 <- c(max(reg_1$count),mean(reg_1$count))
-reg_A2 <- c(max(reg_2$count),mean(reg_2$count))
-reg_A3 <- c(max(reg_3$count),mean(reg_3$count))
-reg_A4 <- c(max(reg_4$count),mean(reg_4$count))
-reg_A5 <- c(max(reg_5$count),mean(reg_5$count))
-regA<- cbind(reg_A1, reg_A2, reg_A3, reg_A4, reg_A5)
-regA<- t(regA)
-colnames(regA) <- c("max","mean")
-regA%>%
-  kable()
+r_A1 <- c(max(reg_1$count),mean(reg_1$count))
+r_A2 <- c(max(reg_2$count),mean(reg_2$count))
+r_A3 <- c(max(reg_3$count),mean(reg_3$count))
+r_A4 <- c(max(reg_4$count),mean(reg_4$count))
+r_A5 <- c(max(reg_5$count),mean(reg_5$count))
+rA<- cbind(r_A1, r_A2, r_A3, r_A4, r_A5)
+rA<- t(rA)
+colnames(rA) <- c("max","mean")
+#regA%>%
+#  kable()
 
 
 #dim(reg_1)
@@ -366,35 +569,576 @@ reg_21 <- rep("TBS", length=2403)
 reg_31 <- rep("フジテレビ", length=2731)
 reg_41 <- rep("テレビ朝日", length=3211)
 reg_51 <- rep("テレビ東京", length=4379)
-reg_1 <- cbind(reg_1$count, reg_11)
-reg_2 <- cbind(reg_2$count, reg_21)
-reg_3 <- cbind(reg_3$count, reg_31)
-reg_4 <- cbind(reg_4$count, reg_41)
-reg_5 <- cbind(reg_5$count, reg_51)
 
-regB <- rbind(reg_1, reg_2, reg_3, reg_4, reg_5)
-colnames(regB) <- c("count", "station")
+reg_B1 <- cbind(reg_1, reg_11)
+reg_B1[,1] <- NULL
+colnames(reg_B1) <- c("count", "station")
 
+reg_B2 <- cbind(reg_2, reg_21)
+reg_B2[,1] <- NULL
+colnames(reg_B2) <- c("count", "station")
+
+reg_B3 <- cbind(reg_3, reg_31)
+reg_B3[,1] <- NULL
+colnames(reg_B3) <- c("count", "station")
+
+reg_B4 <- cbind(reg_4, reg_41)
+reg_B4[,1] <- NULL
+colnames(reg_B4) <- c("count", "station")
+
+reg_B5 <- cbind(reg_5, reg_51)
+reg_B5[,1] <- NULL
+colnames(reg_B5) <- c("count", "station")
+
+regB <- rbind(reg_B1, reg_B2, reg_B3, reg_B4, reg_B5)
 regB<- data.frame(regB)
 
-head(regB)%>%
-  kable()
-
-dim(regB)
-
+#head(regB)%>%
+#  kable()
+#str(regB)
 box_reg<-
   ggplot(regB, aes(x=station, y=count)) +
   geom_boxplot()
 
 box_reg
+```
 
+##guest
+```{r}
+g_1 <- dbGetQuery(con,"
+SELECT
+	distinct(guest_name),
+	count(guest_name) 
+FROM
+	add_data.guest
+WHERE
+	station_code = 1
+GROUP BY
+	guest_name,
+	station_code
+ORDER BY 
+	count(guest_name) desc
+;")
+
+g_2 <- dbGetQuery(con,"
+SELECT
+	distinct(guest_name),
+	count(guest_name) 
+FROM
+	add_data.guest
+WHERE
+	station_code = 2
+GROUP BY
+	guest_name,
+	station_code
+ORDER BY 
+	count(guest_name) desc
+;")
+
+g_3 <- dbGetQuery(con,"
+SELECT
+	distinct(guest_name),
+	count(guest_name) 
+FROM
+	add_data.guest
+WHERE
+	station_code = 3
+GROUP BY
+	guest_name,
+	station_code
+ORDER BY 
+	count(guest_name) desc
+;")
+
+g_4 <- dbGetQuery(con,"
+SELECT
+	distinct(guest_name),
+	count(guest_name) 
+FROM
+	add_data.guest
+WHERE
+	station_code = 4
+GROUP BY
+	guest_name,
+	station_code
+ORDER BY 
+	count(guest_name) desc
+;")
+
+g_5 <- dbGetQuery(con,"
+SELECT
+	distinct(guest_name),
+	count(guest_name) 
+FROM
+	add_data.guest
+WHERE
+	station_code = 5
+GROUP BY
+	guest_name,
+	station_code
+ORDER BY 
+	count(guest_name) desc
+;")
+
+g_A1 <- c(max(g_1$count),mean(g_1$count))
+g_A2 <- c(max(g_2$count),mean(g_2$count))
+g_A3 <- c(max(g_3$count),mean(g_3$count))
+g_A4 <- c(max(g_4$count),mean(g_4$count))
+g_A5 <- c(max(g_5$count),mean(g_5$count))
+gA<- cbind(g_A1, g_A2, g_A3, g_A4, g_A5)
+gA<- t(gA)
+colnames(gA) <- c("max","mean")
+#gA%>%
+#  kable()
+
+#dim(g_1)
+#dim(g_2)
+#dim(g_3)
+#dim(g_4)
+#dim(g_5)
+g_11 <- rep("日本テレビ", length=4543)
+g_21 <- rep("TBS", length=4235)
+g_31 <- rep("フジテレビ", length=4442)
+g_41 <- rep("テレビ朝日", length=4320)
+g_51 <- rep("テレビ東京", length=4236)
+
+g_B1 <- cbind(g_1, g_11)
+g_B1[,1] <- NULL
+colnames(g_B1) <- c("count", "station")
+
+g_B2 <- cbind(g_2, g_21)
+g_B2[,1] <- NULL
+colnames(g_B2) <- c("count", "station")
+
+g_B3 <- cbind(g_3, g_31)
+g_B3[,1] <- NULL
+colnames(g_B3) <- c("count", "station")
+
+g_B4 <- cbind(g_4, g_41)
+g_B4[,1] <- NULL
+colnames(g_B4) <- c("count", "station")
+
+g_B5 <- cbind(g_5, g_51)
+g_B5[,1] <- NULL
+colnames(g_B5) <- c("count", "station")
+
+gB <- rbind(g_B1, g_B2, g_B3, g_B4, g_B5)
+gB<- data.frame(gB)
+
+#head(gB)%>%
+#  kable()
+
+str(gB)
+box_g<-
+  ggplot(gB, aes(x=station, y=count)) +
+  geom_boxplot()
+
+box_g
+```
+
+##koe
+```{r}
+k_1 <- dbGetQuery(con,"
+SELECT
+	distinct(koe_name),
+	count(koe_name) 
+FROM
+	add_data.koe
+WHERE
+	station_code = 1
+GROUP BY
+	koe_name,
+	station_code
+ORDER BY 
+	count(koe_name) desc
+;")
+
+k_2 <- dbGetQuery(con,"
+SELECT
+	distinct(koe_name),
+	count(koe_name) 
+FROM
+	add_data.koe
+WHERE
+	station_code = 2
+GROUP BY
+	koe_name,
+	station_code
+ORDER BY 
+	count(koe_name) desc
+;")
+
+k_3 <- dbGetQuery(con,"
+SELECT
+	distinct(koe_name),
+	count(koe_name) 
+FROM
+	add_data.koe
+WHERE
+	station_code = 3
+GROUP BY
+	koe_name,
+	station_code
+ORDER BY 
+	count(koe_name) desc
+;")
+
+k_4 <- dbGetQuery(con,"
+SELECT
+	distinct(koe_name),
+	count(koe_name) 
+FROM
+	add_data.koe
+WHERE
+	station_code = 4
+GROUP BY
+	koe_name,
+	station_code
+ORDER BY 
+	count(koe_name) desc
+;")
+
+k_5 <- dbGetQuery(con,"
+SELECT
+	distinct(koe_name),
+	count(koe_name) 
+FROM
+	add_data.koe
+WHERE
+	station_code = 5
+GROUP BY
+	koe_name,
+	station_code
+ORDER BY 
+	count(koe_name) desc
+;")
+
+k_A1 <- c(max(k_1$count),mean(k_1$count))
+k_A2 <- c(max(k_2$count),mean(k_2$count))
+k_A3 <- c(max(k_3$count),mean(k_3$count))
+k_A4 <- c(max(k_4$count),mean(k_4$count))
+k_A5 <- c(max(k_5$count),mean(k_5$count))
+kA<- cbind(k_A1, k_A2, k_A3, k_A4, k_A5)
+kA<- t(kA)
+colnames(kA) <- c("max","mean")
+#kA%>%
+#  kable()
+
+#dim(k_1)
+#dim(k_2)
+#dim(k_3)
+#dim(k_4)
+#dim(k_5)
+k_11 <- rep("日本テレビ", length=1978)
+k_21 <- rep("TBS", length=1991)
+k_31 <- rep("フジテレビ", length=2148)
+k_41 <- rep("テレビ朝日", length=1992)
+k_51 <- rep("テレビ東京", length=2456)
+
+k_B1 <- cbind(k_1, k_11)
+k_B1[,1] <- NULL
+colnames(k_B1) <- c("count", "station")
+
+k_B2 <- cbind(k_2, k_21)
+k_B2[,1] <- NULL
+colnames(k_B2) <- c("count", "station")
+
+k_B3 <- cbind(k_3, k_31)
+k_B3[,1] <- NULL
+colnames(k_B3) <- c("count", "station")
+
+k_B4 <- cbind(k_4, k_41)
+k_B4[,1] <- NULL
+colnames(k_B4) <- c("count", "station")
+
+
+k_B5 <- cbind(k_5, k_51)
+
+
+
+k_B5[,1] <- NULL
+colnames(k_B5) <- c("count", "station")
+
+kB <- rbind(k_B1, k_B2, k_B3, k_B4, k_B5)
+kB<- data.frame(kB)
+
+#head(kB)%>%
+#  kable()
+#str(kB)
+box_k<-
+  ggplot(kB, aes(x=station, y=count)) +
+  geom_boxplot()
+
+box_k
+```
+
+##chara
+```{r}
+c_1 <- dbGetQuery(con,"
+SELECT
+	distinct(chara_name),
+	count(chara_name) 
+FROM
+	add_data.chara
+WHERE
+	station_code = 1
+GROUP BY
+	chara_name,
+	station_code
+ORDER BY 
+	count(chara_name) desc
+;")
+
+c_2 <- dbGetQuery(con,"
+SELECT
+	distinct(chara_name),
+	count(chara_name) 
+FROM
+	add_data.chara
+WHERE
+	station_code = 2
+GROUP BY
+	chara_name,
+	station_code
+ORDER BY 
+	count(chara_name) desc
+;")
+
+c_3 <- dbGetQuery(con,"
+SELECT
+	distinct(chara_name),
+	count(chara_name) 
+FROM
+	add_data.chara
+WHERE
+	station_code = 3
+GROUP BY
+	chara_name,
+	station_code
+ORDER BY 
+	count(chara_name) desc
+;")
+
+c_4 <- dbGetQuery(con,"
+SELECT
+	distinct(chara_name),
+	count(chara_name) 
+FROM
+	add_data.chara
+WHERE
+	station_code = 4
+GROUP BY
+	chara_name,
+	station_code
+ORDER BY 
+	count(chara_name) desc
+;")
+
+c_5 <- dbGetQuery(con,"
+SELECT
+	distinct(chara_name),
+	count(chara_name) 
+FROM
+	add_data.chara
+WHERE
+	station_code = 5
+GROUP BY
+	chara_name,
+	station_code
+ORDER BY 
+	count(chara_name) desc
+;")
+
+c_A1 <- c(max(c_1$count),mean(c_1$count))
+c_A2 <- c(max(c_2$count),mean(c_2$count))
+c_A3 <- c(max(c_3$count),mean(c_3$count))
+c_A4 <- c(max(c_4$count),mean(c_4$count))
+c_A5 <- c(max(c_5$count),mean(c_5$count))
+cA<- cbind(c_A1, c_A2, c_A3, c_A4, c_A5)
+cA<- t(cA)
+colnames(cA) <- c("max","mean")
+#cA%>%
+#  kable()
+
+#dim(c_1)
+#dim(c_2)
+#dim(c_3)
+#dim(c_4)
+#dim(c_5)
+c_11 <- rep("日本テレビ", length=162)
+c_21 <- rep("TBS", length=70)
+c_31 <- rep("フジテレビ", length=100)
+c_41 <- rep("テレビ朝日", length=93)
+c_51 <- rep("テレビ東京", length=104)
+
+c_B1 <- cbind(c_1, c_11)
+c_B1[,1] <- NULL
+colnames(c_B1) <- c("count", "station")
+
+c_B2 <- cbind(c_2, c_21)
+c_B2[,1] <- NULL
+colnames(c_B2) <- c("count", "station")
+
+c_B3 <- cbind(c_3, c_31)
+c_B3[,1] <- NULL
+colnames(c_B3) <- c("count", "station")
+
+c_B4 <- cbind(c_4, c_41)
+c_B4[,1] <- NULL
+colnames(c_B4) <- c("count", "station")
+
+c_B5 <- cbind(c_5, c_51)
+c_B5[,1] <- NULL
+colnames(c_B5) <- c("count", "station")
+
+cB <- rbind(c_B1, c_B2, c_B3, c_B4, c_B5)
+cB<- data.frame(cB)
+
+#head(kB)%>%
+#  kable()
+#str(kB)
+box_c<-
+  ggplot(cB, aes(x=station, y=count)) +
+  geom_boxplot()
+
+box_c
+```
+
+##other
+```{r}
+o_1 <- dbGetQuery(con,"
+SELECT
+	distinct(other_name),
+	count(other_name) 
+FROM
+	add_data.other
+WHERE
+	station_code = 1
+GROUP BY
+	other_name,
+	station_code
+ORDER BY 
+	count(other_name) desc
+;")
+
+o_2 <- dbGetQuery(con,"
+SELECT
+	distinct(other_name),
+	count(other_name) 
+FROM
+	add_data.other
+WHERE
+	station_code = 2
+GROUP BY
+	other_name,
+	station_code
+ORDER BY 
+	count(other_name) desc
+;")
+
+o_3 <- dbGetQuery(con,"
+SELECT
+	distinct(other_name),
+	count(other_name) 
+FROM
+	add_data.other
+WHERE
+	station_code = 3
+GROUP BY
+	other_name,
+	station_code
+ORDER BY 
+	count(other_name) desc
+;")
+
+o_4 <- dbGetQuery(con,"
+SELECT
+	distinct(other_name),
+	count(other_name) 
+FROM
+	add_data.other
+WHERE
+	station_code = 4
+GROUP BY
+	other_name,
+	station_code
+ORDER BY 
+	count(other_name) desc
+;")
+
+o_5 <- dbGetQuery(con,"
+SELECT
+	distinct(other_name),
+	count(other_name) 
+FROM
+	add_data.other
+WHERE
+	station_code = 5
+GROUP BY
+	other_name,
+	station_code
+ORDER BY 
+	count(other_name) desc
+;")
+
+o_A1 <- c(max(o_1$count),mean(o_1$count))
+o_A2 <- c(max(o_2$count),mean(o_2$count))
+o_A3 <- c(max(o_3$count),mean(o_3$count))
+o_A4 <- c(max(o_4$count),mean(o_4$count))
+o_A5 <- c(max(o_5$count),mean(o_5$count))
+oA<- cbind(o_A1, o_A2, o_A3, o_A4, o_A5)
+oA<- t(oA)
+colnames(oA) <- c("max","mean")
+#oA%>%
+#  kable()
+
+#dim(o_1)
+#dim(o_2)
+#dim(o_3)
+#dim(o_4)
+#dim(o_5)
+o_11 <- rep("日本テレビ", length=29224)
+o_21 <- rep("TBS", length=30067)
+o_31 <- rep("フジテレビ", length=24918)
+o_41 <- rep("テレビ朝日", length=27870)
+o_51 <- rep("テレビ東京", length=32483)
+
+o_B1 <- cbind(o_1, o_11)
+o_B1[,1] <- NULL
+colnames(o_B1) <- c("count", "station")
+
+o_B2 <- cbind(o_2, o_21)
+o_B2[,1] <- NULL
+colnames(o_B2) <- c("count", "station")
+
+o_B3 <- cbind(o_3, o_31)
+o_B3[,1] <- NULL
+colnames(o_B3) <- c("count", "station")
+
+o_B4 <- cbind(o_4, o_41)
+o_B4[,1] <- NULL
+colnames(o_B4) <- c("count", "station")
+
+o_B5 <- cbind(o_5, o_51)
+o_B5[,1] <- NULL
+colnames(o_B5) <- c("count", "station")
+
+oB <- rbind(o_B1, o_B2, o_B3, o_B4, o_B5)
+oB<- data.frame(oB)
+
+#head(oB)%>%
+#  kable()
+#str(oB)
+box_o<-
+  ggplot(oB, aes(x=station, y=count)) +
+  geom_boxplot()
+
+box_o
 ```
 
 
-
-
-
 # ALL
+##top3
 ```{r}
 type <- c("regular","","","guest","","","koe","","","chara","","","other","","")
 top3 <- rbind(reg_top3, guest_top3, koe_top3, chara_top3, other_top3)
@@ -402,12 +1146,92 @@ top3 <- cbind(type, top3)
 
 top3 %>%
   kable()
-
-
 ```
 
+##max,mean
+
+```{r}
+
+r <- rep("regular", length=5)
+rA <- data.frame(rA, station = c("日本テレビ", "TBS", "フジテレビ", "テレビ朝日", "テレビ東京"), type = r)
 
 
+g <- rep("guest", length=5)
+gA <- data.frame(gA, station = c("日本テレビ", "TBS", "フジテレビ", "テレビ朝日", "テレビ東京"), type = g)
 
+k<- rep("koe", length=5)
+kA <- data.frame(kA, station = c("日本テレビ", "TBS", "フジテレビ", "テレビ朝日", "テレビ東京"), type = k)
+
+c <- rep("chara", length=5)
+cA <- data.frame(cA, station = c("日本テレビ", "TBS", "フジテレビ", "テレビ朝日", "テレビ東京"), type = c)
+
+o <- rep("other", length=5)
+oA <- data.frame(oA, station = c("日本テレビ", "TBS", "フジテレビ", "テレビ朝日", "テレビ東京"), type = o)
+
+A <- rbind(rA, gA, kA, cA, oA)
+A%>%
+  kable()
+
+G1 <- ggplot(A, aes(y = mean, x =station, color = type)) + geom_point()
+G2 <- ggplot(A, aes(y = max, x =station, color = type)) + geom_point()
+G3 <- ggplot(A, aes(y = max, x =mean, color = type)) + geom_count(size =1.5, aes(shape=station))
+
+G1
+G2
+G3
+```
+
+##for slide
+```{r}
+par(mfrow=c(5,1)) 
+
+R <-
+  reg_hourly %>% 
+  as_tibble() %>% 
+  ggplot(aes(hour, count))+
+  geom_bar(stat = "identity",fill="steelblue")+  
+  theme_classic()+
+  xlim(c(0, 23.5))+
+  labs(title = "時間帯ごとの林修の出演本数")
+
+G <-
+  guest_hourly %>% 
+  as_tibble() %>% 
+  ggplot(aes(hour, count))+
+  geom_bar(stat = "identity",fill="steelblue")+  
+  theme_classic()+
+  xlim(c(0, 23.5))+
+  labs(title = "時間帯ごとのノブ（千鳥）の出演本数")
+
+K <-
+  koe_hourly %>% 
+  as_tibble() %>% 
+  ggplot(aes(hour, count))+
+  geom_bar(stat = "identity",fill="steelblue")+  
+  theme_classic()+
+  xlim(c(0, 23.5))+
+  labs(title = "時間帯ごとの矢野忍の出演本数")
+
+C <-
+  chara_hourly %>% 
+  as_tibble() %>% 
+  ggplot(aes(hour, count))+
+  geom_bar(stat = "identity",fill="steelblue")+  
+  theme_classic()+
+  xlim(c(0, 23.5))+
+  labs(title = "時間帯ごとのそらジローの出演本数")
+
+O <- 
+  other_hourly %>% 
+  as_tibble() %>% 
+  ggplot(aes(hour, count))+
+  geom_bar(stat = "identity",fill="steelblue")+  
+  theme_classic()+
+  xlim(c(0, 23.5))+
+  labs(title = "時間帯ごとの明山直未の出演本数")
+
+grid.arrange(R, G, K, C, O,
+             ncol = 1)
+```
 
 

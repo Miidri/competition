@@ -98,10 +98,11 @@ age_countP <-
 #ヒストグラム
 age_count5 <-
   ggplot(x, aes(x = age))+
-  geom_histogram(binwidth=5, colour="white")+
+  geom_histogram(binwidth=5,  col="white", fill = topo.colors(12))+
   labs(title = "ユーザの年齢分布")
 
 age_countP
+
 age_count5
 
 #円グラフ

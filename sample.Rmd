@@ -26,7 +26,7 @@ knitr::opts_chunk$set(echo = TRUE,
 ```{r set_up}
 #パッケージのインストールと読み込み
 #持ってないパッケージはインストールする
-targetPackages <- c('knitr','DBI','RPostgreSQL','tidyverse',"reshape2","lubridate","dbplot","DT","prettydoc") 
+targetPackages <- c('knitr','DBI','RPostgreSQL','tidyverse',"reshape2","lubridate","dbplot","DT","prettydoc","plotly") 
 newPackages <- targetPackages[!(targetPackages %in% installed.packages()[,"Package"])]
 if(length(newPackages)) install.packages(newPackages, repos = "http://cran.us.r-project.org")
 for(package in targetPackages) library(package, character.only = T)
@@ -82,14 +82,6 @@ marriage_countP <-
 marriage_countP
 ```
 
-##円グラフ
-```{r}
-par(mfrow=c(1,2)) 
-pie(sex_count$n, labels=c("male","female"),col=c("skyblue","pink"), clockwise=T, border="#ffffff",main="性別")
-pie(marriage_count$n, labels=c("未婚","既婚"),col=c("skyblue","pink"), clockwise=T, border="#ffffff",main="婚姻情報")
-
-```
-
 #年齢
 ```{r}
 #age
@@ -101,7 +93,6 @@ age_countP <-
   ggplot(age_count, aes(x = age, y = n))+
   geom_bar(stat = "identity")+
   labs(title = "ユーザの年齢分布")
-
 
 ##5歳刻み
 #ヒストグラム
@@ -121,13 +112,48 @@ age_tab5%>%
 age_freq10 = cut(x$age, breaks=seq(10,70,10))
 age_tab10 = table(age_freq10)
 
-par(mfrow=c(1,2)) 
-pie(age_tab5, labels=c("11-15","16-20","21-25","26-30","31-35","36-40","41-45","46-50","51-55","56-60","61-65","66-70"), clockwise=T, border="#ffffff", main="年齢分布", col=topo.colors(16))
+#pie(age_tab5, labels=c("11-15","16-20","21-25","26-30","31-35","36-40","41-45","46-50","51-55","56-60","61-65","66-70"), clockwise=T, border="#ffffff", main="年齢分布", col=topo.colors(16))
 
-pie(age_tab10, labels=c("11-20","21-30","31-40","41-50","51-60","61-70"), clockwise=T, border="#ffffff", main="年齢分布", col=topo.colors(8))
 ```
 
+#円グラフ
+```{r}
+#par(mfrow=c(1,3)) 
+#pie(sex_count$n, labels=c("male","female"),col=c("skyblue","pink"), clockwise=T, border="#ffffff",main="性別")
+#pie(marriage_count$n, labels=c("未婚","既婚"),col=c("skyblue","pink"), clockwise=T, border="#ffffff",main="婚姻情報")
+#pie(age_tab10, labels=c("11-20","21-30","31-40","41-50","51-60","61-70"), clockwise=T, border="#ffffff", main="年齢分布", col=topo.colors(8))
+```
+
+
+```{r}
+par(mfrow=c(1,2)) 
+p1 <- plot_ly(sex_count, labels = ~sex , values = ~n , type = 'pie',
+             textposition = 'inside',
+             textinfo = 'label+percent',
+             insidetextfont = list(color = '#000000'),
+             showlegend = FALSE) %>%
+  layout(title = '性別',
+         colorway=c("skyblue","pink"),
+         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+
+p2 <- plot_ly(marriage_count, labels = ~marriage , values = ~n , type = 'pie',
+             textposition = 'inside',
+             textinfo = 'label+percent',
+             insidetextfont = list(color = '#000000'),
+             showlegend = FALSE) %>%
+  layout(title = '未婚既婚',
+         colorway=c("skyblue","pink"),
+         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+p1
+p2
+
+```
+
+
 #職業
+ 
 ```{r}
 #job_code
 

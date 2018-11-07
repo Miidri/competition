@@ -131,7 +131,7 @@ GROUP BY
 sample_numP <-
   ggplot(sample_num, aes(x = sample_date, y = count))+
   geom_line()+
-  ylim(c(5000,5300))
+  ylim(c(0,6000))
 
 sample_numP
 ```

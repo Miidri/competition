@@ -1,7 +1,7 @@
 ---
 title: "profile"
 output:
-  html_document:
+    html_document:
     number_sections: true
     fig_caption: true
     toc: true
@@ -35,10 +35,6 @@ source("psql.R")
 
 ```
 
-```{r}
-
-```
-
 ```{r get_data}
 pro <- con %>% 
   tbl(from = dbplyr::in_schema("processed", "profiledata")) 
@@ -67,7 +63,8 @@ master %>%
 ```
 
 
-#マスタが質問内容とかありそう
+#マスタに質問内容とかありそう
+
 ##genre
 
 ```{r}

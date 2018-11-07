@@ -73,8 +73,8 @@ data %>%
 
 
 
-
-# regular
+# regular{.tabset .tabset-fade .tabset-pills}
+ 
 ## top 10
 ```{r reg top3}
 reg_top3 <- dbGetQuery(con,"
@@ -109,7 +109,8 @@ reg_MAX %>%
   kable()
 ```
 
-##林修
+
+## 林修1
 ```{r}
 reg_hourly <- dbGetQuery(con,"
 SELECT
@@ -141,6 +142,11 @@ reg_hourly  %>%
   arrange(hour) %>% 
   kable()
 
+
+```
+
+## 林修2
+```{r}
 reg_hourly %>% 
   as_tibble() %>% 
   ggplot(aes(hour, count))+
@@ -149,7 +155,8 @@ reg_hourly %>%
   labs(title = "時間帯ごとの林修の出演本数")
 ```
 
-# guest
+
+# guest{.tabset .tabset-fade .tabset-pills}
 ## top 3
 
 ```{r guest top3}
@@ -189,7 +196,7 @@ guest_MAX %>%
   kable()
 ```
 
-##ノブ（千鳥）
+##ノブ（千鳥）1
 ```{r}
 guest_hourly <- dbGetQuery(con,"
 SELECT
@@ -220,17 +227,19 @@ GROUP BY
 guest_hourly  %>% 
   arrange(hour) %>% 
   kable()
+```
 
+## ノブ（千鳥）2
+```{r}
 guest_hourly %>% 
   as_tibble() %>% 
   ggplot(aes(hour, count))+
-  geom_bar(stat = "identity",fill="steelblue")+  
-  theme_classic()+
+  geom_bar(stat = "identity")+  
   xlim(c(0, 23.5))+
   labs(title = "時間帯ごとのノブ（千鳥）の出演本数")
 ```
 
-# koe
+# koe{.tabset .tabset-fade .tabset-pills}
 ## top 3
 
 ```{r koe top3}
@@ -268,7 +277,7 @@ koe_MAX %>%
   kable()
 ```
 
-##矢野忍
+##矢野忍1
 ```{r}
 koe_hourly <- dbGetQuery(con,"
 SELECT
@@ -299,7 +308,10 @@ GROUP BY
 koe_hourly  %>% 
   arrange(hour) %>% 
   kable()
+```
 
+##矢野忍2
+```{r}
 koe_hourly %>% 
   as_tibble() %>% 
   ggplot(aes(hour, count))+
@@ -308,7 +320,7 @@ koe_hourly %>%
   labs(title = "時間帯ごとの矢野忍の出演本数")
 ```
 
-# chara
+# chara{.tabset .tabset-fade .tabset-pills}
 ## top 3
 
 ```{r chara top3}
@@ -350,7 +362,7 @@ chara_MAX %>%
   kable()
 ```
 
-##そらジロー
+##そらジロー1
 ```{r}
 chara_hourly <- dbGetQuery(con,"
 SELECT
@@ -381,7 +393,10 @@ GROUP BY
 chara_hourly  %>% 
   arrange(hour) %>% 
   kable()
+```
 
+##そらジロー2
+```{r}
 chara_hourly %>% 
   as_tibble() %>% 
   ggplot(aes(hour, count))+
@@ -390,7 +405,7 @@ chara_hourly %>%
   labs(title = "時間帯ごとのそらジローの出演本数")
 ```
 
-# other
+# other{.tabset .tabset-fade .tabset-pills}
 ## top 3
 
 ```{r other top3}
@@ -429,7 +444,7 @@ other_MAX %>%
   kable()
 ```
 
-##明山直未
+##明山直未1
 
 ```{r}
 other_hourly <- dbGetQuery(con,"
@@ -461,7 +476,10 @@ GROUP BY
 other_hourly  %>% 
   arrange(hour) %>% 
   kable()
+```
 
+##明山直未2
+```{r}
 other_hourly %>% 
   as_tibble() %>% 
   ggplot(aes(hour, count))+
@@ -469,8 +487,9 @@ other_hourly %>%
   xlim(c(0, 23.5))+
   labs(title = "時間帯ごとの明山直未の出演本数")
 ```
-# BOXできた
-##reg
+
+# BOXできた{.tabset .tabset-fade .tabset-pills}
+##regular
 ```{r}
 reg_1 <- dbGetQuery(con,"
 SELECT
@@ -555,8 +574,8 @@ r_A5 <- c(max(reg_5$count),mean(reg_5$count))
 rA<- cbind(r_A1, r_A2, r_A3, r_A4, r_A5)
 rA<- t(rA)
 colnames(rA) <- c("max","mean")
-#regA%>%
-#  kable()
+rA%>%
+  kable()
 
 
 #dim(reg_1)

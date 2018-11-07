@@ -3,4 +3,8 @@
 .RData
 .Ruserdata
 *.html
-figures.*
+psql.R
+kurokisan.Rmd
+kurokisan_files/
+*.png
+*.csv

@@ -36,3 +36,36 @@ for(package in targetPackages) library(package, character.only = T)
 source("psql.R")
 
 ```
+
+
+```{r}
+data1 <- dbGetQuery(con,"
+SELECT
+  house_num,
+  question_code,
+  answer_code
+FROM
+	processed.profiledata
+WHERE
+	qu_genre_code = 3
+	and
+	question_code >= 4 
+	and
+	question_code <= 20
+order by
+	house_num,
+	question_code,
+	answer_code;")
+
+head(data1, 20) %>%
+kable
+```
+
+# 情報セグメントの回答行列
+
+欠損値はない模様.
+```{r}
+data1 %>%
+  tidyr::spread(key = question_code, value = answer_code)
+```
+

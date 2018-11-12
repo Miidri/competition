@@ -26,18 +26,38 @@ knitr::opts_chunk$set(echo = FALSE,
 ```{r set_up}
 #パッケージのインストールと読み込み
 #持ってないパッケージはインストールする
-targetPackages <- c('knitr','DBI','RPostgreSQL','tidyverse',"reshape2","lubridate","dbplot","DT","gridExtra") 
+targetPackages <- c('knitr','DBI','RPostgreSQL','tidyverse',"reshape2","lubridate","dbplot","DT","gridExtra","fmsb") 
 newPackages <- targetPackages[!(targetPackages %in% installed.packages()[,"Package"])]
 if(length(newPackages)) install.packages(newPackages, repos = "http://cran.us.r-project.org")
 for(package in targetPackages) library(package, character.only = T)
-
-
 
 source("psql.R")
 
 ```
 
+#アンケとは別に追加された質問
+- 性別
+- 年齢（10代～70代以上）
+- 未既婚
+- 職業
+    - IT・通信・インターネット 
+    - メーカー
+    - 商社
+    - サービス・レジャー
+    - 流通・小売・フード
+    - マスコミ
+    - 広告・デザイン
+    - 金融・保険
+    - コンサルティング
+    - 不動産・建設・設備
+    - 運輸・交通・物流・倉庫
+    - 環境・エネルギー
+    - 公的機関・その他
+    - 学生
+    - 主婦・無職
 
+
+# とりあえずアンケート結果な並べるじゃん
 ```{r}
 data1 <- dbGetQuery(con,"
 SELECT
@@ -51,21 +71,94 @@ WHERE
 	and
 	question_code >= 4 
 	and
-	question_code <= 20
+	question_code <= 21
 order by
 	house_num,
 	question_code,
-	answer_code;")
+	answer_code
+;")
 
-head(data1, 20) %>%
+head(data1, 5) %>%
 kable
 ```
 
 # 情報セグメントの回答行列
 
-欠損値はない模様.
+アンケートを行列へ.  
+欠損値はない模様.  
 ```{r}
-data1 %>%
+data <- data1 %>%
   tidyr::spread(key = question_code, value = answer_code)
+head(data)%>%
+  kable()
+dim(data)
+```
+  
+4715人のデータ    
+
+## サンプルとして500人のQ4-6のみの行列も作ってみた. 500*4
+```{r}
+data2 <- data.frame(data$house_num, data$`4`, data$`5`, data$`6`)
+data2 <- data2[-500:-4715,]
+head(data2)%>%
+  kable()
+# 散布図行列
+pairs(data2, pch=9, col="blue",) 
+
+```
+
+# 主成分分析
+```{r}
+data.pca <- prcomp(data[,-1], scale=T)
+data.pca
+
+biplot(data.pca)
+summary(data.pca)
+# Proportion of Variance:寄与率
+# Cumulative Proportion:累積寄与率
+
+# 寄与率プロットしたいのに！できない！
+#pca <- ggplot(data.pcaS, aes(data.pcaS))+ 
+#  geom_histogram()
+
+```
+
+# k-means法  
+最終的に6クラスタに分けたいから $k = 6$ でやってみる.
+
+```{r}
+data.km <- kmeans(data[,-1],6)
+data.km
+
+
+data.pca.df <- data.frame(data.pca$x)
+data.pca.df$house_num <- data$house_num
+data.pca.df$answer_code <- as.factor(data.km$cluster)
+
+P1 <-
+  ggplot(data.pca.df, aes(x=PC1, y= PC2, label = house_num, col = answer_code ))+
+  geom_text()
+
+P1
+```
+絶対に意味ない.  
+そもそもPC1とPC2の累積寄与率40%だからね...
+
+```{r}
+var(data)
+```
+
+
+
+
+# 相関行列 
+```{r}
+#これあとでやる
+
+data.cor <- cor(data)
+data.cor%>%
+  kable()
+
+eigen(data.cor)
 ```
 

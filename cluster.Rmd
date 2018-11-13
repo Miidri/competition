@@ -26,7 +26,7 @@ knitr::opts_chunk$set(echo = FALSE,
 ```{r set_up}
 #パッケージのインストールと読み込み
 #持ってないパッケージはインストールする
-targetPackages <- c('knitr','DBI','RPostgreSQL','tidyverse',"reshape2","lubridate","dbplot","DT","gridExtra","fmsb") 
+targetPackages <- c('knitr','DBI','RPostgreSQL','tidyverse',"reshape2","lubridate","dbplot","DT","gridExtra","fmsb","corrplot","graphics","GGally") 
 newPackages <- targetPackages[!(targetPackages %in% installed.packages()[,"Package"])]
 if(length(newPackages)) install.packages(newPackages, repos = "http://cran.us.r-project.org")
 for(package in targetPackages) library(package, character.only = T)
@@ -72,40 +72,85 @@ WHERE
 	question_code >= 4 
 	and
 	question_code <= 21
-order by
-	house_num,
+ORDER BY
+  house_num,
 	question_code,
 	answer_code
 ;")
 
-head(data1, 5) %>%
-kable
+data2 <-dbGetQuery(con,"
+SELECT
+  distinct(P.house_num),
+  S.sex,
+  S.marriage,
+  S.age
+FROM
+	processed.profiledata as P
+LEFT JOIN
+	processed.tv_sample_p_cv as S
+ON
+	S.house_num = P.house_num
+WHERE
+	P.qu_genre_code = 3
+	and
+	P.question_code >= 4 
+	and
+	P.question_code <= 21
+GROUP BY
+	P.house_num,
+	S.sex,
+	S.marriage,
+	S.age,
+  P.question_code,
+  P.answer_code
+ORDER BY
+	house_num;")
+
+head(data1, 10) %>%
+  kable
+
+head(data2)%>%
+  kable()
+dim(data2)
 ```
 
 # 情報セグメントの回答行列
 
 アンケートを行列へ.  
 欠損値はない模様.  
+
+## アンケート内容
+4	良いと思った情報はできるだけ多くの人と共有することが多い  
+5	周りの人が持っているモノなどを見て思わず自分も欲しくなってしまうことが多い  
+6	どうしても必要なもの以外、買わないほうだ  
+7	情報は人より早く知っていることが多い  
+8	情報は広く浅く知っていれば十分だと思う  
+9	口コミ情報を参考にすることが多い  
+10	周りのみんなが持っているモノを自分だけ持っていないと不安に感じる  
+11	流行に左右されない、長年使い続けられるものを選ぶことが多い  
+12	情報収集に時間をかけるのはもったいない  
+13	買い物をすること自体が楽しく、好きだ  
+14	趣味や興味関心ごとなどのうんちくはたくさん持っている  
+15	面白いと思った情報は周りの人に話したくなる  
+16	情報収集は自ら積極的に行うほうだ  
+17	「限定モノ」や「流行モノ」に弱く、すぐ欲しくなる  
+18	最低限の情報を持っていれば十分だ  
+19	周りの人がみんな買っているならその商品は間違いなく良いモノだと思う  
+20	一流・有名ブランド、メーカーの商品を買うのが好きだ（衣料品、バッグ、時計など）  
+21	丈夫で長持ちするモノを選ぶことが多い  
+
 ```{r}
 data <- data1 %>%
   tidyr::spread(key = question_code, value = answer_code)
 head(data)%>%
   kable()
 dim(data)
+
+#性別・年齢・未既婚つけたいんだけど, data2の行数がちょっと多いんだよね
+#data <- cbind(data, data2$sex, data2$marriage, data2$age)
 ```
   
 4715人のデータ    
-
-## サンプルとして500人のQ4-6のみの行列も作ってみた. 500*4
-```{r}
-data2 <- data.frame(data$house_num, data$`4`, data$`5`, data$`6`)
-data2 <- data2[-500:-4715,]
-head(data2)%>%
-  kable()
-# 散布図行列
-pairs(data2, pch=9, col="blue",) 
-
-```
 
 # 主成分分析
 ```{r}
@@ -124,33 +169,175 @@ summary(data.pca)
 ```
 
 # k-means法  
+  
 最終的に6クラスタに分けたいから $k = 6$ でやってみる.
 
 ```{r}
 data.km <- kmeans(data[,-1],6)
-data.km
+#data.km
 
 
 data.pca.df <- data.frame(data.pca$x)
 data.pca.df$house_num <- data$house_num
 data.pca.df$answer_code <- as.factor(data.km$cluster)
-
+head(data.pca.df) %>%
+  kable()
 P1 <-
   ggplot(data.pca.df, aes(x=PC1, y= PC2, label = house_num, col = answer_code ))+
   geom_text()
 
 P1
 ```
+  
 絶対に意味ない.  
 そもそもPC1とPC2の累積寄与率40%だからね...
 
+# アンケート内容を分けてみた
+##情報
+* ＋  
+12	情報収集に時間をかけるのはもったいない  
+18	最低限の情報を持っていれば十分だ  
+   
+* △  
+8	情報は広く浅く知っていれば十分だと思う  
+9	口コミ情報を参考にすることが多い  
+  
+* －  
+4	良いと思った情報はできるだけ多くの人と共有することが多い  
+7	情報は人より早く知っていることが多い  
+14	趣味や興味関心ごとなどのうんちくはたくさん持っている  
+15	面白いと思った情報は周りの人に話したくなる  
+16	情報収集は自ら積極的に行うほうだ  
+
+
+##購買行動
+* ＋  
+6	どうしても必要なもの以外、買わないほうだ  
+11	流行に左右されない、長年使い続けられるものを選ぶことが多い  
+21	丈夫で長持ちするモノを選ぶことが多い 
+  
+* △  
+5	周りの人が持っているモノなどを見て思わず自分も欲しくなってしまうことが多い  
+10	周りのみんなが持っているモノを自分だけ持っていないと不安に感じる  
+19	周りの人がみんな買っているならその商品は間違いなく良いモノだと思う  
+  
+* －  
+13	買い物をすること自体が楽しく、好きだ  
+17	「限定モノ」や「流行モノ」に弱く、すぐ欲しくなる  
+20	一流・有名ブランド、メーカーの商品を買うのが好きだ（衣料品、バッグ、時計など）  
+
+
+## 情報サンプル
+
+500人の情報収集についての質問の行列作ってみた. 500*10
 ```{r}
-var(data)
+data31 <- data.frame(data$house_num, data$`12`, data$`18`, data$`8`, data$`9`,data$`4`, data$`7`, data$`14`, data$`15`, data$`16` )
+data31 <- data31[-500:-4715,]
+head(data31)%>%
+  kable()
+# 散布図行列
+corrplot::corrplot(cor(data31[,-1]))
+
+ggpairs(data31[,-1],aes_string(alpha=0.5))
+
+```
+
+### やってみた
+  
+https://www.slideshare.net/Hiro47/r-35886073
+
+```{r}
+#分散共分散行列
+var(data31[,-1])
+#固有値･固有ベクトル
+eigen(var(scale(data31[,-1])))
+
+data31.pca <- prcomp(data31[,-1], scale=T)
+data31.pca
+summary(data31.pca)
+biplot(data31.pca)
+
+```
+
+```{r}
+data31.km <- kmeans(data31[,-1],3)
+#data3.km
+data31.pca.df <- data.frame(data31.pca$x)
+data31.pca.df$house_num <- data31$data.house_num
+data31.pca.df$answer_code <- as.factor(data31.km$cluster)
+head(data31.pca.df)
+P31 <-
+  ggplot(data31.pca.df, aes(x=PC1, y= PC2, label = house_num, col = answer_code ))+
+  geom_text()
+
+P31
 ```
 
 
+## 購買サンプル
 
+6	どうしても必要なもの以外、買わないほうだ  
+11	流行に左右されない、長年使い続けられるものを選ぶことが多い  
+21	丈夫で長持ちするモノを選ぶことが多い 
+  
+* △  
+5	周りの人が持っているモノなどを見て思わず自分も欲しくなってしまうことが多い  
+10	周りのみんなが持っているモノを自分だけ持っていないと不安に感じる  
+19	周りの人がみんな買っているならその商品は間違いなく良いモノだと思う  
+  
+* －  
+13	買い物をすること自体が楽しく、好きだ  
+17	「限定モノ」や「流行モノ」に弱く、すぐ欲しくなる  
+20
 
+500人の購買嗜好についての質問の行列作ってみた. 500*10
+```{r}
+data32 <- data.frame(data$house_num, data$`6`, data$`11`, data$`21`, data$`5`,data$`10`, data$`19`, data$`13`, data$`17`, data$`20` )
+data32 <- data32[-500:-4715,]
+head(data32)%>%
+  kable()
+# 散布図行列
+corrplot::corrplot(cor(data32[,-1]))
+
+ggpairs(data32[,-1],aes_string(alpha=0.5), color = "smoker")
+
+ggpairs(
+	data32[,-1],
+	lower = list(continuous = "density", combo = "box"),
+	color = "smoker"
+	)
+```
+
+### やってみた
+  
+https://www.slideshare.net/Hiro47/r-35886073
+
+```{r}
+#分散共分散行列
+var(data32[,-1])
+#固有値･固有ベクトル
+eigen(var(scale(data32[,-1])))
+
+data32.pca <- prcomp(data32[,-1], scale=T)
+data32.pca
+summary(data32.pca)
+biplot(data32.pca)
+
+```
+
+```{r}
+data32.km <- kmeans(data32[,-1],2)
+#data3.km
+data32.pca.df <- data.frame(data32.pca$x)
+data32.pca.df$house_num <- data32$data.house_num
+data32.pca.df$answer_code <- as.factor(data32.km$cluster)
+head(data32.pca.df)
+P32 <-
+  ggplot(data32.pca.df, aes(x=PC1, y= PC2, label = house_num, col = answer_code ))+
+  geom_text()
+
+P32
+```
 # 相関行列 
 ```{r}
 #これあとでやる

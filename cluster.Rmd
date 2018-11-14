@@ -83,10 +83,10 @@ head(data1) %>%
 ```
 
 ```{r data アンケート行列}
-data <- data1 %>%
+data1 <- data1 %>%
   tidyr::spread(key = question_code, value = answer_code)
 
-head(data)%>%
+head(data1)%>%
   kable()
 ```
 
@@ -163,6 +163,7 @@ dim(data5)
 head(data5)%>%
   kable()
 }
+
 head(data2)%>%
   kable()
 ```
@@ -171,7 +172,7 @@ head(data2)%>%
   
 繋げてから, 標本情報のNAがある行も消去.  
 ```{r data dataとdata2をくっつけた}
-data <- merge(data, data2, by = "house_num")
+data <- merge(data1, data2, by = "house_num")
 head(data)%>%
   kable()
 
@@ -208,12 +209,13 @@ dim(data)
 
 # 主成分分析
   
+分析対象はdata1, すなわち, 標本情報抜きのやつ
 ```{r dataに主成分}
-data.pca <- prcomp(data[,-1], scale=T)
-data.pca
+data1.pca <- prcomp(data1[,-1], scale=T)
+data1.pca
 
-biplot(data.pca)
-summary(data.pca)
+biplot(data1.pca)
+summary(data1.pca)
 # Proportion of Variance:寄与率
 # Cumulative Proportion:累積寄与率
 #data.frame(unclass(summary(data.pca)), check.names = FALSE, stringsAsFactors = FALSE)
@@ -228,64 +230,62 @@ summary(data.pca)
 最終的に6クラスタに分けたいから $k = 6$ でやってみる.
 
 ```{r}
-data.km <- kmeans(data[,-1],6)
-#data.km
+data1.km <- kmeans(data1[,-1],6)
+#data1.km
 
-data.pca.df <- data.frame(data.pca$x)
-data.pca.df$house_num <- data$house_num
-data.pca.df$answer_code <- as.factor(data.km$cluster)
-#head(data.pca.df) %>%
+data1.pca.df <- data.frame(data1.pca$x)
+data1.pca.df$house_num <- data1$house_num
+data1.pca.df$answer_code <- as.factor(data1.km$cluster)
+#head(data1.pca.df) %>%
 #  kable()
 P1 <-
-  ggplot(data.pca.df, aes(x=PC1, y= PC2, label = house_num, col = answer_code ))+
+  ggplot(data1.pca.df, aes(x=PC1, y= PC2, label = house_num, col = answer_code ))+
   geom_text()
 
 P1
 ```
   
-ひどい.
-
+標本情報試しに入れたやつの100倍マシ, still worse
 
 # アンケート内容を分けてみた
 ##情報
 * ＋  
-12	情報収集に時間をかけるのはもったいない  
-18	最低限の情報を持っていれば十分だ  
-   
-* △  
-8	情報は広く浅く知っていれば十分だと思う  
-9	口コミ情報を参考にすることが多い  
-  
-* －  
 4	良いと思った情報はできるだけ多くの人と共有することが多い  
 7	情報は人より早く知っていることが多い  
+9	口コミ情報を参考にすることが多い  
 14	趣味や興味関心ごとなどのうんちくはたくさん持っている  
 15	面白いと思った情報は周りの人に話したくなる  
-16	情報収集は自ら積極的に行うほうだ  
+16	情報収集は自ら積極的に行うほうだ 
+  
+* －  
+8	情報は広く浅く知っていれば十分だと思う  
+12	情報収集に時間をかけるのはもったいない  
+18	最低限の情報を持っていれば十分だ 
 
 
 ##購買行動
-* ＋  
-6	どうしても必要なもの以外、買わないほうだ  
-11	流行に左右されない、長年使い続けられるものを選ぶことが多い  
-21	丈夫で長持ちするモノを選ぶことが多い 
-  
+* ＋ 
+13	買い物をすること自体が楽しく、好きだ  
+17	「限定モノ」や「流行モノ」に弱く、すぐ欲しくなる  
+20	一流・有名ブランド、メーカーの商品を買うのが好きだ（衣料品、バッグ、時計など）  
+
 * △  
 5	周りの人が持っているモノなどを見て思わず自分も欲しくなってしまうことが多い  
 10	周りのみんなが持っているモノを自分だけ持っていないと不安に感じる  
 19	周りの人がみんな買っているならその商品は間違いなく良いモノだと思う  
   
 * －  
-13	買い物をすること自体が楽しく、好きだ  
-17	「限定モノ」や「流行モノ」に弱く、すぐ欲しくなる  
-20	一流・有名ブランド、メーカーの商品を買うのが好きだ（衣料品、バッグ、時計など）  
+6	どうしても必要なもの以外、買わないほうだ  
+11	流行に左右されない、長年使い続けられるものを選ぶことが多い  
+21	丈夫で長持ちするモノを選ぶことが多い 
+  
 
 
 ## 情報サンプル
 
 500人の情報収集についての質問の行列作ってみた. 標本情報も足す. 500*10 
 ```{r 情報1}
-data31 <- data.frame(house_num=data$house_num, Q12=data$`12`, Q18=data$`18`, Q8=data$`8`, Q9=data$`9`,Q4=data$`4`, Q7=data$`7`, Q14=data$`14`, Q15=data$`15`, Q16=data$`16`, sex = data$sex, marriage =data$marriage, age = data$age )
+data31 <- data.frame(house_num=data1$house_num, Q12=data1$`12`, Q18=data1$`18`, Q8=data1$`8`, Q9=data1$`9`,Q4=data1$`4`, Q7=data1$`7`, Q14=data1$`14`, Q15=data1$`15`, Q16=data1$`16`)
 data31 <- data31[-501:-4715,]
 #dim(data31)
 head(data31)%>%
@@ -295,9 +295,7 @@ corrplot::corrplot(cor(data31[,-1]))
 
 ggpairs(
 	data31[,-1],
-	lower = list(continuous = "density", combo = "box"),
-	color = "smoker"
-	)
+	lower = list(continuous = "facetbar", combo = "box"))
 ```
 
 ### やってみた
@@ -313,7 +311,7 @@ data31.pca
 summary(data31.pca)
 biplot(data31.pca)
 
-data31.km <- kmeans(data31[,-1],3)
+data31.km <- kmeans(data31[,-1],4)
 #data3.km
 data31.pca.df <- data.frame(data31.pca$x)
 data31.pca.df$house_num <- data31$house_num
@@ -328,24 +326,25 @@ P31
 
 
 ## 購買サンプル
+* +  
+5	周りの人が持っているモノなどを見て思わず自分も欲しくなってしまうことが多い  
+10	周りのみんなが持っているモノを自分だけ持っていないと不安に感じる  
+17	「限定モノ」や「流行モノ」に弱く、すぐ欲しくなる  
+  
+* △  
+19	周りの人がみんな買っているならその商品は間違いなく良いモノだと思う  
+13	買い物をすること自体が楽しく、好きだ  
+20  一流・有名ブランド、メーカーの商品を買うのが好きだ（衣料品、バッグ、時計など）
 
+* －  
 6	どうしても必要なもの以外、買わないほうだ  
 11	流行に左右されない、長年使い続けられるものを選ぶことが多い  
 21	丈夫で長持ちするモノを選ぶことが多い 
-  
-* △  
-5	周りの人が持っているモノなどを見て思わず自分も欲しくなってしまうことが多い  
-10	周りのみんなが持っているモノを自分だけ持っていないと不安に感じる  
-19	周りの人がみんな買っているならその商品は間違いなく良いモノだと思う  
-  
-* －  
-13	買い物をすること自体が楽しく、好きだ  
-17	「限定モノ」や「流行モノ」に弱く、すぐ欲しくなる  
-20
+
 
 500人の購買嗜好についての質問の行列作ってみた. 500*10
 ```{r 購買1}
-data32 <- data.frame(house_num=data$house_num, Q6=data$`6`, Q11=data$`11`, Q21=data$`21`, Q5=data$`5`, Q10=data$`10`, Q19=data$`19`, Q13=data$`13`, Q17=data$`17`, Q20=data$`20`, sex = data$sex, marriage =data$marriage, age = data$age )
+data32 <- data.frame(house_num=data1$house_num, Q6=data1$`6`, Q11=data1$`11`, Q21=data1$`21`, Q5=data1$`5`, Q10=data1$`10`, Q19=data1$`19`, Q13=data1$`13`, Q17=data1$`17`, Q20=data1$`20`)
 data32 <- data32[-501:-4715,]
 head(data32)%>%
   kable()
@@ -353,6 +352,12 @@ head(data32)%>%
 corrplot::corrplot(cor(data32[,-1]))
 
 ggpairs(data32[,-1],aes_string(alpha=0.5), color = "smoker")
+
+
+ggpairs(
+	data32[,-1],
+	lower = list(continuous = "facetbar", combo = "box"))
+
 
 ggpairs(
 	data32[,-1],
@@ -374,7 +379,7 @@ data32.pca
 summary(data32.pca)
 biplot(data32.pca)
 
-data32.km <- kmeans(data32[,-1],2)
+data32.km <- kmeans(data32[,-1],3)
 #data3.km
 data32.pca.df <- data.frame(data32.pca$x)
 data32.pca.df$house_num <- data32$house_num

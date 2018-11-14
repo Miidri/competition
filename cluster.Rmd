@@ -139,7 +139,7 @@ GROUP BY
 ORDER BY
 	house_num;")
 
-
+# 黒木さんの力技バージョン
 if(0){
 sample <- con %>% 
   tbl(from = dbplyr::in_schema("processed", "tv_sample_p_cv"))
@@ -178,9 +178,7 @@ head(data)%>%
 table(is.na(data))
 data[!complete.cases(data),]
 
-data <- data[-1053,]
-data <- data[-4399,]
-data <- data[-4696,]
+data <- data[c(-1053,-4400,-4698),]
 
 table(is.na(data))
 dim(data)
@@ -210,7 +208,6 @@ dim(data)
 
 # 主成分分析
   
-標本情報足すと欠損できちゃうので, dataで実行  
 ```{r dataに主成分}
 data.pca <- prcomp(data[,-1], scale=T)
 data.pca

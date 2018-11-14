@@ -233,7 +233,6 @@ marriage_countP
 age_summarize = dplyr::summarise(data,max=max(age),min=min(age),mean=mean(age))
 summary(data$age)
 age_count = dplyr::count(data,age)
-
 age_countP <-
   ggplot(age_count, aes(x = age, y = n))+
   geom_bar(stat = "identity")+
@@ -246,13 +245,12 @@ age_count10 <-
   geom_histogram(binwidth=10,  fill = cm.colors(6))+
   labs(title = "ユーザの年齢分布")
 
-age_countP
-
 age_count10
 
 #円グラフ
 age_freq10 = cut(data$age, breaks=seq(10,70,10))
 age_tab10 = table(age_freq10)
+age_tab10
 pie(age_tab10, labels=c("11-20","21-30","31-40","41-50","51-60","61-70"), clockwise=T, border="#ffffff", main="年齢分布", col=cm.colors(6))
 
 ```
@@ -283,9 +281,8 @@ p2 <- plot_ly(marriage_count, labels = ~marriage , values = ~n , type = 'pie',
          yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
 
 ageage <-c("11-20","21-30","31-40","41-50","51-60","61-70")
-age10 <- c(255,572,1086,279,974,546)
+age10 <- c(255,572,1086,1279,974,546)
 age_tab10 <- data.frame(ageage, age10)
-age_tab10
 marriage_count
 p3 <- plot_ly(age_tab10, labels = ~ageage , values = ~age10 , type = 'pie',
              textposition = 'inside',
@@ -304,3 +301,10 @@ p1
 p2
 p3
 ```
+
+
+```{r}
+caith
+
+```
+

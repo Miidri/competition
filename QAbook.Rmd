@@ -267,20 +267,38 @@ P1
 ```
 
 ***
-# 主成分分析 data_FU{.tabset .tabset-fade .tabset-pills}
+# 主成分分析 4区分別に {.tabset .tabset-fade .tabset-pills}
 ***
 ## biplot
 
 ```{r dataFUに主成分}
 # 標本情報を抜く
+
+data_MM <- data_MM[,c(-20:-22)]
+data_MM.pca <- prcomp(data_MM[,-1], scale=T)
+
+data_MU <- data_MU[,c(-20:-22)]
+data_MU.pca <- prcomp(data_MU[,-1], scale=T)
+
+data_FM <- data_FM[,c(-20:-22)]
+data_FM.pca <- prcomp(data_FM[,-1], scale=T)
+
 data_FU <- data_FU[,c(-20:-22)]
 data_FU.pca <- prcomp(data_FU[,-1], scale=T)
+
 #data1.pca
+par(mfrow=c(1,2)) 
+biplot(data_MM.pca)
+biplot(data_MU.pca)
+biplot(data_FM.pca)
 biplot(data_FU.pca)
 ```
 
 ## summary
 ```{r}
+summary(data_MM.pca)
+summary(data_MU.pca)
+summary(data_FM.pca)
 summary(data_FU.pca)
 # Proportion of Variance:寄与率
 # Cumulative Proportion:累積寄与率
@@ -291,20 +309,49 @@ summary(data_FU.pca)
 ```
 
 ## k-means
-  
-最終的に6クラスタに分けたいから, とりあえず, $k = 6$ でやってみる.
 
 ```{r}
+data_MM.km <- kmeans(data_MM[,-1],6)
+#data_MM.km
+data_MM.pca.df <- data.frame(data_MM.pca$x)
+data_MM.pca.df$house_num <- data_MM$house_num
+data_MM.pca.df$cluster <- as.factor(data_MM.km$cluster)
+#head(data_MM.pca.df) %>%
+#  kable()
+MM <-
+  ggplot(data_MM.pca.df, aes(x=PC1, y= PC2, label = house_num, col = cluster ))+
+  geom_text()
+
+data_MU.km <- kmeans(data_MU[,-1],6)
+data_MU.pca.df <- data.frame(data_MU.pca$x)
+data_MU.pca.df$house_num <- data_MU$house_num
+data_MU.pca.df$cluster <- as.factor(data_MU.km$cluster)
+MU <-
+  ggplot(data_MU.pca.df, aes(x=PC1, y= PC2, label = house_num, col = cluster ))+
+  geom_text()
+
+data_FM.km <- kmeans(data_FM[,-1],6)
+data_FM.pca.df <- data.frame(data_FM.pca$x)
+data_FM.pca.df$house_num <- data_FM$house_num
+data_FM.pca.df$cluster <- as.factor(data_FM.km$cluster)
+FM <-
+  ggplot(data_FM.pca.df, aes(x=PC1, y= PC2, label = house_num, col = cluster ))+
+  geom_text()
+
 data_FU.km <- kmeans(data_FU[,-1],6)
-#data_FU.km
 data_FU.pca.df <- data.frame(data_FU.pca$x)
 data_FU.pca.df$house_num <- data_FU$house_num
 data_FU.pca.df$cluster <- as.factor(data_FU.km$cluster)
-#head(data_FU.pca.df) %>%
-#  kable()
 FU <-
   ggplot(data_FU.pca.df, aes(x=PC1, y= PC2, label = house_num, col = cluster ))+
   geom_text()
 
+par(mfrow=c(1,2)) 
+MM
+MU
+FM
 FU
 ```
+
+
+***

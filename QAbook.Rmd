@@ -1,0 +1,310 @@
+---
+title: "cluster"
+output:
+  html_document:
+    number_sections: true
+    fig_caption: true
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    fig_width: 7
+    fig_height: 4.5
+    theme: sandstone
+    highlight: tango
+    code_folding: hide
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, 
+                      warning = FALSE,
+                      message = FALSE)
+```
+
+
+```{r set_up}
+#パッケージのインストールと読み込み
+#持ってないパッケージはインストールする
+targetPackages <- c('knitr','DBI','RPostgreSQL','tidyverse',"reshape2","lubridate","dbplot","DT","gridExtra","fmsb","corrplot","graphics","GGally") 
+newPackages <- targetPackages[!(targetPackages %in% installed.packages()[,"Package"])]
+if(length(newPackages)) install.packages(newPackages, repos = "http://cran.us.r-project.org")
+for(package in targetPackages) library(package, character.only = T)
+
+source("psql.R")
+```
+
+
+# data
+## data作成
+  詳しくはcluster.rmdをチェック  
+```{r data1 アンケート長いやつ}
+data1 <- dbGetQuery(con,"
+SELECT
+  house_num,
+  question_code,
+  answer_code
+FROM
+	processed.profiledata
+WHERE
+	qu_genre_code = 3
+	and
+	question_code >= 4 
+	and
+	question_code <= 21
+ORDER BY
+  house_num,
+	question_code,
+	answer_code
+;")
+
+```
+
+```{r data アンケート行列}
+data1 <- data1 %>%
+  tidyr::spread(key = question_code, value = answer_code)
+
+```
+
+```{r data2 アンケート標本情報}
+data2 <-dbGetQuery(con,"
+SELECT
+  distinct(P.house_num),
+  S.sex,
+  S.marriage,
+  S.age
+FROM
+	processed.profiledata as P
+LEFT JOIN
+	(SELECT
+    house_num,
+    sample_date,
+    age,
+    sex,
+    marriage
+  FROM
+    processed.tv_sample_p_cv
+  WHERE
+    (house_num, sample_date)
+  IN
+  (
+      SELECT
+        house_num,
+        min(sample_date) as sample_date
+      FROM
+        processed.tv_sample_p_cv
+      GROUP BY
+        house_num
+  )) as S
+ON
+	S.house_num = P.house_num
+WHERE
+	P.qu_genre_code = 3
+	and
+	P.question_code >= 4 
+	and
+	P.question_code <= 21
+GROUP BY
+	P.house_num,
+	S.sex,
+	S.marriage,
+	S.age,
+  P.question_code,
+  P.answer_code
+ORDER BY
+	house_num;")
+```
+
+```{r data dataとdata2をくっつけてNAもやっつけた}
+data <- merge(data1, data2, by = "house_num")
+#table(is.na(data))
+data[!complete.cases(data),]
+data <- data[c(-1053,-4400,-4698),]
+#table(is.na(data))
+#dim(data)
+```
+
+***
+# data分離{.tabset .tabset-fade .tabset-pills}
+***
+
+## data全容
+
+```{r}
+head(data) %>% 
+  kable()
+```
+
+## 男性既婚MM
+```{r}
+data_M <- subset(data, sex==1)
+data_MM<- subset(data_M, marriage==2)
+
+head(data_MM) %>% 
+  kable()
+```
+
+## 男性未婚MU
+
+```{r}
+data_MU<- subset(data_M, marriage==1)
+
+head(data_MU) %>% 
+  kable()
+```
+
+## 女性既婚FM
+
+```{r}
+data_F <- subset(data, sex==2)
+data_FM<- subset(data_F, marriage==2)
+
+head(data_FM) %>% 
+  kable()
+```
+
+## 女性未婚FU
+
+```{r}
+data_FU<- subset(data_F, marriage==1)
+
+head(data_FU) %>% 
+  kable()
+```
+
+## 年齢を10歳刻みにした度数分布
+
+```{r}
+age_freq10 <- cut(data$age, breaks=seq(10,70,10))
+age_tab10 <- table(age_freq10)
+age_tab10 <- data.frame(age_tab10)
+ageX <-c("11-20","21-30","31-40","41-50","51-60","61-70")
+age_tab10 <- cbind(age = ageX, count = age_tab10$Freq )
+age_tab10 %>% 
+  kable()
+```
+
+
+## クロス分析 of 性別・未既婚
+  
+男性1, 女性2：既婚1, 未婚2  
+```{r}
+# クロス分析的な抜き出し
+# 1718は男性既婚
+sex_marriage <- table(data$sex, data$marriage)
+# 命名は暇なとき調べよう
+sexN <- c("男性", "女性")
+marriageN  <- c("既婚", "未婚")
+
+sex_marriage%>% 
+  kable()
+mosaicplot(sex_marriage,shad=TRUE)
+
+```
+
+***
+# 情報セグメントの回答行列
+***
+
+## アンケート内容
+4	良いと思った情報はできるだけ多くの人と共有することが多い  
+5	周りの人が持っているモノなどを見て思わず自分も欲しくなってしまうことが多い  
+6	どうしても必要なもの以外、買わないほうだ  
+7	情報は人より早く知っていることが多い  
+8	情報は広く浅く知っていれば十分だと思う  
+9	口コミ情報を参考にすることが多い  
+10	周りのみんなが持っているモノを自分だけ持っていないと不安に感じる  
+11	流行に左右されない、長年使い続けられるものを選ぶことが多い  
+12	情報収集に時間をかけるのはもったいない  
+13	買い物をすること自体が楽しく、好きだ  
+14	趣味や興味関心ごとなどのうんちくはたくさん持っている  
+15	面白いと思った情報は周りの人に話したくなる  
+16	情報収集は自ら積極的に行うほうだ  
+17	「限定モノ」や「流行モノ」に弱く、すぐ欲しくなる  
+18	最低限の情報を持っていれば十分だ  
+19	周りの人がみんな買っているならその商品は間違いなく良いモノだと思う  
+20	一流・有名ブランド、メーカーの商品を買うのが好きだ（衣料品、バッグ、時計など）  
+21	丈夫で長持ちするモノを選ぶことが多い  
+
+***
+# 主成分分析 data1{.tabset .tabset-fade .tabset-pills}
+***
+## biplot
+
+```{r dataに主成分}
+data1.pca <- prcomp(data1[,-1], scale=T)
+#data1.pca
+biplot(data1.pca)
+```
+
+## summary
+```{r}
+summary(data1.pca)
+# Proportion of Variance:寄与率
+# Cumulative Proportion:累積寄与率
+#data.frame(unclass(summary(data.pca)), check.names = FALSE, stringsAsFactors = FALSE)
+# 寄与率プロットしたいのに！できない！
+#pca <- ggplot(data.pcaS, aes(data.pcaS))+ 
+#  geom_histogram()
+```
+
+## k-means
+  
+最終的に6クラスタに分けたいから, とりあえず, $k = 6$ でやってみる.
+
+```{r}
+data1.km <- kmeans(data1[,-1],6)
+#data.km
+data1.pca.df <- data.frame(data1.pca$x)
+data1.pca.df$house_num <- data1$house_num
+data1.pca.df$cluster <- as.factor(data1.km$cluster)
+#head(data1.pca.df) %>%
+#  kable()
+P1 <-
+  ggplot(data1.pca.df, aes(x=PC1, y= PC2, label = house_num, col = cluster ))+
+  geom_text()
+P1
+```
+
+***
+# 主成分分析 data_FU{.tabset .tabset-fade .tabset-pills}
+***
+## biplot
+
+```{r dataFUに主成分}
+# 標本情報を抜く
+data_FU <- data_FU[,c(-20:-22)]
+data_FU.pca <- prcomp(data_FU[,-1], scale=T)
+#data1.pca
+biplot(data_FU.pca)
+```
+
+## summary
+```{r}
+summary(data_FU.pca)
+# Proportion of Variance:寄与率
+# Cumulative Proportion:累積寄与率
+#data.frame(unclass(summary(data.pca)), check.names = FALSE, stringsAsFactors = FALSE)
+# 寄与率プロットしたいのに！できない！
+#pca <- ggplot(data.pcaS, aes(data.pcaS))+ 
+#  geom_histogram()
+```
+
+## k-means
+  
+最終的に6クラスタに分けたいから, とりあえず, $k = 6$ でやってみる.
+
+```{r}
+data_FU.km <- kmeans(data_FU[,-1],6)
+#data_FU.km
+data_FU.pca.df <- data.frame(data_FU.pca$x)
+data_FU.pca.df$house_num <- data_FU$house_num
+data_FU.pca.df$cluster <- as.factor(data_FU.km$cluster)
+#head(data_FU.pca.df) %>%
+#  kable()
+FU <-
+  ggplot(data_FU.pca.df, aes(x=PC1, y= PC2, label = house_num, col = cluster ))+
+  geom_text()
+
+FU
+```

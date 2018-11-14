@@ -175,8 +175,9 @@ job_count%>%
 #ヒストグラム
 job_countP <-
   ggplot(job_count, aes(x = reorder(job, -count), y = count))+
-  geom_bar(stat = "identity", col=topo.colors(14), fill = cm.colors(14))+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))  +
+  geom_bar(stat = "identity", col=cm.colors(14), fill = cm.colors(14))+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  + 
+  xlab("job")+
   labs(title = "職業") 
 
 job_countP

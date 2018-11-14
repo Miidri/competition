@@ -59,7 +59,7 @@ sex_count %>%
   kable
 sex_countP <-
   ggplot(sex_count, aes(x = sex, y = n))+
-  geom_bar(stat = "identity",col=c("skyblue","pink"),,fill=c("skyblue","pink"))+
+  geom_bar(stat = "identity",col=c("pink","skyblue"),fill=c("pink","skyblue"))+
   labs(title = "ユーザの性別")
 
 sex_countP
@@ -77,7 +77,7 @@ marriage_count %>%
   kable
 marriage_countP <-
   ggplot(marriage_count, aes(x = marriage, y = n))+
-  geom_bar(stat = "identity",col=c("skyblue","pink"),,fill=c("skyblue","pink"))+
+  geom_bar(stat = "identity",col=c("skyblue","pink"),fill=c("skyblue","pink"))+
   labs(title = "婚姻情報")
 
 marriage_countP
@@ -128,7 +128,7 @@ age_countP <-
 #ヒストグラム
 age_count5 <-
   ggplot(x, aes(x = age))+
-  geom_histogram(binwidth=5,  col="white", fill = topo.colors(12))+
+  geom_histogram(binwidth=5,  col=cm.colors(12), fill = cm.colors(12))+
   labs(title = "ユーザの年齢分布")
 
 age_countP
@@ -143,7 +143,7 @@ age_tab5%>%
 age_freq10 = cut(x$age, breaks=seq(10,70,10))
 age_tab10 = table(age_freq10)
 
-pie(age_tab5, labels=c("11-15","16-20","21-25","26-30","31-35","36-40","41-45","46-50","51-55","56-60","61-65","66-70"), clockwise=T, border="#ffffff", main="年齢分布", col=topo.colors(16))
+pie(age_tab5, labels=c("11-15","16-20","21-25","26-30","31-35","36-40","41-45","46-50","51-55","56-60","61-65","66-70"), clockwise=T, border="#ffffff", main="年齢分布", col=cm.colors(16))
 
 ```
 
@@ -175,7 +175,7 @@ job_count%>%
 #ヒストグラム
 job_countP <-
   ggplot(job_count, aes(x = reorder(job, -count), y = count))+
-  geom_bar(stat = "identity", col=topo.colors(14), fill = topo.colors(14))+
+  geom_bar(stat = "identity", col=topo.colors(14), fill = cm.colors(14))+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))  +
   labs(title = "職業") 
 
@@ -199,7 +199,7 @@ group by
 order by
   count(S.job_code) desc;")
 
-pie(job_count$count, labels=head(job_count$job,3) ,clockwise=T, border="#ffffff", main="職業", col=topo.colors(14), radius = 1)
+pie(job_count$count, labels=head(job_count$job,3) ,clockwise=T, border="#ffffff", main="職業", col=cm.colors(14), radius = 1)
 ```
 
 # 実際のサンプル数

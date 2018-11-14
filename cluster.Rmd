@@ -403,18 +403,3 @@ biplot(data32.pca)
 
 ```
 
-
-
-
-# 相関行列 
-
-```{r}
-#これあとでやる
-
-data.cor <- cor(data)
-data.cor%>%
-  kable()
-
-eigen(data.cor)
-```
-

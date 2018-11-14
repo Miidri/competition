@@ -32,7 +32,6 @@ if(length(newPackages)) install.packages(newPackages, repos = "http://cran.us.r-
 for(package in targetPackages) library(package, character.only = T)
 
 source("psql.R")
-
 ```
 
 #アンケとは別に追加された質問
@@ -57,8 +56,9 @@ source("psql.R")
     - 主婦・無職
 
 
-# とりあえずアンケート結果な並べるじゃん
-```{r}
+# data1, data, data2
+##data1 アンケート長いやつ
+```{r data1 アンケート長いやつ}
 data1 <- dbGetQuery(con,"
 SELECT
   house_num,
@@ -78,6 +78,20 @@ ORDER BY
 	answer_code
 ;")
 
+head(data1) %>%
+  kable
+```
+
+```{r data アンケート行列}
+data <- data1 %>%
+  tidyr::spread(key = question_code, value = answer_code)
+
+head(data)%>%
+  kable()
+```
+
+## data2 アンケート標本情報
+```{r data2 アンケート標本情報}
 data2 <-dbGetQuery(con,"
 SELECT
   distinct(P.house_num),
@@ -87,7 +101,26 @@ SELECT
 FROM
 	processed.profiledata as P
 LEFT JOIN
-	processed.tv_sample_p_cv as S
+	(SELECT
+    house_num,
+    sample_date,
+    age,
+    sex,
+    marriage
+  FROM
+    processed.tv_sample_p_cv
+  WHERE
+    (house_num, sample_date)
+  IN
+  (
+      SELECT
+        house_num,
+        min(sample_date) as sample_date
+      FROM
+        processed.tv_sample_p_cv
+      GROUP BY
+        house_num
+  )) as S
 ON
 	S.house_num = P.house_num
 WHERE
@@ -106,19 +139,54 @@ GROUP BY
 ORDER BY
 	house_num;")
 
-head(data1, 10) %>%
-  kable
 
+if(0){
+sample <- con %>% 
+  tbl(from = dbplyr::in_schema("processed", "tv_sample_p_cv"))
+prof_data <- con %>% 
+  tbl(from = dbplyr::in_schema("processed", "profiledata"))
+prof_mst <- con %>% 
+  tbl(from = dbplyr::in_schema("processed", "profilemaster"))
+prof <- prof_data %>% 
+  left_join(prof_mst, by = c("qu_genre_code", "question_code", "answer_code"))
+ 
+data5 <- sample %>% 
+  group_by(house_num) %>%
+  filter(sample_date == min(sample_date)) %>% 
+  right_join(prof %>% 
+               filter(qu_genre_code == 3,
+                      question_code <= 21,
+                      question_code >= 4),
+             by = "house_num") %>% 
+  collect()
+dim(data5)
+head(data5)%>%
+  kable()
+}
 head(data2)%>%
   kable()
-dim(data2)
+```
+
+## data dataとdata2をくっつけた
+  
+繋げてから, 標本情報のNAがある行も消去.  
+```{r data dataとdata2をくっつけた}
+data <- merge(data, data2, by = "house_num")
+head(data)%>%
+  kable()
+
+table(is.na(data))
+data[!complete.cases(data),]
+
+data <- data[-1053,]
+data <- data[-4399,]
+data <- data[-4696,]
+
+table(is.na(data))
+dim(data)
 ```
 
 # 情報セグメントの回答行列
-
-アンケートを行列へ.  
-欠損値はない模様.  
-
 ## アンケート内容
 4	良いと思った情報はできるだけ多くの人と共有することが多い  
 5	周りの人が持っているモノなどを見て思わず自分も欲しくなってしまうことが多い  
@@ -139,21 +207,11 @@ dim(data2)
 20	一流・有名ブランド、メーカーの商品を買うのが好きだ（衣料品、バッグ、時計など）  
 21	丈夫で長持ちするモノを選ぶことが多い  
 
-```{r}
-data <- data1 %>%
-  tidyr::spread(key = question_code, value = answer_code)
-head(data)%>%
-  kable()
-dim(data)
-
-#性別・年齢・未既婚つけたいんだけど, data2の行数がちょっと多いんだよね
-#data <- cbind(data, data2$sex, data2$marriage, data2$age)
-```
-  
-4715人のデータ    
 
 # 主成分分析
-```{r}
+  
+標本情報足すと欠損できちゃうので, dataで実行  
+```{r dataに主成分}
 data.pca <- prcomp(data[,-1], scale=T)
 data.pca
 
@@ -161,7 +219,7 @@ biplot(data.pca)
 summary(data.pca)
 # Proportion of Variance:寄与率
 # Cumulative Proportion:累積寄与率
-
+#data.frame(unclass(summary(data.pca)), check.names = FALSE, stringsAsFactors = FALSE)
 # 寄与率プロットしたいのに！できない！
 #pca <- ggplot(data.pcaS, aes(data.pcaS))+ 
 #  geom_histogram()
@@ -176,12 +234,11 @@ summary(data.pca)
 data.km <- kmeans(data[,-1],6)
 #data.km
 
-
 data.pca.df <- data.frame(data.pca$x)
 data.pca.df$house_num <- data$house_num
 data.pca.df$answer_code <- as.factor(data.km$cluster)
-head(data.pca.df) %>%
-  kable()
+#head(data.pca.df) %>%
+#  kable()
 P1 <-
   ggplot(data.pca.df, aes(x=PC1, y= PC2, label = house_num, col = answer_code ))+
   geom_text()
@@ -189,8 +246,8 @@ P1 <-
 P1
 ```
   
-絶対に意味ない.  
-そもそもPC1とPC2の累積寄与率40%だからね...
+ひどい.
+
 
 # アンケート内容を分けてみた
 ##情報
@@ -229,24 +286,26 @@ P1
 
 ## 情報サンプル
 
-500人の情報収集についての質問の行列作ってみた. 500*10
-```{r}
-data31 <- data.frame(data$house_num, data$`12`, data$`18`, data$`8`, data$`9`,data$`4`, data$`7`, data$`14`, data$`15`, data$`16` )
-data31 <- data31[-500:-4715,]
+500人の情報収集についての質問の行列作ってみた. 標本情報も足す. 500*10 
+```{r 情報1}
+data31 <- data.frame(house_num=data$house_num, Q12=data$`12`, Q18=data$`18`, Q8=data$`8`, Q9=data$`9`,Q4=data$`4`, Q7=data$`7`, Q14=data$`14`, Q15=data$`15`, Q16=data$`16`, sex = data$sex, marriage =data$marriage, age = data$age )
+data31 <- data31[-501:-4715,]
+#dim(data31)
 head(data31)%>%
   kable()
 # 散布図行列
 corrplot::corrplot(cor(data31[,-1]))
 
-ggpairs(data31[,-1],aes_string(alpha=0.5))
-
+ggpairs(
+	data31[,-1],
+	lower = list(continuous = "density", combo = "box"),
+	color = "smoker"
+	)
 ```
 
 ### やってみた
   
-https://www.slideshare.net/Hiro47/r-35886073
-
-```{r}
+```{r 31}
 #分散共分散行列
 var(data31[,-1])
 #固有値･固有ベクトル
@@ -257,13 +316,10 @@ data31.pca
 summary(data31.pca)
 biplot(data31.pca)
 
-```
-
-```{r}
 data31.km <- kmeans(data31[,-1],3)
 #data3.km
 data31.pca.df <- data.frame(data31.pca$x)
-data31.pca.df$house_num <- data31$data.house_num
+data31.pca.df$house_num <- data31$house_num
 data31.pca.df$answer_code <- as.factor(data31.km$cluster)
 head(data31.pca.df)
 P31 <-
@@ -291,9 +347,9 @@ P31
 20
 
 500人の購買嗜好についての質問の行列作ってみた. 500*10
-```{r}
-data32 <- data.frame(data$house_num, data$`6`, data$`11`, data$`21`, data$`5`,data$`10`, data$`19`, data$`13`, data$`17`, data$`20` )
-data32 <- data32[-500:-4715,]
+```{r 購買1}
+data32 <- data.frame(house_num=data$house_num, Q6=data$`6`, Q11=data$`11`, Q21=data$`21`, Q5=data$`5`, Q10=data$`10`, Q19=data$`19`, Q13=data$`13`, Q17=data$`17`, Q20=data$`20`, sex = data$sex, marriage =data$marriage, age = data$age )
+data32 <- data32[-501:-4715,]
 head(data32)%>%
   kable()
 # 散布図行列
@@ -309,10 +365,32 @@ ggpairs(
 ```
 
 ### やってみた
-  
-https://www.slideshare.net/Hiro47/r-35886073
 
-```{r}
+```{r 32}
+#分散共分散行列
+var(data32[,-1])
+#固有値･固有ベクトル
+eigen(var(scale(data32[,-1])))
+
+data32.pca <- prcomp(data32[,-1], scale=T)
+data32.pca
+summary(data32.pca)
+biplot(data32.pca)
+
+data32.km <- kmeans(data32[,-1],2)
+#data3.km
+data32.pca.df <- data.frame(data32.pca$x)
+data32.pca.df$house_num <- data32$house_num
+data32.pca.df$answer_code <- as.factor(data32.km$cluster)
+head(data32.pca.df)
+P32 <-
+  ggplot(data32.pca.df, aes(x=PC1, y= PC2, label = house_num, col = answer_code ))+
+  geom_text()
+
+P32
+```
+
+```{r 34}
 #分散共分散行列
 var(data32[,-1])
 #固有値･固有ベクトル
@@ -325,20 +403,11 @@ biplot(data32.pca)
 
 ```
 
-```{r}
-data32.km <- kmeans(data32[,-1],2)
-#data3.km
-data32.pca.df <- data.frame(data32.pca$x)
-data32.pca.df$house_num <- data32$data.house_num
-data32.pca.df$answer_code <- as.factor(data32.km$cluster)
-head(data32.pca.df)
-P32 <-
-  ggplot(data32.pca.df, aes(x=PC1, y= PC2, label = house_num, col = answer_code ))+
-  geom_text()
 
-P32
-```
+
+
 # 相関行列 
+
 ```{r}
 #これあとでやる
 

@@ -1,0 +1,249 @@
+---
+title: "profile"
+output:
+  html_document:
+    number_sections: true
+    fig_caption: true
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    fig_width: 7
+    fig_height: 4.5
+    theme: sandstone
+    highlight: tango
+    code_folding: hide
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, 
+                      warning = FALSE,
+                      message = FALSE)
+```
+
+
+```{r set_up}
+#パッケージのインストールと読み込み
+#持ってないパッケージはインストールする
+targetPackages <- c('knitr','DBI','RPostgreSQL','tidyverse',"reshape2","lubridate","dbplot","DT","gridExtra") 
+newPackages <- targetPackages[!(targetPackages %in% installed.packages()[,"Package"])]
+if(length(newPackages)) install.packages(newPackages, repos = "http://cran.us.r-project.org")
+for(package in targetPackages) library(package, character.only = T)
+
+source("psql.R")
+
+```
+
+```{r get_data}
+pro <- con %>% 
+  tbl(from = dbplyr::in_schema("processed", "profiledata")) 
+mst <- con %>% 
+  tbl(from = dbplyr::in_schema("processed", "profilemaster"))
+
+```
+
+
+
+#データ全容
+```{r head_pro, result = "asis"}
+data <- pro %>% 
+  head(100) %>% 
+  collect()
+
+master <- mst %>% 
+  head(100) %>% 
+  collect()
+
+data %>% 
+  datatable(style="bootstrap", class="table-condensed", options = list(dom = 'tp',scrollX = TRUE))
+
+master %>% 
+  datatable(style="bootstrap", class="table-condensed", options = list(dom = 'tp',scrollX = TRUE))
+
+```
+
+
+#質問内容の把握
+
+##genre
+  
+- 32項目
+- このジャンルごとに質問がある形
+
+```{r}
+genre <- dbGetQuery(con,"
+select 
+	distinct(qu_genre_code),
+	qu_genre,
+  count(distinct(question_code))
+from
+	processed.profilemaster
+group by
+	qu_genre_code,
+	qu_genre;")
+genre%>%
+  kable()
+```
+  
+- フェース項目：世帯の物理特性について（家族構成，経済状況）
+- 生活行動：起床在宅時間
+- 意識項目：人生観，価値観について（メディア関係のものが含まれる）
+- メディア関連項目（頻度）：メディアに触れる頻度（テレビ・スマホ・タブレット・PC・PHS・新聞・雑誌・電車・チラシ・ラジオ）
+- メディア関連項目（時間）：メディアに触れる時間（同上）
+- テレビ関連項目：各放送局のイメージ and 好きなジャンル・放送局について
+- テレビ関連項目（BS・CS・専門チャンネル）：各BS・CSの加入期間 and 視聴可能チャンネルについて
+- 動画配信サービス：動画配信サービスの利用や認知について（Youyube, Hulu, Abema）
+- 新聞関連項目：何の新聞を読んでいるかについて（曜日・朝刊夕刊ごと）
+- 雑誌関連項目：どのぐらいの頻度で雑誌を読むか，何を読むか（週刊，隔週刊，月刊）
+- インターネット関連項目：アプリごとに，どのぐらいの頻度で利用するか(SNS，ゲーム，動画配信等)
+- 通販関連：通販の利用頻度や購入メディア
+- 商品・サービス関連：日々の購買についていろいろ
+- クラスター分類：VRが作成したクラスタ．
+- SNS関連項目：SNS利用方法・頻度（Facebook, Twitter, Instagram）
+
+##question
+
+```{r とりあえず全部の質問 出力無し}
+que <- dbGetQuery(con,"
+select 
+	distinct(question_code),
+	qu_genre_code,
+	question
+from
+	processed.profilemaster
+group by
+	qu_genre_code,
+	question_code,
+	question
+order by 
+	qu_genre_code,
+	question_code;")
+#head(mstIN) %>%
+# kable()
+```
+
+### 1 フェース項目（基本特性以外）  
+```{r 1}
+q1 <- dbGetQuery(con,"
+select 
+	distinct(question_code),
+	question
+from
+	processed.profilemaster
+where
+	qu_genre_code = 1
+group by
+	question_code,
+	question
+order by 
+	question_code;")
+q1 %>%
+ kable()
+```
+
+
+### 2 普段の生活行動
+```{r 2}
+
+q2 <- dbGetQuery(con,"
+select 
+	distinct(question_code),
+	question
+from
+	processed.profilemaster
+where
+	qu_genre_code = 2
+group by
+	question_code,
+	question
+order by 
+	question_code;")
+
+q2 %>%
+ kable()
+
+q2A <- dbGetQuery(con,"
+select 
+	distinct(answer_code),
+	answer
+from
+	processed.profilemaster
+where
+	qu_genre_code = 2
+group by
+	answer_code,
+	answer
+order by 
+	answer_code;")
+time <- c(6:24,0)
+
+q2A%>%
+  kable()  
+#後でこれ↓使え
+#q2A <- cbind(q2A, time)
+  
+```
+
+### 3 意識項目
+```{r 3}
+q3 <- dbGetQuery(con,"
+select 
+	distinct(question_code),
+	question
+from
+	processed.profilemaster
+where
+	qu_genre_code = 3
+group by
+	question_code,
+	question
+order by 
+	question_code;")
+
+q3 %>%
+ kable()
+```
+
+
+
+### 25 クラスター分類（ＶＲ区分）
+```{r 25}
+q25 <- dbGetQuery(con,"
+select 
+	question_code,
+  question,
+  answer_code,
+  answer       
+from
+	processed.profilemaster
+WHERE
+	qu_genre_code = 25
+order by 
+	question_code,
+  answer_code;")
+
+q25 %>%
+  kable()
+```
+  
+- 情報×選択セグメント  
+![](figures/cluster/unchiku.png)
+- シニアセグメント  
+![](figures/cluster/senior.png)
+  
+- イノベーター指標  
+![](figures/cluster/majority.png)
+  
+- わかものパーソナリティ  
+![](figures/cluster/youth.png)
+![](figures/cluster/youth2.png)
+
+#ポジショニング分析
+1. マーケットセグメンテーション（市場の人々を何らかの基準でいくつかの意味のあるグループにわけること）を行う  
+2. 分割したセグメントのうち, どのセグメントをターゲットにするかを決める  
+3. ターゲットセグメントへアプローチするため知覚マップを作成し, ユーザが重視する方角を見つける
+
+# アンケートデータとポジショニング分析
+- アンケートデータを用いたクラスタリングがVRで行われていることが分かった
+- このクラスタリングの手法は情報としてもらっていないため, このような分類（主成分分析etc）を再度行い, そこからテレビの視聴傾向, もしくはCMデータと絡めることで知覚マップを作成し, 有効なセグメンテーションへのアプローチの検討を行えるのではないか.

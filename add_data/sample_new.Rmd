@@ -1,0 +1,303 @@
+---
+title: "profile sample 基礎統計"
+output:
+  html_document:
+    number_sections: true
+    fig_caption: true
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    fig_width: 7
+    fig_height: 4.5
+    theme: sandstone 
+    highlight: tango
+    code_folding: hide
+editor_options: 
+  chunk_output_type: console
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, 
+                      warning = FALSE,
+                      message = FALSE)
+```
+
+
+```{r set_up}
+#パッケージのインストールと読み込み
+#持ってないパッケージはインストールする
+targetPackages <- c('knitr','DBI','RPostgreSQL','tidyverse',"reshape2","lubridate","dbplot","DT","gridExtra","fmsb","corrplot","graphics","GGally","plotly") 
+newPackages <- targetPackages[!(targetPackages %in% installed.packages()[,"Package"])]
+if(length(newPackages)) install.packages(newPackages, repos = "http://cran.us.r-project.org")
+for(package in targetPackages) library(package, character.only = T)
+
+source("/home/miidri/competition/psql.R")
+```
+
+#アンケとは別に追加された質問
+- 性別
+- 年齢（10代～70代以上）
+- 未既婚
+- 職業
+    - IT・通信・インターネット 
+    - メーカー
+    - 商社
+    - サービス・レジャー
+    - 流通・小売・フード
+    - マスコミ
+    - 広告・デザイン
+    - 金融・保険
+    - コンサルティング
+    - 不動産・建設・設備
+    - 運輸・交通・物流・倉庫
+    - 環境・エネルギー
+    - 公的機関・その他
+    - 学生
+    - 主婦・無職
+
+
+# data1, data, data2
+##data1 アンケート長いやつ
+```{r data1 アンケート長いやつ}
+data1 <- dbGetQuery(con,"
+SELECT
+  house_num,
+  question_code,
+  answer_code
+FROM
+	processed.profiledata
+WHERE
+	qu_genre_code = 3
+	and
+	question_code >= 4 
+	and
+	question_code <= 21
+ORDER BY
+  house_num,
+	question_code,
+	answer_code
+;")
+
+head(data1) %>%
+  kable
+```
+
+```{r data アンケート行列}
+data <- data1 %>%
+  tidyr::spread(key = question_code, value = answer_code)
+
+head(data)%>%
+  kable()
+```
+
+## data2 アンケート標本情報
+```{r data2 アンケート標本情報}
+data2 <-dbGetQuery(con,"
+SELECT
+  distinct(P.house_num),
+  S.sex,
+  S.marriage,
+  S.age
+FROM
+	processed.profiledata as P
+LEFT JOIN
+	(SELECT
+    house_num,
+    sample_date,
+    age,
+    sex,
+    marriage
+  FROM
+    processed.tv_sample_p_cv
+  WHERE
+    (house_num, sample_date)
+  IN
+  (
+      SELECT
+        house_num,
+        min(sample_date) as sample_date
+      FROM
+        processed.tv_sample_p_cv
+      GROUP BY
+        house_num
+  )) as S
+ON
+	S.house_num = P.house_num
+WHERE
+	P.qu_genre_code = 3
+	and
+	P.question_code >= 4 
+	and
+	P.question_code <= 21
+GROUP BY
+	P.house_num,
+	S.sex,
+	S.marriage,
+	S.age,
+  P.question_code,
+  P.answer_code
+ORDER BY
+	house_num;")
+
+
+if(0){
+sample <- con %>% 
+  tbl(from = dbplyr::in_schema("processed", "tv_sample_p_cv"))
+prof_data <- con %>% 
+  tbl(from = dbplyr::in_schema("processed", "profiledata"))
+prof_mst <- con %>% 
+  tbl(from = dbplyr::in_schema("processed", "profilemaster"))
+prof <- prof_data %>% 
+  left_join(prof_mst, by = c("qu_genre_code", "question_code", "answer_code"))
+ 
+data5 <- sample %>% 
+  group_by(house_num) %>%
+  filter(sample_date == min(sample_date)) %>% 
+  right_join(prof %>% 
+               filter(qu_genre_code == 3,
+                      question_code <= 21,
+                      question_code >= 4),
+             by = "house_num") %>% 
+  collect()
+dim(data5)
+head(data5)%>%
+  kable()
+}
+head(data2)%>%
+  kable()
+```
+
+## data dataとdata2をくっつけた
+  
+繋げてから, 標本情報のNAがある行も消去.  
+```{r data dataとdata2をくっつけた}
+data <- merge(data, data2, by = "house_num")
+head(data)%>%
+  kable()
+
+table(is.na(data))
+data[!complete.cases(data),]
+
+data <- data[-1053,]
+data <- data[-4399,]
+data <- data[-4696,]
+
+table(is.na(data))
+dim(data)
+```
+  
+4712*22 (house_num, Question18個, 性別, 未既婚, 年齢)の行列完成  
+
+#性別・婚姻
+
+##性別
+```{r}
+#sex
+sex_count = dplyr::count(data,sex)
+sex <- c("male", "female")
+sex_count <- cbind(sex,sex_count )
+sex_count[,2] <-NULL
+sex_count %>%
+  kable
+sex_countP <-
+  ggplot(sex_count, aes(x = sex, y = n))+
+  geom_bar(stat = "identity",col=c("pink","skyblue"),fill=c("pink","skyblue"))+
+  labs(title = "ユーザの性別")
+
+sex_countP
+
+```
+
+##婚姻
+```{r}
+#marriage
+marriage_count = dplyr::count(data,marriage)
+marriage <- c("未婚", "既婚")
+marriage_count <- cbind(marriage,marriage_count )
+marriage_count[,2] <-NULL
+marriage_count %>%
+  kable
+marriage_countP <-
+  ggplot(marriage_count, aes(x = marriage, y = n))+
+  geom_bar(stat = "identity",col=c("skyblue","pink"),fill=c("skyblue","pink"))+
+  labs(title = "婚姻情報")
+
+marriage_countP
+```
+
+
+#年齢
+```{r}
+#age
+age_summarize = dplyr::summarise(data,max=max(age),min=min(age),mean=mean(age))
+summary(data$age)
+age_count = dplyr::count(data,age)
+age_countP <-
+  ggplot(age_count, aes(x = age, y = n))+
+  geom_bar(stat = "identity")+
+  labs(title = "ユーザの年齢分布")
+
+##10歳刻み
+#ヒストグラム
+age_count10 <-
+  ggplot(data, aes(x = age))+
+  geom_histogram(binwidth=10,  fill = cm.colors(6))+
+  labs(title = "ユーザの年齢分布")
+
+age_count10
+
+#円グラフ
+age_freq10 = cut(data$age, breaks=seq(10,70,10))
+age_tab10 = table(age_freq10)
+age_tab10
+pie(age_tab10, labels=c("11-20","21-30","31-40","41-50","51-60","61-70"), clockwise=T, border="#ffffff", main="年齢分布", col=cm.colors(6))
+
+```
+
+
+##円グラフ
+
+```{r}
+par(mfrow=c(1,2)) 
+p1 <- plot_ly(sex_count, labels = ~sex , values = ~n , type = 'pie',
+             textposition = 'inside',
+             textinfo = 'label+percent',
+             insidetextfont = list(color = '#000000'),
+             showlegend = FALSE) %>%
+  layout(title = '性別',
+         colorway=c("skyblue","pink"),
+         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+
+p2 <- plot_ly(marriage_count, labels = ~marriage , values = ~n , type = 'pie',
+             textposition = 'inside',
+             textinfo = 'label+percent',
+             insidetextfont = list(color = '#000000'),
+             showlegend = FALSE) %>%
+  layout(title = '未婚既婚',
+         colorway=c("skyblue","pink"),
+         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+
+ageage <-c("11-20","21-30","31-40","41-50","51-60","61-70")
+age10 <- c(255,572,1086,1279,974,546)
+age_tab10 <- data.frame(ageage, age10)
+marriage_count
+p3 <- plot_ly(age_tab10, labels = ~ageage , values = ~age10 , type = 'pie',
+             textposition = 'inside',
+             textinfo = 'label+percent',
+             insidetextfont = list(color = '#000000'),
+             showlegend = TRUE,
+             sort = FALSE
+             
+            ) %>%
+  layout(title = '年齢',
+         colorway = cm.colors(6),
+         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE)
+         )
+p1
+p2
+p3
+```

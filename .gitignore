@@ -4,8 +4,7 @@
 .Ruserdata
 *.html
 psql.R
-kurokisan.Rmd
-kurokisan_files/
+senpai
 *.png
 *.csv
 *.figures

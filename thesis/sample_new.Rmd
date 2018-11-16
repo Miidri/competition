@@ -115,15 +115,15 @@ age_count10 <-
   ggplot(data, aes(x = age))+
   geom_histogram(binwidth=10,  fill = cm.colors(6))+
   labs(title = "ユーザの年齢分布")
-
 age_count10
 
 #円グラフ
-age_freq10 = cut(data$age, breaks=seq(10,70,10))
-age_tab10 = table(age_freq10)
-age_tab10
+age_freq10 <- cut(data$age, breaks=seq(10,70,10))
+age_tab10 <- table(age_freq10)
 pie(age_tab10, labels=c("11-20","21-30","31-40","41-50","51-60","61-70"), clockwise=T, border="#ffffff", main="年齢分布", col=cm.colors(6))
-
+ageX <-c("11-20","21-30","31-40","41-50","51-60","61-70")
+age_tab10 %>% 
+  kable()
 ```
 
 
@@ -171,4 +171,15 @@ p3 <- plot_ly(age_tab10, labels = ~ageage , values = ~age10 , type = 'pie',
 p1
 p2
 p3
+```
+
+# クロス分析 of 性別・未既婚
+  
+- 男性1, 女性2  
+- 既婚1, 未婚2  
+
+```{r}
+sex_marriage <- table(data$sex, data$marriage)
+sex_marriage %>% 
+  kable()
 ```

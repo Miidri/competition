@@ -1,3 +1,21 @@
+# まとめ
+## data     全員      all
+## data1    全員      アンケート
+## data2    全員      標本
+## data_MM  既婚男性  all
+## data_MU  未婚男性  all
+## data_FM  既婚女性  all
+## data_FU  未婚女性  all
+## data_MM1 既婚男性  アンケート
+## data_MU1 未婚男性  アンケート
+## data_FM1 既婚女性  アンケート
+## data_FU1 未婚女性  アンケート
+## dataI              all         情報
+## dataS              all         購買
+## dataI1             アンケート  情報
+## dataS1             アンケート  購買
+
+
 # data
 data1 <- dbGetQuery(con,"
                     SELECT
@@ -21,6 +39,10 @@ data1 <- dbGetQuery(con,"
 # data1をアンケート行列に変換
 data1 <- data1 %>%
   tidyr::spread(key = question_code, value = answer_code)
+
+# アンケート並び替え
+data1 <- data1[,c(1,10,16,6,7,2,5,12,13,14,4,9,19,3,8,17,11,15,18)]
+colnames(data1) <- c("house_num","I1","I2","I3","I4","I5","I6","I7","I8","I9","S1","S2","S3","S4","S5","S6","S7","S8","S9")
 
 # 性別・未既婚・年齢を用意
 data2 <-dbGetQuery(con,"
@@ -75,10 +97,13 @@ data <- merge(data1, data2, by = "house_num")
 table(is.na(data))
 data[!complete.cases(data),]
 data <- data[c(-1053,-4400,-4698),]
+data1 <- data1[c(-1053,-4400,-4698),]
+data2 <- data2[c(-1053,-4400,-4698),]
+
 table(is.na(data))
 dim(data)
-
-
+dim(data1)
+dim(data2)
 # dataから男性だけ, 女性だけを用意
 data_M <- subset(data, sex==1)
 data_F <- subset(data, sex==2)
@@ -86,59 +111,28 @@ data_F <- subset(data, sex==2)
   
 # 男性未婚MM
 data_MM<- subset(data_M, marriage==2)
+data_MM1 <- data_MM[,c(-20:-22)]
 
 # 男性未婚MU
 data_MU<- subset(data_M, marriage==1)
+data_MU1 <- data_MU[,c(-20:-22)]
 
 # 女性既婚FM
 data_FM<- subset(data_F, marriage==2)
+data_FM1 <- data_FM[,c(-20:-22)]
 
 # 女性未婚FU
 data_FU<- subset(data_F, marriage==1)
+data_FU1 <- data_FU[,c(-20:-22)]
+
+# 情報収集
+dataI <-data[,-11:-19]
+dataI1 <-data1[,-11:-19]
+
+# 購買行動
+dataS <-data[,-2:-10]
+dataS1 <-data1[,-2:-10]
 
 
-# 年齢を10歳刻みにした度数分布
 
-age_freq10 <- cut(data$age, breaks=seq(10,70,10))
-age_tab10 <- table(age_freq10)
-age_tab10 <- data.frame(age_tab10)
-ageX <-c("11-20","21-30","31-40","41-50","51-60","61-70")
-age_tab10 <- cbind(age = ageX, count = age_tab10$Freq )
-age_tab10 %>% 
-  kable()
 
-# クロス分析 of 性別・未既婚
-
-# 男性1, 女性2：既婚1, 未婚2  
-sex_marriage <- table(data$sex, data$marriage)
-str(sex_marriage)
-sex_marriage <- data.frame(sex_marriage)
-
-sexN <- c("男性", "女性")
-marriageN  <- c("既婚", "未婚")
-
-sex_marriage%>% 
-  kable()
-
-# まとめ
-# 全情報
-head(data) %>% 
-  kable()
-# 全員アンケート
-head(data1) %>% 
-  kable()
-# 全員標本
-head(data2) %>% 
-  kable()
-# 既婚男性アンケート
-head(data_MM) %>% 
-  kable()
-# 未婚男性アンケート
-head(data_MU) %>% 
-  kable()
-# 既婚女性アンケート
-head(data_FM) %>% 
-  kable()
-# 未婚女性アンケート
-head(data_FU) %>% 
-  kable()

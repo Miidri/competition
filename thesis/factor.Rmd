@@ -39,7 +39,7 @@ source("/home/miidri/competition/data_name.R")
 # 因子分析 {.tabset .tabset-fade .tabset-pills}
 ***
 
-## data {.tabset .tabset-fade .tabset-pills}
+## data
 ***
   
 ### 相関行列
@@ -86,4 +86,196 @@ print(fit11)
 fit12	<-	fa(r=data1[,-1],	nfactors=3,	rotate="promax",	fm="ml")
 print(fit12)
 ```
+
+
+
+## dataMM 
+
+### 相関行列
+```{r dataI_MM1 相関行列}
+#相関行列の作成
+dataI_MM1.c <- cor(dataI_MM1[,-1])
+dataI_MM1.c
+```
+  
+###固有値
+```{r dataI_MM1 固有値}
+eigenI_MM1 <- eigen(dataI_MM1.c)$values
+# 固有値
+eigenI_MM1
+```
+
+### 固有値の減少状況
+```{r dataI_MM1 plot}
+PI_MM1 <- plot(eigenI_MM1, type = "b", main = "I MM")
+```
+  
+第2固有値までで.
+
+### 因子分析1
+```{r I_MM1 因子分析1}
+FI_MM1 <- factanal(x=dataI_MM1[,-1],	factors=2,	rotation="none")
+print(FI_MM1,	cutoff=0)
+
+FI_MM2	<-	factanal(x=dataI_MM1[,-1],	factors=2,	rotation="varimax")
+print(FI_MM2,	cutoff=0)
+
+FI_MM3	<-	factanal(x=dataI_MM1[,-1],	factors=2,	rotation="promax")
+print(FI_MM3,	cutoff=0)
+```
+
+### 因子分析2
+```{r I_MM1 因子分析2}
+fitI_MM1	<-	fa(r=dataI_MM1[,-1],	nfactors=2,	rotate="varimax",	fm="ml")
+print(fitI_MM1)
+
+fitI_MM2	<-	fa(r=dataI_MM1[,-1],	nfactors=2,	rotate="promax",	fm="ml")
+print(fitI_MM2)
+```
+
+
+
+
+
+## dataMU 
+
+### 相関行列
+```{r dataI_MU1 相関行列}
+#相関行列の作成
+dataI_MU1.c <- cor(dataI_MU1[,-1])
+dataI_MU1.c
+```
+  
+
+###固有値
+```{r dataI_MU1 固有値}
+eigenI_MU1 <- eigen(dataI_MU1.c)$values
+# 固有値
+eigenI_MU1
+```
+### 固有値の減少状況
+```{r dataI_MU1 plot}
+PI_MU1 <- plot(eigenI_MU1, type = "b", main = "I MU")
+```
+  
+第2固有値までで.
+### 因子分析1
+```{r I_MU1 因子分析1}
+FI_MU1 <- factanal(x=dataI_MU1[,-1],	factors=2,	rotation="none")
+print(FI_MU1,	cutoff=0)
+
+FI_MU2	<-	factanal(x=dataI_MU1[,-1],	factors=2,	rotation="varimax")
+print(FI_MU2,	cutoff=0)
+
+FI_MU3	<-	factanal(x=dataI_MU1[,-1],	factors=2,	rotation="promax")
+print(FI_MU3,	cutoff=0)
+```
+
+### 因子分析2
+```{r I_MU1 因子分析2}
+fitI_MU1	<-	fa(r=dataI_MU1[,-1],	nfactors=2,	rotate="varimax",	fm="ml")
+print(fitI_MU1)
+
+fitI_MU2	<-	fa(r=dataI_MU1[,-1],	nfactors=2,	rotate="promax",	fm="ml")
+print(fitI_MU2)
+```
+
+
+
+
+
+## dataFM 
+
+### 相関行列
+```{r dataI_FM1 相関行列}
+#相関行列の作成
+dataI_FM1.c <- cor(dataI_FM1[,-1])
+dataI_FM1.c
+```
+  
+  
+###固有値
+```{r dataI_FM1 固有値}
+eigenI_FM1 <- eigen(dataI_FM1.c)$values
+# 固有値
+eigenI_FM1
+```
+### 固有値の減少状況
+```{r dataI_FM1 plot}
+PI_FM1 <- plot(eigenI_FM1, type = "b", main = "I FM")
+```
+  
+第2固有値までで. ちょっと第4ぽいかも？
+
+### 因子分析1
+```{r I_FM1 因子分析1}
+FI_FM1 <- factanal(x=dataI_FM1[,-1],	factors=2,	rotation="none")
+print(FI_FM1,	cutoff=0)
+
+FI_FM2	<-	factanal(x=dataI_FM1[,-1],	factors=2,	rotation="varimax")
+print(FI_FM2,	cutoff=0)
+
+FI_FM3	<-	factanal(x=dataI_FM1[,-1],	factors=2,	rotation="promax")
+print(FI_FM3,	cutoff=0)
+```
+
+### 因子分析2
+```{r I_FM1 因子分析2}
+fitI_FM1	<-	fa(r=dataI_FM1[,-1],	nfactors=2,	rotate="varimax",	fm="ml")
+print(fitI_FM1)
+
+fitI_FM2	<-	fa(r=dataI_FM1[,-1],	nfactors=2,	rotate="promax",	fm="ml")
+print(fitI_FM2)
+```
+
+
+
+
+## dataFU 
+
+### 相関行列
+```{r dataI_FU1 相関行列}
+#相関行列の作成
+dataI_FU1.c <- cor(dataI_FU1[,-1])
+dataI_FU1.c
+```
+  
+  
+###固有値
+```{r dataI_FU1 固有値}
+eigenI_FU1 <- eigen(dataI_FU1.c)$values
+# 固有値
+eigenI_FU1
+```
+
+### 固有値の減少状況
+```{r dataI_FU1 plot}
+PI_FU1 <- plot(eigenI_FU1, type = "b", main = "I FU")
+```
+  
+第2固有値までで. ちょっと第4ぽいかも？
+
+### 因子分析1
+```{r I_FU1 因子分析1}
+FI_FU1 <- factanal(x=dataI_FU1[,-1],	factors=2,	rotation="none")
+print(FI_FU1,	cutoff=0)
+
+FI_FU2	<-	factanal(x=dataI_FU1[,-1],	factors=2,	rotation="varimax")
+print(FI_FU2,	cutoff=0)
+
+FI_FU3	<-	factanal(x=dataI_FU1[,-1],	factors=2,	rotation="promax")
+print(FI_FU3,	cutoff=0)
+```
+
+### 因子分析2
+```{r I_FU1 因子分析2}
+fitI_FU1	<-	fa(r=dataI_FU1[,-1],	nfactors=2,	rotate="varimax",	fm="ml")
+print(fitI_FU1)
+
+fitI_FU2	<-	fa(r=dataI_FU1[,-1],	nfactors=2,	rotate="promax",	fm="ml")
+print(fitI_FU2)
+```
+
+
+
 

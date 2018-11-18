@@ -1,20 +1,4 @@
-# まとめ
-## data     全員      all
-## data1    全員      アンケート
-## data2    全員      標本
-## data_MM  既婚男性  all
-## data_MU  未婚男性  all
-## data_FM  既婚女性  all
-## data_FU  未婚女性  all
-## data_MM1 既婚男性  アンケート
-## data_MU1 未婚男性  アンケート
-## data_FM1 既婚女性  アンケート
-## data_FU1 未婚女性  アンケート
-## dataI              all         情報
-## dataS              all         購買
-## dataI1             アンケート  情報
-## dataS1             アンケート  購買
-
+#read read.me
 
 # data
 data1 <- dbGetQuery(con,"
@@ -133,6 +117,34 @@ dataI1 <-data1[,-11:-19]
 dataS <-data[,-2:-10]
 dataS1 <-data1[,-2:-10]
 
+dataI_MM1 <- dataI %>% 
+  dplyr::filter(dataI$sex == "1", dataI$marriage == "1") %>% 
+  dplyr::select(house_num, I1, I2, I3, I4, I5, I6, I7, I8, I9)
 
+dataS_MM1 <- dataS %>% 
+  dplyr::filter(dataI$sex == "1", dataI$marriage == "1") %>% 
+  dplyr::select(house_num, S1, S2, S3, S4, S5, S6, S7, S8, S9)
 
+dataI_MU1 <- dataI %>% 
+  dplyr::filter(dataI$sex == "1", dataI$marriage == "2") %>% 
+  dplyr::select(house_num, I1, I2, I3, I4, I5, I6, I7, I8, I9)
 
+dataS_MU1 <- dataS %>% 
+  dplyr::filter(dataI$sex == "1", dataI$marriage == "2") %>% 
+  dplyr::select(house_num, S1, S2, S3, S4, S5, S6, S7, S8, S9)
+
+dataI_FM1 <- dataI %>% 
+  dplyr::filter(dataI$sex == "2", dataI$marriage == "1") %>% 
+  dplyr::select(house_num, I1, I2, I3, I4, I5, I6, I7, I8, I9)
+
+dataS_FM1 <- dataS %>% 
+  dplyr::filter(dataI$sex == "2", dataI$marriage == "1") %>% 
+  dplyr::select(house_num, S1, S2, S3, S4, S5, S6, S7, S8, S9)
+
+dataI_FU1 <- dataI %>% 
+  dplyr::filter(dataI$sex == "2", dataI$marriage == "2") %>% 
+  dplyr::select(house_num, I1, I2, I3, I4, I5, I6, I7, I8, I9)
+
+dataS_FU1 <- dataS %>% 
+  dplyr::filter(dataI$sex == "2", dataI$marriage == "2") %>% 
+  dplyr::select(house_num, S1, S2, S3, S4, S5, S6, S7, S8, S9)

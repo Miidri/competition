@@ -1,12 +1,11 @@
-
-#DataComp2018
+# DataComp2018
 data competition 2018
 
-##SQL
+## SQL
 For the working process
 
-##Rmd
-###Directory
+## Rmd
+### Directory
 ```
 ├── report
 │   ├── jiten

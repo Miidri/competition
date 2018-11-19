@@ -1,0 +1,484 @@
+---
+title: "question"
+author: "Midori Omura"
+output:
+  html_document:
+    number_sections: true
+    fig_caption: true
+    fig_width: 7
+    fig_height: 4.5
+    theme: sandstone
+    highlight: tango
+    code_folding: hide
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, 
+                      warning = FALSE,
+                      message = FALSE)
+```
+
+
+```{r set_up}
+#パッケージのインストールと読み込み
+#持ってないパッケージはインストールする
+targetPackages <- c('knitr','DBI','RPostgreSQL','tidyverse',"reshape2","lubridate","dbplot","DT","gridExtra","fmsb","corrplot","graphics","GGally","psych", "GPArotation") 
+newPackages <- targetPackages[!(targetPackages %in% installed.packages()[,"Package"])]
+if(length(newPackages)) install.packages(newPackages, repos = "http://cran.us.r-project.org")
+for(package in targetPackages) library(package, character.only = T)
+
+source("/home/miidri/competition/psql.R")
+source("/home/miidri/competition/data_name.R")
+```
+
+
+
+
+# qu_genre
+***
+
+```{r}
+qu_genre <- dbGetQuery(con,"
+select
+	distinct(qu_genre_code),
+	qu_genre
+from
+	processed.profilemaster
+group by
+	qu_genre_code,
+	qu_genre;
+")
+
+qu_genre %>% 
+  kable()
+```
+
+# 回答タイプ
+***
+- SA: 1つ選んでください
+- MA: 複数選択可
+
+
+# genre_code1 フェース項目
+***
+```{r}
+q1 <- dbGetQuery(con,"
+select
+	distinct(question_code),
+	question
+from
+	processed.profilemaster
+where
+	qu_genre_code = 1
+group by
+	question_code,
+	question;
+")
+
+q1 %>% 
+  kable()
+```
+
+# genre_code3 意識項目 {.tabset .tabset-fade .tabset-pills}
+***
+
+## 生活者タイプ
+  
+- MA    
+- 4.2~4.5を「当てはまるものに～」形式で回答させている.
+```{r}
+q31 <- dbGetQuery(con,"
+select
+	distinct(question_code),
+	question,
+	answer_code,
+	answer
+from
+	processed.profilemaster
+where
+	qu_genre_code = 3 and
+	question_code >=1 and
+	question_code <=3	
+group by
+	question_code,
+	question,
+	question_type,
+	answer_code,
+	answer;
+
+")
+```
+
+## 情報・購買セグメント
+  
+- SA  
+```{r}
+
+q32 <- dbGetQuery(con,"
+select
+	distinct(question_code),
+	question
+from
+	processed.profilemaster
+where
+	qu_genre_code = 3 and
+	question_code >=4 and
+	question_code <=21	
+group by
+	question_code,
+	question,
+	question_type;
+")
+
+a32 <- dbGetQuery(con,"
+select
+	distinct(answer_code),
+	answer
+from
+	processed.profilemaster
+where
+	qu_genre_code = 3 and
+	question_code >=4 and
+	question_code <=21	
+group by
+	answer_code,
+	answer;
+
+")
+
+q32 %>% 
+  kable()
+
+a32 %>% 
+  kable()
+```
+
+## 表現嗜好
+  
+- SA  
+```{r}
+
+q33 <- dbGetQuery(con,"
+select
+	distinct(question_code),
+	question
+from
+	processed.profilemaster
+where
+	qu_genre_code = 3 and
+	question_code >=22 and
+	question_code <=51	
+group by
+	question_code,
+	question,
+	question_type;
+")
+
+a33 <- dbGetQuery(con,"
+select
+	distinct(answer_code),
+	answer
+from
+	processed.profilemaster
+where
+	qu_genre_code = 3 and
+	question_code >=22 and
+	question_code <=51	
+group by
+	answer_code,
+	answer;
+
+")
+
+q33 %>% 
+  kable()
+
+a33 %>% 
+  kable()
+```
+
+## シニア価値観
+  
+- SA  
+```{r}
+
+q34 <- dbGetQuery(con,"
+select
+	distinct(question_code),
+	question
+from
+	processed.profilemaster
+where
+	qu_genre_code = 3 and
+	question_code >=52 and
+	question_code <=70	
+group by
+	question_code,
+	question,
+	question_type;
+")
+
+a34 <- dbGetQuery(con,"
+select
+	distinct(answer_code),
+	answer
+from
+	processed.profilemaster
+where
+	qu_genre_code = 3 and
+	question_code >=52 and
+	question_code <=70	
+group by
+	answer_code,
+	answer;
+
+")
+
+q34 %>% 
+  kable()
+
+a34 %>% 
+  kable()
+```
+
+## テレビに関する意識 
+  
+- SA  
+```{r}
+
+q35 <- dbGetQuery(con,"
+select
+	distinct(question_code),
+	question
+from
+	processed.profilemaster
+where
+	qu_genre_code = 3 and
+	question_code >=72 and
+	question_code <=106	
+group by
+	question_code,
+	question,
+	question_type;
+")
+
+a35 <- dbGetQuery(con,"
+select
+	distinct(answer_code),
+	answer
+from
+	processed.profilemaster
+where
+	qu_genre_code = 3 and
+	question_code >=72 and
+	question_code <=106	
+group by
+	answer_code,
+	answer;
+
+")
+
+q35 %>% 
+  kable()
+
+a35 %>% 
+  kable()
+```
+
+## インターネットに関する意識 
+- SA  
+```{r}
+
+q36 <- dbGetQuery(con,"
+select
+	distinct(question_code),
+	question
+from
+	processed.profilemaster
+where
+	qu_genre_code = 3 and
+	question_code >=108 and
+	question_code <=116	
+group by
+	question_code,
+	question,
+	question_type;
+")
+
+a36 <- dbGetQuery(con,"
+select
+	distinct(answer_code),
+	answer
+from
+	processed.profilemaster
+where
+	qu_genre_code = 3 and
+	question_code >=108 and
+	question_code <=116	
+group by
+	answer_code,
+	answer;
+
+")
+
+q36 %>% 
+  kable()
+
+a36 %>% 
+  kable()
+```
+
+## 日常生活における意識
+  
+- SA  
+```{r}
+
+q37 <- dbGetQuery(con,"
+select
+	distinct(question_code),
+	question
+from
+	processed.profilemaster
+where
+	qu_genre_code = 3 and
+	question_code >=119 and
+	question_code <=136	
+group by
+	question_code,
+	question,
+	question_type;
+")
+
+a37 <- dbGetQuery(con,"
+select
+	distinct(answer_code),
+	answer
+from
+	processed.profilemaster
+where
+	qu_genre_code = 3 and
+	question_code >=119 and
+	question_code <=136
+group by
+  question_code,
+	answer_code,
+	answer;
+")
+
+q37 %>% 
+  kable()
+
+a37 %>% 
+  kable()
+```
+
+## テレビ追加質問  
+  
+- SA  
+```{r}
+
+q38 <- dbGetQuery(con,"
+select
+	distinct(question_code),
+	question
+from
+	processed.profilemaster
+where
+	qu_genre_code = 3 and
+	question_code >=163 and
+	question_code <=164	
+group by
+	question_code,
+	question,
+	question_type;
+")
+
+a38 <- dbGetQuery(con,"
+select
+	distinct(answer_code),
+	answer
+from
+	processed.profilemaster
+where
+	qu_genre_code = 3 and
+	question_code >=163 and
+	question_code <=164
+group by
+  question_code,
+	answer_code,
+	answer;
+")
+
+q38 %>% 
+  kable()
+
+a38 %>% 
+  kable()
+```
+
+## その他
+
+- MA  
+```{r}
+
+q3NA <- dbGetQuery(con,"
+select
+	distinct(question_code),
+	question
+from
+	processed.profilemaster
+where
+	qu_genre_code = 3 and
+	question_code =137
+group by
+	question_code,
+	question,
+	question_type;
+")
+
+a3NA <- dbGetQuery(con,"
+select
+	distinct(answer_code),
+	answer
+from
+	processed.profilemaster
+where
+	qu_genre_code = 3 and
+	question_code =137
+group by
+  question_code,
+	answer_code,
+	answer;
+")
+
+q3NA %>% 
+  kable()
+
+a3NA %>% 
+  kable()
+```
+
+# qu_genre25 クラスター分類
+
+```{r}
+cluster <- dbGetQuery(con,"
+select
+	question_code,
+	question,
+	answer_code,
+	answer
+from
+	processed.profilemaster
+where
+	qu_genre_code = 25
+order by
+	question_code,
+	answer_code;
+")
+
+cluster %>% 
+  kable()
+```
+

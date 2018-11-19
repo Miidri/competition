@@ -29,7 +29,7 @@ knitr::opts_chunk$set(echo = FALSE,
 ```{r set_up}
 #パッケージのインストールと読み込み
 #持ってないパッケージはインストールする
-targetPackages <- c('knitr','DBI','RPostgreSQL','tidyverse',"reshape2","lubridate","dbplot","DT","gridExtra","fmsb","corrplot","graphics","GGally","plotly") 
+targetPackages <- c('knitr','DBI','RPostgreSQL','tidyverse',"reshape2","lubridate","dbplot","DT","gridExtra","fmsb","corrplot","graphics","GGally","plotly","vcd") 
 newPackages <- targetPackages[!(targetPackages %in% installed.packages()[,"Package"])]
 if(length(newPackages)) install.packages(newPackages, repos = "http://cran.us.r-project.org")
 for(package in targetPackages) library(package, character.only = T)
@@ -179,7 +179,6 @@ p3
 - 既婚1, 未婚2  
 
 ```{r}
-sex_marriage <- table(data$sex, data$marriage)
-sex_marriage %>% 
-  kable()
+table(data$sex, data$marriage)
+xtabs(~sex + marriage, data=data)
 ```

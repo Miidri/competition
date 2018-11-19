@@ -197,18 +197,17 @@ FU
 
 500人の情報収集についての質問の行列作ってみた. 標本情報も足す. 500*10 
 ```{r 情報1}
-data31 <- data.frame(house_num=data$house_num, Q12=data1$`12`, Q18=data$`18`, Q8=data$`8`, Q9=data$`9`,Q4=data1$`4`, Q7=data$`7`, Q14=data$`14`, Q15=data$`15`, Q16=data$`16`, sex = data$sex, marriage =data$marriage, age = data$age )
-data31 <- data31[-501:-4712,]
-#dim(data31)
-head(data31)%>%
+dataI500 <- data1[,1:10]
+dataI500 <- dataI500[-501:-4712,]
+#dim(dataI500)
+head(dataI500)%>%
   kable()
 # 散布図行列
-corrplot::corrplot(cor(data31[,-1]))
+corrplot::corrplot(cor(dataI500[,-1]))
 
 ggpairs(
-	data31[,-1],
-	lower = list(continuous = "density", combo = "box"),
-	color = "smoker"
+	dataI500[,-1],
+	lower = list(continuous = "density", combo = "box")
 	)
 ```
 
@@ -216,26 +215,25 @@ ggpairs(
   
 ```{r 31}
 #分散共分散行列
-var(data31[,-1])
+var(dataI500[,-1])
 #固有値･固有ベクトル
-eigen(var(scale(data31[,-1])))
+eigen(var(scale(dataI500[,-1])))
 
-data31.pca <- prcomp(data31[,-1], scale=T)
-data31.pca
-summary(data31.pca)
-biplot(data31.pca)
+dataI500.pca <- prcomp(dataI500[,-1], scale=T)
+dataI500.pca
+summary(dataI500.pca)
+biplot(dataI500.pca)
 
-data31.km <- kmeans(data31[,-1],3)
-#data3.km
-data31.pca.df <- data.frame(data31.pca$x)
-data31.pca.df$house_num <- data31$house_num
-data31.pca.df$answer_code <- as.factor(data31.km$cluster)
-head(data31.pca.df)
-P31 <-
-  ggplot(data31.pca.df, aes(x=PC1, y= PC2, label = house_num, col = answer_code ))+
+dataI500.km <- kmeans(dataI500[,-1],3)
+dataI500.pca.df <- data.frame(dataI500.pca$x)
+dataI500.pca.df$house_num <- dataI500$house_num
+dataI500.pca.df$answer_code <- as.factor(dataI500.km$cluster)
+head(dataI500.pca.df)
+PI500 <-
+  ggplot(dataI500.pca.df, aes(x=PC1, y= PC2, label = house_num, col = answer_code ))+
   geom_text()
 
-P31
+PI500
 ```
 
 
@@ -257,19 +255,18 @@ P31
 
 500人の購買嗜好についての質問の行列作ってみた. 500*10
 ```{r 購買1}
-data32 <- data.frame(house_num=data$house_num, Q6=data$`6`, Q11=data$`11`, Q21=data$`21`, Q5=data$`5`, Q10=data$`10`, Q19=data$`19`, Q13=data$`13`, Q17=data$`17`, Q20=data$`20`, sex = data$sex, marriage =data$marriage, age = data$age )
-data32 <- data32[-501:-4712,]
-head(data32)%>%
+dataS500 <- data1[,-2:-10]
+dataS500 <- dataS500[-501:-4712,]
+head(dataS500)%>%
   kable()
 # 散布図行列
-corrplot::corrplot(cor(data32[,-1]))
+corrplot::corrplot(cor(dataS500[,-1]))
 
-ggpairs(data32[,-1],aes_string(alpha=0.5), color = "smoker")
+ggpairs(dataS500[,-1],aes_string(alpha=0.5), color = "smoker")
 
 ggpairs(
-	data32[,-1],
-	lower = list(continuous = "density", combo = "box"),
-	color = "smoker"
+	dataS500[,-1],
+	lower = list(continuous = "density", combo = "box")
 	)
 ```
 
@@ -277,38 +274,38 @@ ggpairs(
 
 ```{r 32}
 #分散共分散行列
-var(data32[,-1])
+var(dataS500[,-1])
 #固有値･固有ベクトル
-eigen(var(scale(data32[,-1])))
+eigen(var(scale(dataS500[,-1])))
 
-data32.pca <- prcomp(data32[,-1], scale=T)
-data32.pca
-summary(data32.pca)
-biplot(data32.pca)
+dataS500.pca <- prcomp(dataS500[,-1], scale=T)
+dataS500.pca
+summary(dataS500.pca)
+biplot(dataS500.pca)
 
-data32.km <- kmeans(data32[,-1],2)
+dataS500.km <- kmeans(dataS500[,-1],2)
 #data3.km
-data32.pca.df <- data.frame(data32.pca$x)
-data32.pca.df$house_num <- data32$house_num
-data32.pca.df$answer_code <- as.factor(data32.km$cluster)
-head(data32.pca.df)
-P32 <-
-  ggplot(data32.pca.df, aes(x=PC1, y= PC2, label = house_num, col = answer_code ))+
+dataS500.pca.df <- data.frame(dataS500.pca$x)
+dataS500.pca.df$house_num <- dataS500$house_num
+dataS500.pca.df$answer_code <- as.factor(dataS500.km$cluster)
+head(dataS500.pca.df)
+PS500 <-
+  ggplot(dataS500.pca.df, aes(x=PC1, y= PC2, label = house_num, col = answer_code ))+
   geom_text()
 
-P32
+PS500
 ```
 
 ```{r 34}
 #分散共分散行列
-var(data32[,-1])
+var(dataS500[,-1])
 #固有値･固有ベクトル
-eigen(var(scale(data32[,-1])))
+eigen(var(scale(dataS500[,-1])))
 
-data32.pca <- prcomp(data32[,-1], scale=T)
-data32.pca
-summary(data32.pca)
-biplot(data32.pca)
+dataS500.pca <- prcomp(dataS500[,-1], scale=T)
+dataS500.pca
+summary(dataS500.pca)
+biplot(dataS500.pca)
 
 ```
 

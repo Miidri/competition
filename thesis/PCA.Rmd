@@ -47,7 +47,7 @@ source("/home/miidri/competition/data_name.R")
 
 ```{r dataに主成分}
 data1.pca <- prcomp(data1[,-1], scale=T)
-#data1.pca
+data1.pca
 biplot(data1.pca)
 ```
 
@@ -63,6 +63,10 @@ data1.pcaS <- t(data1.pcaS)
 str(data1.pcaS)
 #またリストやん...
 
+# 第1主成分のプロット 
+barplot(data1.pca$rot[,1]) 
+# 第2主成分のプロット
+barplot(data1.pca$rot[,2]) 
 #data1.pcaS <- unlist(data1.pcaS)
 #data1.pcaS
 

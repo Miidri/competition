@@ -1,0 +1,261 @@
+---
+title: "VRcluster"
+output:
+  html_document:
+    number_sections: true
+    fig_caption: true
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    fig_width: 7
+    fig_height: 4.5
+    theme: sandstone
+    highlight: tango
+    code_folding: hide
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, 
+                      warning = FALSE,
+                      message = FALSE)
+```
+
+
+```{r set_up}
+#パッケージのインストールと読み込み
+#持ってないパッケージはインストールする
+targetPackages <- c('knitr','DBI','RPostgreSQL','tidyverse',"reshape2","lubridate","dbplot","DT","gridExtra","fmsb","corrplot","graphics","GGally") 
+newPackages <- targetPackages[!(targetPackages %in% installed.packages()[,"Package"])]
+if(length(newPackages)) install.packages(newPackages, repos = "http://cran.us.r-project.org")
+for(package in targetPackages) library(package, character.only = T)
+
+source("/home/miidri/competition/psql.R")
+source("/home/miidri/competition/data_name.R")
+
+```
+
+# 情報選択セグメント
+
+```{r}
+IS_count <- dbGetQuery(con,"
+select
+	D.answer_code,
+	count(D.answer_code),
+	M.answer
+from
+	processed.profiledata as D
+left join 
+	processed.profilemaster as M
+on
+	M.qu_genre_code = D.qu_genre_code and
+	M.question_code = D.question_code and
+	M.answer_code   = D.answer_code 
+where
+	D.qu_genre_code = 25 and
+	D.question_code = 1 
+group by 
+	D.answer_code,
+	M.answer
+order by
+	D.answer_code;"
+)
+
+IS_count %>% 
+  kable()
+
+IS_countP <-
+  ggplot(IS_count, aes(x = answer, y = count))+
+  geom_bar(stat = "identity")+
+  labs(title = "情報・選択セグメント")
+
+IS_countP
+```
+
+# 表現嗜好
+```{r}
+like_c <- dbGetQuery(con,"
+select
+	D.answer_code,
+	count(D.answer_code),
+	M.answer
+from
+	processed.profiledata as D
+left join 
+	processed.profilemaster as M
+on
+	M.qu_genre_code = D.qu_genre_code and
+	M.question_code = D.question_code and
+	M.answer_code   = D.answer_code 
+where
+	D.qu_genre_code = 25 and
+	D.question_code = 2
+group by 
+	D.answer_code,
+	M.answer
+order by
+	D.answer_code;"
+)
+
+like_c %>% 
+  kable()
+
+like_cP <-
+  ggplot(like_c, aes(x = answer, y = count))+
+  geom_bar(stat = "identity")+
+  labs(title = "表現嗜好セグメント")
+
+like_cP
+
+```
+
+# イノベーター指標
+```{r}
+ino_c <- dbGetQuery(con,"
+select
+	D.answer_code,
+	count(D.answer_code),
+	M.answer
+from
+	processed.profiledata as D
+left join 
+	processed.profilemaster as M
+on
+	M.qu_genre_code = D.qu_genre_code and
+	M.question_code = D.question_code and
+	M.answer_code   = D.answer_code 
+where
+	D.qu_genre_code = 25 and
+	D.question_code = 4
+group by 
+	D.answer_code,
+	M.answer
+order by
+	D.answer_code;"
+)
+
+ino_c %>% 
+  kable()
+
+ino_cP <-
+  ggplot(ino_c, aes(x = answer, y = count))+
+  geom_bar(stat = "identity")+
+  labs(title = "イノベーター指標")
+
+ino_cP
+```
+
+# 将来観
+```{r}
+future_c <- dbGetQuery(con,"
+select
+	D.answer_code,
+	count(D.answer_code),
+	M.answer
+from
+	processed.profiledata as D
+left join 
+	processed.profilemaster as M
+on
+	M.qu_genre_code = D.qu_genre_code and
+	M.question_code = D.question_code and
+	M.answer_code   = D.answer_code 
+where
+	D.qu_genre_code = 25 and
+	D.question_code = 5
+group by 
+	D.answer_code,
+	M.answer
+order by
+	D.answer_code;"
+)
+
+future_c %>% 
+  kable()
+
+future_cP <-
+  ggplot(future_c, aes(x = answer, y = count))+
+  geom_bar(stat = "identity")+
+  labs(title = "将来観")
+
+future_cP
+```
+
+# わかものパーソナリティ
+```{r}
+young_c <- dbGetQuery(con,"
+select
+	D.answer_code,
+	count(D.answer_code),
+	M.answer
+from
+	processed.profiledata as D
+left join 
+	processed.profilemaster as M
+on
+	M.qu_genre_code = D.qu_genre_code and
+	M.question_code = D.question_code and
+	M.answer_code   = D.answer_code 
+where
+	D.qu_genre_code = 25 and
+	D.question_code = 6
+group by 
+	D.answer_code,
+	M.answer
+order by
+	D.answer_code;"
+)
+
+young_c %>% 
+  kable()
+
+young_cP <-
+  ggplot(young_c, aes(x = answer, y = count))+
+  geom_bar(stat = "identity")+
+  labs(title = "表現嗜好セグメント")
+
+young_cP
+```
+
+
+# スマート目利き
+  
+要検討
+また明日
+```{r}
+IS1 <- dbGetQuery(con,"
+select
+	house_num,
+	question_code,
+	answer_code
+from
+	processed.profiledata
+where
+	(qu_genre_code = 25 and
+	question_code = 1 and
+	answer_code = 1) or
+	(qu_genre_code = 3 and
+	question_code >= 4 and
+	question_code <= 21) 	
+order by
+	house_num,
+	question_code,
+	answer_code;")
+
+IS1 <- IS1 %>%
+  tidyr::spread(key = question_code, value = answer_code)
+
+head(IS1)
+IS1 <- IS1[,-2]
+
+IS11 <- merge(IS1, data2, by = "house_num")
+#table(is.na(IS11))
+#data[!complete.cases(data),]
+dim(data)
+# 欠損はなかったが, dataと併せるため一部消去
+IS1 <- data[c(-1053,-4400,-4698),]
+IS1 <- data1[c(-1053,-4400,-4698),]
+data2 <- data2[c(-1053,-4400,-4698),]
+```
+

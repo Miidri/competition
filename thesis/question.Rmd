@@ -462,6 +462,96 @@ a3NA %>%
 
 # qu_genre25 クラスター分類
 
+# qu_genre4 メディア接触頻度
+  
+テレビ接触頻度の回答のみ用意
+
+```{r}
+qTV_freq <- dbGetQuery(con,"
+  select
+  	question_code,
+  	question
+  from
+  	processed.profilemaster
+  where
+  	qu_genre_code = 4 and
+  	question_code = 1
+  group by
+    question_code,
+    question
+  order by
+  	question_code
+                       ")
+aTV_freq <- dbGetQuery(con,"
+  select
+  	answer_code,
+  	answer
+  from
+  	processed.profilemaster
+  where
+  	qu_genre_code = 4 and
+  	question_code = 1
+  order by
+  	answer_code
+                       ")
+
+qTV_freq %>% 
+  kable()
+aTV_freq %>% 
+  kable()
+```
+	
+# qu_genre5 メディア接触時間量
+  
+テレビ接触時間量の回答のみ用意
+
+```{r}
+qTV_time <- dbGetQuery(con,"
+select
+  	question_code,
+  	question
+from
+  	processed.profilemaster
+where
+  	qu_genre_code = 5 and
+  	(question_code = 1 or
+    question_code = 10)
+group by
+	question_code,
+	question
+order by
+	question_code
+                       ")
+aTV_time <- dbGetQuery(con,"
+select
+  	answer_code,
+  	answer
+from
+  	processed.profilemaster
+where
+  	qu_genre_code = 5 and
+  	question_code = 1 
+group by
+	question_code,
+	question,
+  	answer_code,
+  	answer
+order by
+	question_code,
+  	answer_code
+                       ")
+
+qTV_time %>% 
+  kable()
+aTV_time %>% 
+  kable()
+```
+	
+
+
+
+# qu_genre25 クラスター分類
+
 ```{r}
 cluster <- dbGetQuery(con,"
 select

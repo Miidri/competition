@@ -39,241 +39,452 @@ source("/home/miidri/competition/data_name.R")
 # 因子分析 {.tabset .tabset-fade .tabset-pills}
 ***
 
-## data
-***
-  
-### 相関行列
-```{r data 相関行列}
-#相関行列の作成
-data1.c <- cor(data1[,-1])
-data1.c
-```
-  
-###固有値
-```{r data 固有値}
-eigen1 <- eigen(data1.c)$values
-# 固有値
-eigen1
-```
-
-### 固有値の減少状況
-```{r data plot}
-P_1 <- plot(eigen1, type = "b", main = "all")
-```
-  
-これなら第3固有値まででよさそう.  
-第1～3固有値に対して因子分析を行っていく.  
-因子の回転法は回転無し, 直交回転, 斜交回転で行っている.
-
-### 因子分析1
-```{r 因子分析1}
-F1 <- factanal(x=data1[,-1],	factors=3,	rotation="none")
-print(F1,	cutoff=0)
-
-F2	<-	factanal(x=data1[,-1],	factors=3,	rotation="varimax")
-print(F2,	cutoff=0)
-
-F3	<-	factanal(x=data1[,-1],	factors=3,	rotation="promax")
-print(F3,	cutoff=0)
-
-```
-
-### 因子分析2
-```{r 因子分析2}
-fit11	<-	fa(r=data1[,-1],	nfactors=3,	rotate="varimax",	fm="ml")
-print(fit11)
-
-fit12	<-	fa(r=data1[,-1],	nfactors=3,	rotate="promax",	fm="ml")
-print(fit12)
-```
-
-
-
-## dataMM 
+## dataI_MM 既婚男性・情報セグメント 
 
 ### 相関行列
 ```{r dataI_MM1 相関行列}
 #相関行列の作成
 dataI_MM1.c <- cor(dataI_MM1[,-1])
-dataI_MM1.c
+#dataI_MM1.c
+
+ggpairs(
+	dataI_MM1[,-1],
+	lower = list(continuous = "density", combo = "box")	)
 ```
   
-###固有値
+### 固有値
 ```{r dataI_MM1 固有値}
 eigenI_MM1 <- eigen(dataI_MM1.c)$values
 # 固有値
 eigenI_MM1
 ```
 
-### 固有値の減少状況
+### 因子数決定
 ```{r dataI_MM1 plot}
-PI_MM1 <- plot(eigenI_MM1, type = "b", main = "I MM")
+# Minimum Average Partial, BIC
+VSS(dataI_MM1[-1], n=10)
+# 平行分析
+fa.parallel(dataI_MM1[,-1])
 ```
   
-第2固有値までで.
+MAP:2  
+BIC:3  
+PC:2  
+FA:4  
+MAPとPCが一致した.  
+第2固有値までで行ってみる.
 
 ### 因子分析1
+  
+デフォルトであるminres(最小残差法)
+
 ```{r I_MM1 因子分析1}
+# 回転なし
 FI_MM1 <- factanal(x=dataI_MM1[,-1],	factors=2,	rotation="none")
 print(FI_MM1,	cutoff=0)
 
+par(mfrow=c(1,2)) 
+barplot(FI_MM1$loadings[,1]) 
+barplot(FI_MM1$loadings[,2]) 
+plot(FI_MM1$loadings, type="n")
+text(FI_MM1$loadings) 
+```
+
+```{r}
+# varimax
 FI_MM2	<-	factanal(x=dataI_MM1[,-1],	factors=2,	rotation="varimax")
 print(FI_MM2,	cutoff=0)
+par(mfrow=c(1,2)) 
+barplot(FI_MM2$loadings[,1]) 
+barplot(FI_MM2$loadings[,2]) 
+plot(FI_MM2$loadings, type="n")
+text(FI_MM2$loadings) 
+```
 
+```{r}
+# promax
 FI_MM3	<-	factanal(x=dataI_MM1[,-1],	factors=2,	rotation="promax")
 print(FI_MM3,	cutoff=0)
+par(mfrow=c(1,2)) 
+barplot(FI_MM3$loadings[,1]) 
+barplot(FI_MM3$loadings[,2]) 
+plot(FI_MM3$loadings, type="n")
+text(FI_MM3$loadings) 
 ```
+
 
 ### 因子分析2
-```{r I_MM1 因子分析2}
-fitI_MM1	<-	fa(r=dataI_MM1[,-1],	nfactors=2,	rotate="varimax",	fm="ml")
-print(fitI_MM1)
+  
+今回はサンプルが多いので, 最尤法も行ってみた.
 
-fitI_MM2	<-	fa(r=dataI_MM1[,-1],	nfactors=2,	rotate="promax",	fm="ml")
-print(fitI_MM2)
+```{r I_MM1 因子分析2}
+# none
+mlI_MM1	<-	fa(r=dataI_MM1[,-1],	nfactors=2,	rotate="none",	fm="ml")
+print(mlI_MM1)
+par(mfrow=c(1,2)) 
+barplot(mlI_MM1$loadings[,1]) 
+barplot(mlI_MM1$loadings[,2]) 
+plot(FI_MM1$loadings, type="n")
+text(FI_MM1$loadings) 
+```
+
+```{r}
+# varimax
+mlI_MM2	<-	fa(r=dataI_MM1[,-1],	nfactors=2,	rotate="varimax",	fm="ml")
+print(mlI_MM2)
+par(mfrow=c(1,2)) 
+barplot(mlI_MM2$loadings[,1]) 
+barplot(mlI_MM2$loadings[,2]) 
+plot(FI_MM2$loadings, type="n")
+text(FI_MM2$loadings) 
+```
+
+```{r}
+# promax
+mlI_MM3	<-	fa(r=dataI_MM1[,-1],	nfactors=2,	rotate="promax",	fm="ml")
+print(mlI_MM3)
+par(mfrow=c(1,2)) 
+barplot(mlI_MM3$loadings[,1]) 
+barplot(mlI_MM3$loadings[,2]) 
+plot(FI_MM3$loadings, type="n")
+text(FI_MM3$loadings) 
 ```
 
 
 
-
-
-## dataMU 
+## dataMU 未婚男性・情報セグメント 
 
 ### 相関行列
 ```{r dataI_MU1 相関行列}
 #相関行列の作成
 dataI_MU1.c <- cor(dataI_MU1[,-1])
-dataI_MU1.c
+#dataI_MU1.c
+ggpairs(
+	dataI_MU1[,-1],
+	lower = list(continuous = "density", combo = "box")	)
 ```
   
 
-###固有値
+### 固有値
 ```{r dataI_MU1 固有値}
 eigenI_MU1 <- eigen(dataI_MU1.c)$values
 # 固有値
 eigenI_MU1
 ```
-### 固有値の減少状況
+
+### 因子数決定
 ```{r dataI_MU1 plot}
-PI_MU1 <- plot(eigenI_MU1, type = "b", main = "I MU")
+# Minimum Average Partial, BIC
+VSS(dataI_MU1[-1], n=10)
+# 平行分析
+fa.parallel(dataI_MU1[,-1])
 ```
   
-第2固有値までで.
+MAP:1  
+BIC:4  
+PC:2  
+FA:4  
+なんでこんなバラバラなん！？
+と思いつつ, 第2固有値までで行ってみる.
+
 ### 因子分析1
+  
+デフォルトであるminres(最小残差法)
+
 ```{r I_MU1 因子分析1}
+# 回転なし
 FI_MU1 <- factanal(x=dataI_MU1[,-1],	factors=2,	rotation="none")
 print(FI_MU1,	cutoff=0)
+par(mfrow=c(1,2)) 
+barplot(FI_MU1$loadings[,1]) 
+barplot(FI_MU1$loadings[,2]) 
+plot(FI_MU1$loadings, type="n")
+text(FI_MU1$loadings)
+```
 
+```{r}
+# varimax
 FI_MU2	<-	factanal(x=dataI_MU1[,-1],	factors=2,	rotation="varimax")
 print(FI_MU2,	cutoff=0)
+par(mfrow=c(1,2)) 
+barplot(FI_MU2$loadings[,1]) 
+barplot(FI_MU2$loadings[,2]) 
+plot(FI_MU2$loadings, type="n")
+text(FI_MU2$loadings) 
+```
 
+```{r}
+# promax
 FI_MU3	<-	factanal(x=dataI_MU1[,-1],	factors=2,	rotation="promax")
 print(FI_MU3,	cutoff=0)
+par(mfrow=c(1,2)) 
+barplot(FI_MU3$loadings[,1]) 
+barplot(FI_MU3$loadings[,2]) 
+plot(FI_MU3$loadings, type="n")
+text(FI_MU3$loadings) 
 ```
 
 ### 因子分析2
-```{r I_MU1 因子分析2}
-fitI_MU1	<-	fa(r=dataI_MU1[,-1],	nfactors=2,	rotate="varimax",	fm="ml")
-print(fitI_MU1)
+  
+今回はサンプルが多いので, 最尤法も行ってみた.
 
-fitI_MU2	<-	fa(r=dataI_MU1[,-1],	nfactors=2,	rotate="promax",	fm="ml")
-print(fitI_MU2)
+```{r I_MU1 因子分析2}
+# none
+mlI_MU1	<-	fa(r=dataI_MU1[,-1],	nfactors=2,	rotate="none",	fm="ml")
+print(mlI_MU1)
+par(mfrow=c(1,2)) 
+barplot(mlI_MU1$loadings[,1]) 
+barplot(mlI_MU1$loadings[,2]) 
+plot(FI_MU1$loadings, type="n")
+text(FI_MU1$loadings) 
+```
+
+```{r}
+# varimax
+mlI_MU2	<-	fa(r=dataI_MU1[,-1],	nfactors=2,	rotate="varimax",	fm="ml")
+print(mlI_MU2)
+par(mfrow=c(1,2)) 
+barplot(mlI_MU2$loadings[,1]) 
+barplot(mlI_MU2$loadings[,2]) 
+plot(FI_MU2$loadings, type="n")
+text(FI_MU2$loadings) 
+```
+
+```{r}
+# promax
+mlI_MU3	<-	fa(r=dataI_MU1[,-1],	nfactors=2,	rotate="promax",	fm="ml")
+print(mlI_MU3)
+par(mfrow=c(1,2)) 
+barplot(mlI_MU3$loadings[,1]) 
+barplot(mlI_MU3$loadings[,2]) 
+plot(FI_MU3$loadings, type="n")
+text(FI_MU3$loadings) 
 ```
 
 
-
-
-
-## dataFM 
+## dataFM 既婚女性・情報セグメント 
 
 ### 相関行列
 ```{r dataI_FM1 相関行列}
 #相関行列の作成
 dataI_FM1.c <- cor(dataI_FM1[,-1])
-dataI_FM1.c
+#dataI_FM1.c
+
+ggpairs(
+	dataI_FM1[,-1],
+	lower = list(continuous = "density", combo = "box")	)
 ```
   
   
-###固有値
+### 固有値
 ```{r dataI_FM1 固有値}
 eigenI_FM1 <- eigen(dataI_FM1.c)$values
 # 固有値
 eigenI_FM1
 ```
-### 固有値の減少状況
+
+### 因子数決定
 ```{r dataI_FM1 plot}
-PI_FM1 <- plot(eigenI_FM1, type = "b", main = "I FM")
+# Minimum Average Partial, BIC
+VSS(dataI_FM1[-1], n=10)
+# 平行分析
+fa.parallel(dataI_FM1[,-1])
 ```
   
-第2固有値までで. ちょっと第4ぽいかも？
-
+MAP:1  
+BIC:4  
+PC:2  
+FA:4  
+なんでこんなバラバラなん！？
+と思いつつ, 第2固有値までで行ってみる.
 ### 因子分析1
+  
+デフォルトであるminres(最小残差法)
+
 ```{r I_FM1 因子分析1}
+# 回転なし
 FI_FM1 <- factanal(x=dataI_FM1[,-1],	factors=2,	rotation="none")
 print(FI_FM1,	cutoff=0)
+par(mfrow=c(1,2)) 
+barplot(FI_FM1$loadings[,1]) 
+barplot(FI_FM1$loadings[,2]) 
+plot(FI_FM1$loadings, type="n")
+text(FI_FM1$loadings) 
+```
 
+```{r}
+# varimax
 FI_FM2	<-	factanal(x=dataI_FM1[,-1],	factors=2,	rotation="varimax")
 print(FI_FM2,	cutoff=0)
+par(mfrow=c(1,2)) 
+barplot(FI_FM2$loadings[,1]) 
+barplot(FI_FM2$loadings[,2]) 
+plot(FI_FM2$loadings, type="n")
+text(FI_FM2$loadings)
+```
 
+```{r}
+# promax
 FI_FM3	<-	factanal(x=dataI_FM1[,-1],	factors=2,	rotation="promax")
 print(FI_FM3,	cutoff=0)
+par(mfrow=c(1,2)) 
+barplot(FI_FM3$loadings[,1]) 
+barplot(FI_FM3$loadings[,2]) 
+plot(FI_FM3$loadings, type="n")
+text(FI_FM3$loadings) 
 ```
 
 ### 因子分析2
-```{r I_FM1 因子分析2}
-fitI_FM1	<-	fa(r=dataI_FM1[,-1],	nfactors=2,	rotate="varimax",	fm="ml")
-print(fitI_FM1)
+  
+今回はサンプルが多いので, 最尤法も行ってみた.
 
-fitI_FM2	<-	fa(r=dataI_FM1[,-1],	nfactors=2,	rotate="promax",	fm="ml")
-print(fitI_FM2)
+```{r I_FM1 因子分析2}
+# none
+mlI_FM1	<-	fa(r=dataI_FM1[,-1],	nfactors=2,	rotate="none",	fm="ml")
+print(mlI_FM1)
+par(mfrow=c(1,2)) 
+barplot(mlI_FM1$loadings[,1]) 
+barplot(mlI_FM1$loadings[,2]) 
+plot(FI_FM1$loadings, type="n")
+text(FI_FM1$loadings) 
+```
+
+```{r}
+# varimax
+mlI_FM2	<-	fa(r=dataI_FM1[,-1],	nfactors=2,	rotate="varimax",	fm="ml")
+print(mlI_FM2)
+par(mfrow=c(1,2)) 
+barplot(mlI_FM2$loadings[,1]) 
+barplot(mlI_FM2$loadings[,2]) 
+plot(FI_FM2$loadings, type="n")
+text(FI_FM2$loadings)
+```
+
+```{r}
+# promax
+mlI_FM3	<-	fa(r=dataI_FM1[,-1],	nfactors=2,	rotate="promax",	fm="ml")
+print(mlI_FM3)
+par(mfrow=c(1,2)) 
+barplot(mlI_FM3$loadings[,1]) 
+barplot(mlI_FM3$loadings[,2]) 
+plot(FI_FM3$loadings, type="n")
+text(FI_FM3$loadings) 
 ```
 
 
 
 
-## dataFU 
+
+## dataFU 未婚女性・情報セグメント 
 
 ### 相関行列
 ```{r dataI_FU1 相関行列}
 #相関行列の作成
 dataI_FU1.c <- cor(dataI_FU1[,-1])
-dataI_FU1.c
+#dataI_FU1.c
+ggpairs(
+	dataI_FU1[,-1],
+	lower = list(continuous = "density", combo = "box")	)
 ```
   
   
-###固有値
+### 固有値
 ```{r dataI_FU1 固有値}
 eigenI_FU1 <- eigen(dataI_FU1.c)$values
 # 固有値
 eigenI_FU1
 ```
 
-### 固有値の減少状況
+### 因子数決定
 ```{r dataI_FU1 plot}
-PI_FU1 <- plot(eigenI_FU1, type = "b", main = "I FU")
+# Minimum Average Partial, BIC
+VSS(dataI_FU1[-1], n=10)
+# 平行分析
+fa.parallel(dataI_FU1[,-1])
 ```
-  
-第2固有値までで. ちょっと第4ぽいかも？
+MAP:1  
+BIC:4  
+PC:3  
+FA:4  
+なんでこんなバラバラなん！？
+と思いつつ, 第3固有値までで行ってみる.
 
 ### 因子分析1
+  
+デフォルトであるminres(最小残差法)
 ```{r I_FU1 因子分析1}
-FI_FU1 <- factanal(x=dataI_FU1[,-1],	factors=2,	rotation="none")
+# 回転なし
+FI_FU1 <- factanal(x=dataI_FU1[,-1],	factors=3,	rotation="none")
 print(FI_FU1,	cutoff=0)
+par(mfrow=c(1,2)) 
+barplot(FI_FU1$loadings[,1]) 
+barplot(FI_FU1$loadings[,2])
+barplot(FI_FU1$loadings[,3]) 
+plot(FI_FU1$loadings, type="n")
+text(FI_FU1$loadings) 
+```
 
-FI_FU2	<-	factanal(x=dataI_FU1[,-1],	factors=2,	rotation="varimax")
+```{r}
+#varimax
+FI_FU2	<-	factanal(x=dataI_FU1[,-1],	factors=3,	rotation="varimax")
 print(FI_FU2,	cutoff=0)
+par(mfrow=c(1,2)) 
+barplot(FI_FU2$loadings[,1]) 
+barplot(FI_FU2$loadings[,2]) 
+barplot(FI_FU2$loadings[,3]) 
+plot(FI_MM2$loadings, type="n")
+text(FI_MM2$loadings) 
+```
 
-FI_FU3	<-	factanal(x=dataI_FU1[,-1],	factors=2,	rotation="promax")
+```{r}
+# promax
+FI_FU3	<-	factanal(x=dataI_FU1[,-1],	factors=3,	rotation="promax")
 print(FI_FU3,	cutoff=0)
+par(mfrow=c(1,2)) 
+barplot(FI_FU3$loadings[,1]) 
+barplot(FI_FU3$loadings[,2]) 
+barplot(FI_FU3$loadings[,3]) 
+plot(FI_FU3$loadings, type="n")
+text(FI_FU3$loadings) 
 ```
 
 ### 因子分析2
+  
+今回はサンプルが多いので, 最尤法も行ってみた.
 ```{r I_FU1 因子分析2}
-fitI_FU1	<-	fa(r=dataI_FU1[,-1],	nfactors=2,	rotate="varimax",	fm="ml")
-print(fitI_FU1)
+# none
+mlI_FU1	<-	fa(r=dataI_FU1[,-1],	nfactors=3,	rotate="none",	fm="ml")
+print(mlI_FU1)
+par(mfrow=c(1,2)) 
+barplot(mlI_FU1$loadings[,1]) 
+barplot(mlI_FU1$loadings[,2]) 
+barplot(mlI_FU1$loadings[,3]) 
+plot(FI_FU1$loadings, type="n")
+text(FI_FU1$loadings)
+```
 
-fitI_FU2	<-	fa(r=dataI_FU1[,-1],	nfactors=2,	rotate="promax",	fm="ml")
-print(fitI_FU2)
+```{r}
+# varimax
+mlI_FU2	<-	fa(r=dataI_FU1[,-1],	nfactors=3,	rotate="varimax",	fm="ml")
+print(mlI_FU2)
+par(mfrow=c(1,2)) 
+barplot(mlI_FU2$loadings[,1]) 
+barplot(mlI_FU2$loadings[,2]) 
+barplot(mlI_FU2$loadings[,3]) 
+plot(FI_FU2$loadings, type="n")
+text(FI_FU2$loadings) 
+```
+
+```{r}
+# promax
+mlI_FU3	<-	fa(r=dataI_FU1[,-1],	nfactors=3,	rotate="promax",	fm="ml")
+print(mlI_FU3)
+par(mfrow=c(1,2)) 
+barplot(mlI_FU3$loadings[,1]) 
+barplot(mlI_FU3$loadings[,2]) 
+barplot(mlI_FU3$loadings[,3]) 
+plot(FI_FU3$loadings, type="n")
+text(FI_FU3$loadings) 
 ```
 
 

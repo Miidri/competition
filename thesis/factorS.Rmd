@@ -1,0 +1,177 @@
+---
+title: "factorS"
+author: "Midori Omura"
+editor_options: 
+  chunk_output_type: console
+---
+title: "因子分析 facter analysis"
+output:
+  html_document:
+    number_sections: true
+    fig_caption: true
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    fig_width: 7
+    fig_height: 4.5
+    theme: sandstone
+    highlight: tango
+    code_folding: hide
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      warning = FALSE,
+                      message = FALSE)
+```
+
+
+```{r set_up}
+#パッケージのインストールと読み込み
+#持ってないパッケージはインストールする
+targetPackages <- c('knitr','DBI','RPostgreSQL','tidyverse',"reshape2","lubridate","dbplot","DT","gridExtra","fmsb","corrplot","graphics","GGally","psych", "GPArotation") 
+newPackages <- targetPackages[!(targetPackages %in% installed.packages()[,"Package"])]
+if(length(newPackages)) install.packages(newPackages, repos = "http://cran.us.r-project.org")
+for(package in targetPackages) library(package, character.only = T)
+
+source("/home/miidri/competition/psql.R")
+source("/home/miidri/competition/data_name.R")
+```
+
+
+# 購買セグメント 
+***
+- S1 どうしても必要なもの以外、買わないほうだ
+- S2 丈夫で長持ちするモノを選ぶことが多い
+- S3 流行に左右されない、長年使い続けられるものを選ぶことが多い
+- S4 周りの人が持っているモノなどを見て思わず自分も欲しくなってしまうことが多い
+- S5 周りのみんなが持っているモノを自分だけ持っていないと不安に感じる
+- S6 周りの人がみんな買っているならその商品は間違いなく良いモノだと思う
+- S7 買い物をすること自体が楽しく、好きだ
+- S8 「限定モノ」や「流行モノ」に弱く、すぐ欲しくなる
+- S9 一流・有名ブランド、メーカーの商品を買うのが好きだ（衣料品、バッグ、時計など）
+
+# dataS
+***
+
+```{r}
+head(dataS1) %>% 
+  kable()
+```
+
+
+## 相関行列
+```{r dataS1 相関行列}
+#相関行列の作成
+dataS.c <- cor(dataS1[,-1])
+
+ggpairs(
+	dataS1[,-1],
+	lower = list(continuous = "density", combo = "box")	)
+```
+  
+## 固有値
+```{r dataS1 固有値}
+eigenS1 <- eigen(dataS.c)$values
+# 固有値
+eigenS1
+```
+
+## 因子数決定
+```{r dataS1 plot}
+# Minimum Average Partial, BIC
+VSS(dataS1[-1], n=10)
+# 平行分析
+fa.parallel(dataS1[,-1])
+```
+  
+- MAP:2  
+- BIC:4  
+- PC:3  
+- FA:3  
+第3固有値までで行ってみる.
+
+# 因子分析
+***
+
+## 最小残差法
+  
+```{r dataS1 因子分析1}
+# 回転なし
+FS1 <- factanal(x=dataS1[,-1],	factors=3,	rotation="none")
+print(FS1,	cutoff=0)
+
+par(mfrow=c(1,2)) 
+barplot(FS1$loadings[,1]) 
+barplot(FS1$loadings[,2]) 
+barplot(FS1$loadings[,3]) 
+plot(FS1$loadings, type="n")
+text(FS1$loadings) 
+```
+
+```{r}
+# varimax
+FS2	<-	factanal(x=dataS1[,-1],	factors=3,	rotation="varimax")
+print(FS2,	cutoff=0)
+par(mfrow=c(1,2)) 
+barplot(FS2$loadings[,1]) 
+barplot(FS2$loadings[,2]) 
+barplot(FS2$loadings[,3]) 
+plot(FS2$loadings, type="n")
+text(FS2$loadings) 
+```
+
+```{r}
+# promax
+FS3	<-	factanal(x=dataS1[,-1],	factors=3,	rotation="promax")
+print(FS3,	cutoff=0)
+par(mfrow=c(1,2)) 
+barplot(FS3$loadings[,1]) 
+barplot(FS3$loadings[,2]) 
+barplot(FS3$loadings[,3]) 
+plot(FS3$loadings, type="n")
+text(FS3$loadings) 
+```
+
+
+## 最尤法
+  
+```{r dataS1 因子分析2}
+# none
+mlS1	<-	fa(r=dataS1[,-1],	nfactors=3,	rotate="none",	fm="ml")
+print(mlS1)
+par(mfrow=c(1,2)) 
+barplot(mlS1$loadings[,1]) 
+barplot(mlS1$loadings[,2]) 
+barplot(mlS1$loadings[,3])
+plot(FS1$loadings, type="n")
+text(FS1$loadings) 
+```
+
+```{r}
+# varimax
+mlS2	<-	fa(r=dataS1[,-1],	nfactors=3,	rotate="varimax",	fm="ml")
+print(mlS2)
+par(mfrow=c(1,2)) 
+barplot(mlS2$loadings[,1]) 
+barplot(mlS2$loadings[,2]) 
+barplot(mlS2$loadings[,3]) 
+plot(FS2$loadings, type="n")
+text(FS2$loadings) 
+```
+
+```{r}
+# promax
+mlS3	<-	fa(r=dataS1[,-1],	nfactors=3,	rotate="promax",	fm="ml")
+print(mlS3)
+par(mfrow=c(1,2)) 
+barplot(mlS3$loadings[,1]) 
+barplot(mlS3$loadings[,2]) 
+barplot(mlS3$loadings[,3]) 
+plot(FS3$loadings, type="n")
+text(FS3$loadings) 
+```
+
+

@@ -1,0 +1,172 @@
+---
+title: "factorI"
+author: "Midori Omura"
+editor_options: 
+  chunk_output_type: console
+---
+title: "因子分析 facter analysis"
+output:
+  html_document:
+    number_sections: true
+    fig_caption: true
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    fig_width: 7
+    fig_height: 4.5
+    theme: sandstone
+    highlight: tango
+    code_folding: hide
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      warning = FALSE,
+                      message = FALSE)
+```
+
+
+```{r set_up}
+#パッケージのインストールと読み込み
+#持ってないパッケージはインストールする
+targetPackages <- c('knitr','DBI','RPostgreSQL','tidyverse',"reshape2","lubridate","dbplot","DT","gridExtra","fmsb","corrplot","graphics","GGally","psych", "GPArotation") 
+newPackages <- targetPackages[!(targetPackages %in% installed.packages()[,"Package"])]
+if(length(newPackages)) install.packages(newPackages, repos = "http://cran.us.r-project.org")
+for(package in targetPackages) library(package, character.only = T)
+
+source("/home/miidri/competition/psql.R")
+source("/home/miidri/competition/data_name.R")
+```
+
+
+# 情報セグメント
+***
+- I1 情報収集に時間をかけるのはもったいない
+- I2 最低限の情報を持っていれば十分だ
+- I3 情報は広く浅く知っていれば十分だと思う
+- I4 口コミ情報を参考にすることが多い
+- I5 良いと思った情報はできるだけ多くの人と共有することが多い
+- I6 趣味や興味関心ごとなどのうんちくはたくさん持っている
+- I7 面白いと思った情報は周りの人に話したくなる
+- I8 情報収集は自ら積極的に行うほうだ
+- I9 情報は人より早く知っていることが多い  
+
+# dataI
+***
+
+```{r}
+head(dataI1) %>% 
+  kable()
+```
+
+
+## 相関行列
+```{r dataI1 相関行列}
+#相関行列の作成
+dataI.c <- cor(dataI1[,-1])
+#dataI_MM1.c
+
+ggpairs(
+	dataI1[,-1],
+	lower = list(continuous = "density", combo = "box")	)
+```
+  
+## 固有値
+```{r dataI1 固有値}
+eigenI1 <- eigen(dataI.c)$values
+# 固有値
+eigenI1
+```
+
+## 因子数決定
+```{r dataI1 plot}
+# Minimum Average Partial, BIC
+VSS(dataI1[-1], n=10)
+# 平行分析
+fa.parallel(dataI1[,-1])
+```
+  
+- MAP:1  
+- BIC:4  
+- PC:2  
+- FA:4  
+第2固有値までで行ってみる.
+
+# 因子分析
+***
+
+## 最小残差法
+  
+```{r dataI1 因子分析1}
+# 回転なし
+FI1 <- factanal(x=dataI1[,-1],	factors=2,	rotation="none")
+print(FI1,	cutoff=0)
+
+par(mfrow=c(1,2)) 
+barplot(FI1$loadings[,1]) 
+barplot(FI1$loadings[,2]) 
+plot(FI1$loadings, type="n")
+text(FI1$loadings) 
+```
+
+```{r}
+# varimax
+FI2	<-	factanal(x=dataI1[,-1],	factors=2,	rotation="varimax")
+print(FI2,	cutoff=0)
+par(mfrow=c(1,2)) 
+barplot(FI2$loadings[,1]) 
+barplot(FI2$loadings[,2]) 
+plot(FI2$loadings, type="n")
+text(FI2$loadings) 
+```
+
+```{r}
+# promax
+FI3	<-	factanal(x=dataI1[,-1],	factors=2,	rotation="promax")
+print(FI3,	cutoff=0)
+par(mfrow=c(1,2)) 
+barplot(FI3$loadings[,1]) 
+barplot(FI3$loadings[,2]) 
+plot(FI3$loadings, type="n")
+text(FI3$loadings) 
+```
+
+
+## 最尤法
+  
+```{r dataI1 因子分析2}
+# none
+mlI1	<-	fa(r=dataI1[,-1],	nfactors=2,	rotate="none",	fm="ml")
+print(mlI1)
+par(mfrow=c(1,2)) 
+barplot(mlI1$loadings[,1]) 
+barplot(mlI1$loadings[,2]) 
+plot(FI1$loadings, type="n")
+text(FI1$loadings) 
+```
+
+```{r}
+# varimax
+mlI2	<-	fa(r=dataI1[,-1],	nfactors=2,	rotate="varimax",	fm="ml")
+print(mlI2)
+par(mfrow=c(1,2)) 
+barplot(mlI2$loadings[,1]) 
+barplot(mlI2$loadings[,2]) 
+plot(FI2$loadings, type="n")
+text(FI2$loadings) 
+```
+
+```{r}
+# promax
+mlI3	<-	fa(r=dataI1[,-1],	nfactors=2,	rotate="promax",	fm="ml")
+print(mlI3)
+par(mfrow=c(1,2)) 
+barplot(mlI3$loadings[,1]) 
+barplot(mlI3$loadings[,2]) 
+plot(FI3$loadings, type="n")
+text(FI3$loadings) 
+```
+
+

@@ -63,9 +63,9 @@ data2 <-dbGetQuery(con,"
                    WHERE
                    P.qu_genre_code = 3
                    and
-                   P.question_code >= 4 
+                   P.question_code >= 22 
                    and
-                   P.question_code <= 21
+                   P.question_code <= 51
                    GROUP BY
                    P.house_num,
                    S.sex,
@@ -84,30 +84,30 @@ data <- data[c(-1053,-4400,-4698),]
 data1 <- data1[c(-1053,-4400,-4698),]
 data2 <- data2[c(-1053,-4400,-4698),]
 
-table(is.na(data))
-dim(data)
-dim(data1)
-dim(data2)
-# dataから男性だけ, 女性だけを用意
-data_M <- subset(data, sex==1)
-data_F <- subset(data, sex==2)
+# 表現嗜好ver
+dataL <- dbGetQuery(con,"
+                    SELECT
+                    house_num,
+                    question_code,
+                    answer_code
+                    FROM
+                    processed.profiledata
+                    WHERE
+                    qu_genre_code = 3
+                    and
+                    question_code >= 22 
+                    and
+                    question_code <= 51
+                    ORDER BY
+                    house_num,
+                    question_code,
+                    answer_code
+                    ;")
 
-  
-# 男性未婚MM
-data_MM<- subset(data_M, marriage==2)
-data_MM1 <- data_MM[,c(-20:-22)]
-
-# 男性未婚MU
-data_MU<- subset(data_M, marriage==1)
-data_MU1 <- data_MU[,c(-20:-22)]
-
-# 女性既婚FM
-data_FM<- subset(data_F, marriage==2)
-data_FM1 <- data_FM[,c(-20:-22)]
-
-# 女性未婚FU
-data_FU<- subset(data_F, marriage==1)
-data_FU1 <- data_FU[,c(-20:-22)]
+dataL <- dataL %>%
+  tidyr::spread(key = question_code, value = answer_code)
+dataL <- dataL[,c(1,4,10,19,9,18,20,22,25,27,29,23,11,16,6,13,15,26,3,5,7,8,12,14,17,21,24,30,2,28,31)]
+colnames(dataL) <- c("house_num","L1","L2","L3","L4","L5","L6","L7","L8","L9","L10","L11","L12","L13","L14","L15","L16","L17","L18","L19","L20","L21","L22","L23","L24","L25","L26","L27","L28","L29","L30")
 
 # 情報収集
 dataI <-data[,-11:-19]
@@ -117,6 +117,38 @@ dataI1 <-data1[,-11:-19]
 dataS <-data[,-2:-10]
 dataS1 <-data1[,-2:-10]
 
+# 表現嗜好
+dataL <- merge(dataL, data2, by = "house_num")
+dataL1 <- dataL[,-32:-34]
+
+# dataに表現嗜好追加
+data <- data[,-20:-22]
+data <- merge(data, dataL, by = "house_num")
+
+dim(data)
+dim(data1)
+dim(data2)
+
+
+# dataから男性だけ, 女性だけを用意
+data_M <- subset(data, sex==1)
+data_F <- subset(data, sex==2)
+
+  
+# 男性未婚MM
+data_MM<- subset(data_M, marriage==2)
+
+# 男性未婚MU
+data_MU<- subset(data_M, marriage==1)
+
+# 女性既婚FM
+data_FM<- subset(data_F, marriage==2)
+
+# 女性未婚FU
+data_FU<- subset(data_F, marriage==1)
+
+
+# 男女・未婚既婚別
 dataI_MM1 <- dataI %>% 
   dplyr::filter(dataI$sex == "1", dataI$marriage == "1") %>% 
   dplyr::select(house_num, I1, I2, I3, I4, I5, I6, I7, I8, I9)

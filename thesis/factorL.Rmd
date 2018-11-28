@@ -1,0 +1,196 @@
+---
+title: "factorL"
+author: "Midori Omura"
+editor_options: 
+  chunk_output_type: console
+---
+title: "因子分析 facter analysis"
+output:
+  html_document:
+    number_sections: true
+    fig_caption: true
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    fig_width: 7
+    fig_height: 4.5
+    theme: sandstone
+    highlight: tango
+    code_folding: hide
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      warning = FALSE,
+                      message = FALSE)
+```
+
+
+```{r set_up}
+#パッケージのインストールと読み込み
+#持ってないパッケージはインストールする
+targetPackages <- c('knitr','DBI','RPostgreSQL','tidyverse',"reshape2","lubridate","dbplot","DT","gridExtra","fmsb","corrplot","graphics","GGally","psych", "GPArotation") 
+newPackages <- targetPackages[!(targetPackages %in% installed.packages()[,"Package"])]
+if(length(newPackages)) install.packages(newPackages, repos = "http://cran.us.r-project.org")
+for(package in targetPackages) library(package, character.only = T)
+
+source("/home/miidri/competition/psql.R")
+source("/home/miidri/competition/data_name.R")
+```
+
+# 表現嗜好
+***
+```{r}
+dataL <- dbGetQuery(con,"
+                    SELECT
+                    house_num,
+                    question_code,
+                    answer_code
+                    FROM
+                    processed.profiledata
+                    WHERE
+                    qu_genre_code = 3
+                    and
+                    question_code >= 22 
+                    and
+                    question_code <= 51
+                    ORDER BY
+                    house_num,
+                    question_code,
+                    answer_code
+                    ;")
+
+dataL <- dataL %>%
+  tidyr::spread(key = question_code, value = answer_code)
+```
+
+dataL: 基本属性あり  
+dataL1: 基本属性なし
+```{r}
+dataL <- merge(dataL, data2, by = "house_num")
+table(is.na(dataL))
+dataL1 <- dataL[,-32:-34]
+```
+
+
+## 相関行列
+```{r dataL 相関行列}
+#相関行列の作成
+dataL.c <- cor(dataL1[,-1])
+
+#ggpairs(
+#	dataL1[,-1],
+#	lower = list(continuous = "density", combo = "box")	)
+```
+  
+## 固有値
+```{r dataI1 固有値}
+eigenL1 <- eigen(dataL.c)$values
+# 固有値
+eigenL1
+```
+
+## 因子数決定
+```{r dataI1 plot}
+# Minimum Average Partial, BIC
+VSS(dataL1[-1], n=10)
+# 平行分析
+fa.parallel(dataL1[,-1])
+```
+  
+- MAP:4  
+- BIC:9  
+- PC:5  
+- FA:8  
+第4固有値までで行ってみる.
+
+# 因子分析
+***
+
+## 最小残差法
+  
+```{r dataI1 因子分析1}
+# 回転なし
+FL1 <- factanal(x=dataL1[,-1],	factors=4,	rotation="none")
+print(FL1,	cutoff=0)
+
+par(mfrow=c(1,2)) 
+barplot(FL1$loadings[,1]) 
+barplot(FL1$loadings[,2]) 
+barplot(FL1$loadings[,3]) 
+barplot(FL1$loadings[,4]) 
+plot(FL1$loadings, type="n")
+text(FL1$loadings) 
+```
+
+```{r}
+# varimax
+FL2	<-	factanal(x=dataL1[,-1],	factors=4,	rotation="varimax")
+print(FL2,	cutoff=0)
+par(mfrow=c(1,2)) 
+barplot(FL2$loadings[,1]) 
+barplot(FL2$loadings[,2]) 
+barplot(FL2$loadings[,3]) 
+barplot(FL2$loadings[,4]) 
+plot(FL2$loadings, type="n")
+text(FL2$loadings) 
+```
+
+```{r}
+# promax
+FL3	<-	factanal(x=dataL1[,-1],	factors=4,	rotation="promax")
+print(FL3,	cutoff=0)
+par(mfrow=c(1,2)) 
+barplot(FL3$loadings[,1]) 
+barplot(FL3$loadings[,2]) 
+barplot(FL3$loadings[,3]) 
+barplot(FL3$loadings[,4]) 
+plot(FL3$loadings, type="n")
+text(FL3$loadings) 
+```
+
+
+## 最尤法
+  
+```{r dataI1 因子分析2}
+# none
+mlL1	<-	fa(r=dataL1[,-1],	nfactors=4,	rotate="none",	fm="ml")
+print(mlL1)
+par(mfrow=c(1,2)) 
+barplot(mlL1$loadings[,1]) 
+barplot(mlL1$loadings[,2]) 
+barplot(mlL1$loadings[,3]) 
+barplot(mlL1$loadings[,4]) 
+plot(FL1$loadings, type="n")
+text(FL1$loadings) 
+```
+
+```{r}
+# varimax
+mlL2	<-	fa(r=dataL1[,-1],	nfactors=4,	rotate="varimax",	fm="ml")
+print(mlL2)
+par(mfrow=c(1,2)) 
+barplot(mlL2$loadings[,1]) 
+barplot(mlL2$loadings[,2]) 
+barplot(mlL2$loadings[,3]) 
+barplot(mlL2$loadings[,4]) 
+plot(FL2$loadings, type="n")
+text(FL3$loadings) 
+```
+
+```{r}
+# promax
+mlL3	<-	fa(r=dataL1[,-1],	nfactors=4,	rotate="promax",	fm="ml")
+print(mlL3)
+par(mfrow=c(1,2)) 
+barplot(mlL3$loadings[,1]) 
+barplot(mlL3$loadings[,2]) 
+barplot(mlL3$loadings[,3]) 
+barplot(mlL3$loadings[,4]) 
+plot(FL3$loadings, type="n")
+text(FL3$loadings) 
+```
+
+

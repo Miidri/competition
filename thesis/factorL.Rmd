@@ -82,16 +82,15 @@ source("/home/miidri/competition/data_name.R")
 #相関行列の作成
 dataL.c <- cor(dataL1[,-1])
 
-#ggpairs(
-#	dataL1[,-1],
-#	lower = list(continuous = "density", combo = "box")	)
+dataL.c %>% 
+  kable()
 ```
   
 ## 固有値
 ```{r dataI1 固有値}
 eigenL1 <- eigen(dataL.c)$values
 # 固有値
-eigenL1
+eigenL1 
 ```
 
 ## 因子数決定
@@ -110,89 +109,38 @@ fa.parallel(dataL1[,-1])
 
 # 因子分析
 ***
+データ数が多いため, 最尤法を用いる.  
+また心理尺度であるため, 斜交回転 (promax)を行う.  
 
-## 最小残差法
-  
-```{r dataI1 因子分析1}
-# 回転なし
-FL1 <- factanal(x=dataL1[,-1],	factors=4,	rotation="none")
-print(FL1,	cutoff=0)
-
+```{r promax}
+mlL	<-	fa(r=dataL1[,-1],	nfactors=4,	rotate="promax",	fm="ml")
+print(mlL)
 par(mfrow=c(1,2)) 
-barplot(FL1$loadings[,1]) 
-barplot(FL1$loadings[,2]) 
-barplot(FL1$loadings[,3]) 
-barplot(FL1$loadings[,4]) 
-plot(FL1$loadings, type="n")
-text(FL1$loadings) 
+barplot(mlL$loadings[,1]) 
+barplot(mlL$loadings[,2]) 
+barplot(mlL$loadings[,3]) 
+barplot(mlL$loadings[,4]) 
+plot(mlL$loadings, type="n")
+text(mlL$loadings) 
 ```
 
-```{r}
-# varimax
-FL2	<-	factanal(x=dataL1[,-1],	factors=4,	rotation="varimax")
-print(FL2,	cutoff=0)
+```{r biplot}
 par(mfrow=c(1,2)) 
-barplot(FL2$loadings[,1]) 
-barplot(FL2$loadings[,2]) 
-barplot(FL2$loadings[,3]) 
-barplot(FL2$loadings[,4]) 
-plot(FL2$loadings, type="n")
-text(FL2$loadings) 
-```
-
-```{r}
-# promax
-FL3	<-	factanal(x=dataL1[,-1],	factors=4,	rotation="promax")
-print(FL3,	cutoff=0)
-par(mfrow=c(1,2)) 
-barplot(FL3$loadings[,1]) 
-barplot(FL3$loadings[,2]) 
-barplot(FL3$loadings[,3]) 
-barplot(FL3$loadings[,4]) 
-plot(FL3$loadings, type="n")
-text(FL3$loadings) 
+biplot(mlL$scores[,c(1,2)], mlL$loadings)
+biplot(mlL$scores[,c(1,3)], mlL$loadings)
+biplot(mlL$scores[,c(1,4)], mlL$loadings)
+biplot(mlL$scores[,c(2,3)], mlL$loadings)
+biplot(mlL$scores[,c(2,4)], mlL$loadings)
+biplot(mlL$scores[,c(3,4)], mlL$loadings)
 ```
 
 
-## 最尤法
-  
-```{r dataI1 因子分析2}
-# none
-mlL1	<-	fa(r=dataL1[,-1],	nfactors=4,	rotate="none",	fm="ml")
-print(mlL1)
-par(mfrow=c(1,2)) 
-barplot(mlL1$loadings[,1]) 
-barplot(mlL1$loadings[,2]) 
-barplot(mlL1$loadings[,3]) 
-barplot(mlL1$loadings[,4]) 
-plot(FL1$loadings, type="n")
-text(FL1$loadings) 
+```{r dist}
+dEL <- proxy::dist(mlL$scores, method="Euclidean")
+head(dEL)
+dEL1 <- as.matrix(dEL)
+#write.csv(dEI1, file= "/home/miidri/competition/dEI1.csv")
+rownames(dEL1) <- dataL$house_num
+colnames(dEL1) <- dataL$house_num
+dEL1[1:5,1:5]
 ```
-
-```{r}
-# varimax
-mlL2	<-	fa(r=dataL1[,-1],	nfactors=4,	rotate="varimax",	fm="ml")
-print(mlL2)
-par(mfrow=c(1,2)) 
-barplot(mlL2$loadings[,1]) 
-barplot(mlL2$loadings[,2]) 
-barplot(mlL2$loadings[,3]) 
-barplot(mlL2$loadings[,4]) 
-plot(FL2$loadings, type="n")
-text(FL3$loadings) 
-```
-
-```{r}
-# promax
-mlL3	<-	fa(r=dataL1[,-1],	nfactors=4,	rotate="promax",	fm="ml")
-print(mlL3)
-par(mfrow=c(1,2)) 
-barplot(mlL3$loadings[,1]) 
-barplot(mlL3$loadings[,2]) 
-barplot(mlL3$loadings[,3]) 
-barplot(mlL3$loadings[,4]) 
-plot(FL3$loadings, type="n")
-text(FL3$loadings) 
-```
-
-

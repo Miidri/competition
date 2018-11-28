@@ -68,9 +68,8 @@ head(dataI1) %>%
 dataI.c <- cor(dataI1[,-1])
 #dataI_MM1.c
 
-ggpairs(
-	dataI1[,-1],
-	lower = list(continuous = "density", combo = "box")	)
+dataI.c %>% 
+  kable()
 ```
   
 ## 固有値
@@ -96,77 +95,30 @@ fa.parallel(dataI1[,-1])
 
 # 因子分析
 ***
+データ数が多いため, 最尤法を用いる.  
+また心理尺度であるため, 斜交回転 (promax)を行う.  
 
-## 最小残差法
-  
-```{r dataI1 因子分析1}
-# 回転なし
-FI1 <- factanal(x=dataI1[,-1],	factors=2,	rotation="none")
-print(FI1,	cutoff=0)
-
+```{r promax}
+mlI	<-	fa(r=dataI1[,-1],	nfactors=2,	rotate="promax",	fm="ml")
+print(mlI)
 par(mfrow=c(1,2)) 
-barplot(FI1$loadings[,1]) 
-barplot(FI1$loadings[,2]) 
-plot(FI1$loadings, type="n")
-text(FI1$loadings) 
+barplot(mlI$loadings[,1]) 
+barplot(mlI$loadings[,2]) 
+plot(mlI$loadings, type="n")
+text(mlI$loadings) 
 ```
 
-```{r}
-# varimax
-FI2	<-	factanal(x=dataI1[,-1],	factors=2,	rotation="varimax")
-print(FI2,	cutoff=0)
-par(mfrow=c(1,2)) 
-barplot(FI2$loadings[,1]) 
-barplot(FI2$loadings[,2]) 
-plot(FI2$loadings, type="n")
-text(FI2$loadings) 
+```{r biplot}
+biplot(mlI$scores, mlI$loadings)
+
 ```
 
-```{r}
-# promax
-FI3	<-	factanal(x=dataI1[,-1],	factors=2,	rotation="promax")
-print(FI3,	cutoff=0)
-par(mfrow=c(1,2)) 
-barplot(FI3$loadings[,1]) 
-barplot(FI3$loadings[,2]) 
-plot(FI3$loadings, type="n")
-text(FI3$loadings) 
+```{r dist}
+dEI <- proxy::dist(mlI$scores, method="Euclidean")
+head(dEI)
+dEI1 <- as.matrix(dEI)
+#write.csv(dEI1, file= "/home/miidri/competition/dEI1.csv")
+rownames(dEI1) <- dataI$house_num
+colnames(dEI1) <- dataI$house_num
+dEI1[1:5,1:5]
 ```
-
-
-## 最尤法
-  
-```{r dataI1 因子分析2}
-# none
-mlI1	<-	fa(r=dataI1[,-1],	nfactors=2,	rotate="none",	fm="ml")
-print(mlI1)
-par(mfrow=c(1,2)) 
-barplot(mlI1$loadings[,1]) 
-barplot(mlI1$loadings[,2]) 
-plot(FI1$loadings, type="n")
-text(FI1$loadings) 
-```
-
-```{r}
-# varimax
-mlI2	<-	fa(r=dataI1[,-1],	nfactors=2,	rotate="varimax",	fm="ml")
-print(mlI2)
-par(mfrow=c(1,2)) 
-barplot(mlI2$loadings[,1]) 
-barplot(mlI2$loadings[,2]) 
-plot(FI2$loadings, type="n")
-text(FI2$loadings) 
-```
-
-```{r}
-# promax
-mlI3	<-	fa(r=dataI1[,-1],	nfactors=2,	rotate="promax",	fm="ml")
-print(mlI3)
-par(mfrow=c(1,2)) 
-barplot(mlI3$loadings[,1]) 
-barplot(mlI3$loadings[,2]) 
-plot(FI3$loadings, type="n")
-text(FI3$loadings) 
-```
-
-

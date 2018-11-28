@@ -31,7 +31,7 @@ knitr::opts_chunk$set(echo = TRUE,
 ```{r set_up}
 #パッケージのインストールと読み込み
 #持ってないパッケージはインストールする
-targetPackages <- c('knitr','DBI','RPostgreSQL','tidyverse',"reshape2","lubridate","dbplot","DT","gridExtra","fmsb","corrplot","graphics","GGally","psych", "GPArotation") 
+targetPackages <- c('knitr','DBI','RPostgreSQL','tidyverse',"reshape2","lubridate","dbplot","DT","gridExtra","fmsb","corrplot","graphics","GGally","psych", "GPArotation","proxy","DistatisR", "rgl") 
 newPackages <- targetPackages[!(targetPackages %in% installed.packages()[,"Package"])]
 if(length(newPackages)) install.packages(newPackages, repos = "http://cran.us.r-project.org")
 for(package in targetPackages) library(package, character.only = T)
@@ -67,9 +67,8 @@ head(dataS1) %>%
 #相関行列の作成
 dataS.c <- cor(dataS1[,-1])
 
-ggpairs(
-	dataS1[,-1],
-	lower = list(continuous = "density", combo = "box")	)
+dataS.c %>% 
+  kable()
 ```
   
 ## 固有値
@@ -94,84 +93,37 @@ fa.parallel(dataS1[,-1])
 第3固有値までで行ってみる.
 
 # 因子分析
-***
+***  
+データ数が多いため, 最尤法を用いる.  
+また心理尺度であるため, 斜交回転 (promax)を行う.  
 
-## 最小残差法
-  
-```{r dataS1 因子分析1}
-# 回転なし
-FS1 <- factanal(x=dataS1[,-1],	factors=3,	rotation="none")
-print(FS1,	cutoff=0)
-
+```{r promax}
+mlS	<-	fa(r=dataS1[,-1],	nfactors=3,	rotate="promax",	fm="ml")
+print(mlS)
 par(mfrow=c(1,2)) 
-barplot(FS1$loadings[,1]) 
-barplot(FS1$loadings[,2]) 
-barplot(FS1$loadings[,3]) 
-plot(FS1$loadings, type="n")
-text(FS1$loadings) 
-```
-
-```{r}
-# varimax
-FS2	<-	factanal(x=dataS1[,-1],	factors=3,	rotation="varimax")
-print(FS2,	cutoff=0)
-par(mfrow=c(1,2)) 
-barplot(FS2$loadings[,1]) 
-barplot(FS2$loadings[,2]) 
-barplot(FS2$loadings[,3]) 
-plot(FS2$loadings, type="n")
-text(FS2$loadings) 
-```
-
-```{r}
-# promax
-FS3	<-	factanal(x=dataS1[,-1],	factors=3,	rotation="promax")
-print(FS3,	cutoff=0)
-par(mfrow=c(1,2)) 
-barplot(FS3$loadings[,1]) 
-barplot(FS3$loadings[,2]) 
-barplot(FS3$loadings[,3]) 
-plot(FS3$loadings, type="n")
-text(FS3$loadings) 
+barplot(mlS$loadings[,1]) 
+barplot(mlS$loadings[,2]) 
+barplot(mlS$loadings[,3]) 
+plot(mlS$loadings, type="n")
+text(mlS$loadings) 
 ```
 
 
-## 最尤法
-  
-```{r dataS1 因子分析2}
-# none
-mlS1	<-	fa(r=dataS1[,-1],	nfactors=3,	rotate="none",	fm="ml")
-print(mlS1)
+```{r biplot}
 par(mfrow=c(1,2)) 
-barplot(mlS1$loadings[,1]) 
-barplot(mlS1$loadings[,2]) 
-barplot(mlS1$loadings[,3])
-plot(FS1$loadings, type="n")
-text(FS1$loadings) 
+
+biplot(mlS$scores[,c(1,2)], mlS$loadings)
+biplot(mlS$scores[,c(1,3)], mlS$loadings)
+biplot(mlS$scores[,c(2,3)], mlS$loadings)
+
 ```
 
-```{r}
-# varimax
-mlS2	<-	fa(r=dataS1[,-1],	nfactors=3,	rotate="varimax",	fm="ml")
-print(mlS2)
-par(mfrow=c(1,2)) 
-barplot(mlS2$loadings[,1]) 
-barplot(mlS2$loadings[,2]) 
-barplot(mlS2$loadings[,3]) 
-plot(FS2$loadings, type="n")
-text(FS2$loadings) 
+```{r dist}
+dES <- proxy::dist(mlS$scores, method="Euclidean")
+head(dES,5)
+dES1 <- as.matrix(dES)
+#write.csv(dES1, file= "/home/miidri/competition/dEI1.csv")
+rownames(dES1) <- dataS$house_num
+colnames(dES1) <- dataS$house_num
+dES1[1:5,1:5]
 ```
-
-```{r}
-# promax
-mlS3	<-	fa(r=dataS1[,-1],	nfactors=3,	rotate="promax",	fm="ml")
-print(mlS3)
-par(mfrow=c(1,2)) 
-barplot(mlS3$loadings[,1]) 
-barplot(mlS3$loadings[,2]) 
-barplot(mlS3$loadings[,3]) 
-plot(FS3$loadings, type="n")
-text(FS3$loadings) 
-```
-
-

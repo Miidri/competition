@@ -110,7 +110,6 @@ text(mlI$loadings)
 
 ```{r biplot}
 biplot(mlI$scores, mlI$loadings)
-
 ```
 
 ```{r dist}

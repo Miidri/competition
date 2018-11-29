@@ -73,14 +73,21 @@ source("/home/miidri/competition/data_name.R")
 - L29 お笑い、ユーモアをまじえたものがもっとあってもよいと思う
 - L30 商品を売ろうという意図を感じると商品自体を敬遠してしまう
 
-
+#dataL
+***
+```{r}
+dataL1 <- cbind(dataL1, index)
+dataL1 <- dataL1[c(1,32,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31)]
+head(dataL1) %>% 
+  kable()
+```
 
 
 
 ## 相関行列
 ```{r dataL 相関行列}
 #相関行列の作成
-dataL.c <- cor(dataL1[,-1])
+dataL.c <- cor(dataL1[,-1:-2])
 
 dataL.c %>% 
   kable()
@@ -96,10 +103,10 @@ eigenL1
 ## 因子数決定
 ```{r dataI1 plot}
 # Minimum Average Partial, BIC
-VSS(dataL1[-1], n=10)
+VSS(dataL1[,-1:-2], n=10)
 # 平行分析
-fa.parallel(dataL1[,-1], main= "Like")
-s```
+fa.parallel(dataL1[,-1:-2], main= "Like")
+```
   
 - MAP:4  
 - BIC:9  
@@ -113,7 +120,7 @@ s```
 また心理尺度であるため, 斜交回転 (promax)を行う.  
 
 ```{r promax}
-mlL	<-	fa(r=dataL1[,-1],	nfactors=4,	rotate="promax",	fm="ml")
+mlL	<-	fa(r=dataL1[,-1:-2],	nfactors=4,	rotate="promax",	fm="ml")
 print(mlL)
 par(mfrow=c(2,2)) 
 barplot(mlL$loadings[,1], main="ML1") 
@@ -131,6 +138,9 @@ biplot(mlL$scores[,c(1,4)], mlL$loadings)
 biplot(mlL$scores[,c(2,3)], mlL$loadings)
 biplot(mlL$scores[,c(2,4)], mlL$loadings)
 biplot(mlL$scores[,c(3,4)], mlL$loadings)
+
+scoresL<- mlL$scores[,1:2]
+plot(scoresL, col = index, pch = 20)
 ```
 
 ```{r}

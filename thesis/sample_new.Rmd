@@ -113,8 +113,8 @@ age_countP <-
 #ヒストグラム
 age_count10 <-
   ggplot(data, aes(x = age))+
-  geom_histogram(binwidth=10,  fill = cm.colors(6))+
-  labs(title = "ユーザの年齢分布")
+  geom_histogram(binwidth=10,  col="white")
+#+  labs(title = "ユーザの年齢分布")
 age_count10
 
 #円グラフ
@@ -133,7 +133,7 @@ age_tab10 %>%
 par(mfrow=c(1,2)) 
 p1 <- plot_ly(sex_count, labels = ~sex , values = ~n , type = 'pie',
              textposition = 'inside',
-             textinfo = 'label+percent',
+             textinfo = 'label+percent',size=0.5,
              insidetextfont = list(color = '#000000'),
              showlegend = FALSE) %>%
   layout(title = '性別',
@@ -144,6 +144,7 @@ p1 <- plot_ly(sex_count, labels = ~sex , values = ~n , type = 'pie',
 p2 <- plot_ly(marriage_count, labels = ~marriage , values = ~n , type = 'pie',
              textposition = 'inside',
              textinfo = 'label+percent',
+             size=0.5,
              insidetextfont = list(color = '#000000'),
              showlegend = FALSE) %>%
   layout(title = '未婚既婚',

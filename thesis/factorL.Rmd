@@ -98,8 +98,8 @@ eigenL1
 # Minimum Average Partial, BIC
 VSS(dataL1[-1], n=10)
 # 平行分析
-fa.parallel(dataL1[,-1])
-```
+fa.parallel(dataL1[,-1], main= "Like")
+s```
   
 - MAP:4  
 - BIC:9  
@@ -115,11 +115,11 @@ fa.parallel(dataL1[,-1])
 ```{r promax}
 mlL	<-	fa(r=dataL1[,-1],	nfactors=4,	rotate="promax",	fm="ml")
 print(mlL)
-par(mfrow=c(1,2)) 
-barplot(mlL$loadings[,1]) 
-barplot(mlL$loadings[,2]) 
-barplot(mlL$loadings[,3]) 
-barplot(mlL$loadings[,4]) 
+par(mfrow=c(2,2)) 
+barplot(mlL$loadings[,1], main="ML1") 
+barplot(mlL$loadings[,2], main="ML2") 
+barplot(mlL$loadings[,3], main="ML3") 
+barplot(mlL$loadings[,4], main="ML4") 
 plot(mlL$loadings, type="n")
 text(mlL$loadings) 
 ```
@@ -134,7 +134,6 @@ biplot(mlL$scores[,c(3,4)], mlL$loadings)
 ```
 
 ```{r}
-
 scores <- mlL$scores
 fa1 <- scores[,1]
 fa2 <- scores[,2]
@@ -167,9 +166,6 @@ for (k in 1:nrow(loads)) {
             opacity = 1)
 }
 print(p)
-
-
-
 ```
 
 ```{r dist}

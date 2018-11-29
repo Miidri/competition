@@ -100,16 +100,17 @@ fa.parallel(dataS1[,-1])
 ```{r promax}
 mlS	<-	fa(r=dataS1[,-1],	nfactors=3,	rotate="promax",	fm="ml")
 print(mlS)
-barplot(mlS$loadings[,1]) 
-barplot(mlS$loadings[,2]) 
-barplot(mlS$loadings[,3]) 
+par(mfrow=c(1,3)) 
+barplot(mlS$loadings[,1], main="ML1") 
+barplot(mlS$loadings[,2], main="ML2") 
+barplot(mlS$loadings[,3], main="ML3") 
 plot(mlS$loadings, type="n")
 text(mlS$loadings) 
 ```
 
 
 ```{r biplot}
-par(mfrow=c(1,2)) 
+par(mfrow=c(1,3)) 
 
 biplot(mlS$scores[,c(1,2)], mlS$loadings)
 biplot(mlS$scores[,c(1,3)], mlS$loadings)

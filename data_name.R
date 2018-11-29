@@ -76,6 +76,9 @@ data2 <-dbGetQuery(con,"
                    ORDER BY
                    house_num;")
 
+
+
+
 # data1とdata2をくっつけてNをやっつける
 data <- merge(data1, data2, by = "house_num")
 table(is.na(data))
@@ -83,6 +86,27 @@ data[!complete.cases(data),]
 data <- data[c(-1053,-4400,-4698),]
 data1 <- data1[c(-1053,-4400,-4698),]
 data2 <- data2[c(-1053,-4400,-4698),]
+
+index <- rep(0,length=4712)
+data2 <- cbind(data2,index)
+for (i in 1:4712) {
+  if((data2$sex[i]==1) && (data2$marriage[i]==1)){
+    data2$index[i] <- 1
+  }
+  else if((data2$sex[i]==1) && (data2$marriage[i]==2)){
+    data2$index[i] <- 2
+  }
+  else if((data2$sex[i]==2) && (data2$marriage[i]==1)){
+    data2$index[i] <- 3
+  }
+  else {
+    data2$index[i] <- 4 
+  }
+}
+index <- data2$index
+data <- cbind(data, index)
+
+
 
 # 表現嗜好ver
 dataL <- dbGetQuery(con,"

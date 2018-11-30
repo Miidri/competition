@@ -119,9 +119,53 @@ biplot(mlS$scores[,c(2,3)], mlS$loadings)
 pairs(mlS$scores)
 
 
-scoresS <- mlS$scores[,1:2]
-plot(scoresS, col = index, pch = 20)
+scoresS <- mlS$scores[,1:3]
+scoresS <- data.frame(scoresS)
+rownames(scoresS) <- dataS$house_num
+scoresS <- cbind(scoresS, index)
 
+ggplot(scoresS, aes(x=ML1, y=ML2, col=index)) +
+  geom_point(size = 1)+
+  scale_color_manual(values = c( "#ff0000","#0000ff","#ff99cc","#00cbcb"))
+ggplot(scoresS, aes(x=ML1, y=ML3, col=index)) +
+  geom_point(size = 1)+
+  scale_color_manual(values = c( "#ff0000","#0000ff","#ff99cc","#00cbcb"))
+ggplot(scoresS, aes(x=ML2, y=ML3, col=index)) +
+  geom_point(size = 1)+
+  scale_color_manual(values = c( "#ff0000","#0000ff","#ff99cc","#00cbcb"))
+
+```
+
+```{r}
+ggplot(scoresS, aes(x=ML1, y=ML2, col=index)) +
+  geom_point(size = 1)+
+  scale_color_manual(values = c( "#ff0000","#0000ff","#ff99cc","#00cbcb"))
+
+# を分解してみた
+scoresS_MM<-
+  scoresS%>% 
+   filter(index == "既婚男性")
+scoresS_MU<-
+  scoresS%>% 
+   filter(index == "未婚男性")
+scoresS_FM<-
+  scoresS%>% 
+   filter(index == "既婚女性")
+scoresS_FU<-
+  scoresS%>% 
+   filter(index == "未婚女性")
+
+scoresS_MMp <- ggplot(scoresS_MM, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#0000ff")+ ggtitle("既婚男性")
+scoresS_MUp <- ggplot(scoresS_MU, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#00cbcb")+ ggtitle("未婚男性")
+scoresS_FMp <- ggplot(scoresS_FM, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#ff0000")+ ggtitle("既婚女性")
+scoresS_FUp <- ggplot(scoresS_FU, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#ff99cc")+ ggtitle("未婚女性")
+
+grid.arrange(scoresS_MMp, scoresS_MUp, scoresS_FMp, scoresS_FUp,
+             ncol = 2)
 ```
 
 ```{r}
@@ -140,7 +184,7 @@ scale.loads <- 9
 # 3D plot
 library(plotly)
 p <- plot_ly() %>%
-  add_trace(x=fa1, y=fa2, z=fa3, name="",
+  add_trace(x=fa1, y=fa2, z=fa3, name="", color= index,
             type="scatter3d", mode="markers",
             marker = list(#color=y,
               size = 1,

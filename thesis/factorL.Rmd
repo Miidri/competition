@@ -138,16 +138,72 @@ biplot(mlL$scores[,c(1,4)], mlL$loadings)
 biplot(mlL$scores[,c(2,3)], mlL$loadings)
 biplot(mlL$scores[,c(2,4)], mlL$loadings)
 biplot(mlL$scores[,c(3,4)], mlL$loadings)
-
-scoresL<- mlL$scores[,1:2]
-plot(scoresL, col = index, pch = 20)
 ```
 
+```{r biplot by col}
+scoresL <- mlL$scores[,1:4]
+scoresL <- data.frame(scoresL)
+rownames(scoresL) <- dataL$house_num
+scoresL <- cbind(scoresL, index)
+
+ggplot(scoresL, aes(x=ML1, y=ML2, col=index)) +
+  geom_point(size = 1)+
+  scale_color_manual(values = c( "#ff0000","#0000ff","#ff99cc","#00cbcb"))
+ggplot(scoresL, aes(x=ML1, y=ML3, col=index)) +
+  geom_point(size = 1)+
+  scale_color_manual(values = c( "#ff0000","#0000ff","#ff99cc","#00cbcb"))
+ggplot(scoresL, aes(x=ML1, y=ML4, col=index)) +
+  geom_point(size = 1)+
+  scale_color_manual(values = c( "#ff0000","#0000ff","#ff99cc","#00cbcb"))
+ggplot(scoresL, aes(x=ML2, y=ML3, col=index)) +
+  geom_point(size = 1)+
+  scale_color_manual(values = c( "#ff0000","#0000ff","#ff99cc","#00cbcb"))
+ggplot(scoresL, aes(x=ML2, y=ML4, col=index)) +
+  geom_point(size = 1)+
+  scale_color_manual(values = c( "#ff0000","#0000ff","#ff99cc","#00cbcb"))
+ggplot(scoresL, aes(x=ML3, y=ML4, col=index)) +
+  geom_point(size = 1)+
+  scale_color_manual(values = c( "#ff0000","#0000ff","#ff99cc","#00cbcb"))
+```
+
+
 ```{r}
-scores <- mlL$scores
-fa1 <- scores[,1]
-fa2 <- scores[,2]
-fa3 <- scores[,3]
+ggplot(scoresL, aes(x=ML1, y=ML2, col=index)) +
+  geom_point(size = 1)+
+  scale_color_manual(values = c( "#ff0000","#0000ff","#ff99cc","#00cbcb"))
+
+# を分解してみた
+scoresL_MM<-
+  scoresL%>% 
+   filter(index == "既婚男性")
+scoresL_MU<-
+  scoresL%>% 
+   filter(index == "未婚男性")
+scoresL_FM<-
+  scoresL%>% 
+   filter(index == "既婚女性")
+scoresL_FU<-
+  scoresL%>% 
+   filter(index == "未婚女性")
+
+scoresL_MMp <- ggplot(scoresL_MM, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#0000ff")+ ggtitle("既婚男性")
+scoresL_MUp <- ggplot(scoresL_MU, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#00cbcb")+ ggtitle("未婚男性")
+scoresL_FMp <- ggplot(scoresL_FM, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#ff0000")+ ggtitle("既婚女性")
+scoresL_FUp <- ggplot(scoresL_FU, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#ff99cc")+ ggtitle("未婚女性")
+
+grid.arrange(scoresL_MMp, scoresL_MUp, scoresL_FMp, scoresL_FUp,
+             ncol = 2)
+```
+
+
+```{r 3D}
+ML1 <- scoresL[,1]
+ML2 <- scoresL[,2]
+ML3 <- scoresL[,3]
 
 # Loadings
 loads <- mlL$loadings
@@ -158,22 +214,22 @@ scale.loads <- 30
 # 3D plot
 library(plotly)
 p <- plot_ly() %>%
-  add_trace(x=fa1, y=fa2, z=fa3, name="",
+  add_trace(x=ML1, y=ML2, z=ML3, name="",color=index,
             type="scatter3d", mode="markers",
-            marker = list(#color=y,
+            marker = list(
               size = 1,
-               # colorscale = c("#FFE1A1", "#683531"), 
+              #color = c( "#ff0000","#0000ff","#ff99cc","#00cbcb"), 
                opacity = 0.7)) 
 
 for (k in 1:nrow(loads)) {
-   fa1 <- c(0, loads[k,1])*scale.loads
-   fa2 <- c(0, loads[k,2])*scale.loads
-   fa3 <- c(0, loads[k,3])*scale.loads
-   p <- p %>% add_trace(x=fa1, y=fa2, z=fa3,
+   ML1 <- c(0, loads[k,1])*scale.loads
+   ML2 <- c(0, loads[k,2])*scale.loads
+   ML3 <- c(0, loads[k,3])*scale.loads
+   p <- p %>% add_trace(x=ML1, y=ML2, z=ML3,
                         name = rownames(loads)[k],
             type="scatter3d", mode="lines",
-            line = list(width=8),
-            opacity = 1)
+            line = list(width=3),
+            opacity = 0.5)
 }
 print(p)
 ```

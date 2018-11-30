@@ -112,8 +112,43 @@ text(mlI$loadings)
 ```{r biplot}
 biplot(mlI$scores, mlI$loadings)
 scoresI <- mlI$scores[,1:2]
-plot(scoresI, col = index, pch = 20)
+scoresI <- data.frame(scoresI)
+rownames(scoresI) <- dataI$house_num
+scoresI <- cbind(scoresI, index)
+
+ggplot(scoresI, aes(x=ML1, y=ML2, col=index)) +
+  geom_point(size = 1)+
+  scale_color_manual(values = c( "#ff0000","#0000ff","#ff99cc","#00cbcb"))
 ```
+
+```{r}
+# を分解してみた
+scoresI_MM<-
+  scoresI%>% 
+   filter(index == "既婚男性")
+scoresI_MU<-
+  scoresI%>% 
+   filter(index == "未婚男性")
+scoresI_FM<-
+  scoresI%>% 
+   filter(index == "既婚女性")
+scoresI_FU<-
+  scoresI%>% 
+   filter(index == "未婚女性")
+
+scoresI_MMp <- ggplot(scoresI_MM, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#0000ff")+ ggtitle("既婚男性")
+scoresI_MUp <- ggplot(scoresI_MU, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#00cbcb")+ ggtitle("未婚男性")
+scoresI_FMp <- ggplot(scoresI_FM, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#ff0000")+ ggtitle("既婚女性")
+scoresI_FUp <- ggplot(scoresI_FU, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#ff99cc")+ ggtitle("未婚女性")
+
+grid.arrange(scoresI_MMp, scoresI_MUp, scoresI_FMp, scoresI_FUp,
+             ncol = 2)
+```
+
 
 ```{r dist}
 dEI <- proxy::dist(mlI$scores, method="Euclidean")

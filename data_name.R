@@ -91,16 +91,16 @@ index <- rep(0,length=4712)
 data2 <- cbind(data2,index)
 for (i in 1:4712) {
   if((data2$sex[i]==1) && (data2$marriage[i]==1)){
-    data2$index[i] <- 1
+    data2$index[i] <- "既婚男性"
   }
   else if((data2$sex[i]==1) && (data2$marriage[i]==2)){
-    data2$index[i] <- 2
+    data2$index[i] <- "未婚男性"
   }
   else if((data2$sex[i]==2) && (data2$marriage[i]==1)){
-    data2$index[i] <- 3
+    data2$index[i] <- "既婚女性"
   }
   else {
-    data2$index[i] <- 4 
+    data2$index[i] <- "未婚女性"
   }
 }
 index <- data2$index

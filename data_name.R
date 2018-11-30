@@ -90,13 +90,13 @@ data2 <- data2[c(-1053,-4400,-4698),]
 index <- rep(0,length=4712)
 data2 <- cbind(data2,index)
 for (i in 1:4712) {
-  if((data2$sex[i]==1) && (data2$marriage[i]==1)){
+  if((data2$sex[i]==1) && (data2$marriage[i]==2)){
     data2$index[i] <- "既婚男性"
   }
-  else if((data2$sex[i]==1) && (data2$marriage[i]==2)){
+  else if((data2$sex[i]==1) && (data2$marriage[i]==1)){
     data2$index[i] <- "未婚男性"
   }
-  else if((data2$sex[i]==2) && (data2$marriage[i]==1)){
+  else if((data2$sex[i]==2) && (data2$marriage[i]==2)){
     data2$index[i] <- "既婚女性"
   }
   else {
@@ -159,7 +159,7 @@ data_M <- subset(data, sex==1)
 data_F <- subset(data, sex==2)
 
   
-# 男性未婚MM
+# 男性既婚MM
 data_MM<- subset(data_M, marriage==2)
 
 # 男性未婚MU

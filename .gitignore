@@ -2,8 +2,8 @@
 .Rhistory
 .RData
 .Ruserdata
+*.R
 *.html
-psql.R
 senpai
 *.png
 *.csv

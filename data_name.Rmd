@@ -1,0 +1,186 @@
+#read read.me
+
+```{r data1}
+data1 <- dbGetQuery(con,"
+                    SELECT
+                    house_num,
+                    question_code,
+                    answer_code
+                    FROM
+                    processed.profiledata
+                    WHERE
+                    qu_genre_code = 3
+                    and
+                    question_code >= 4 
+                    and
+                    question_code <= 21
+                    ORDER BY
+                    house_num,
+                    question_code,
+                    answer_code
+                    ;")
+
+```
+
+```{r アンケート行列に変換}
+data1 <- data1 %>%
+  tidyr::spread(key = question_code, value = answer_code)
+```
+
+
+```{r 並び替え}
+data1 <- data1[,c(1,10,16,6,7,2,5,12,13,14,4,9,19,3,8,17,11,15,18)]
+colnames(data1) <- c("house_num","I1","I2","I3","I4","I5","I6","I7","I8","I9","S1","S2","S3","S4","S5","S6","S7","S8","S9")
+```
+
+# 性別・未既婚・年齢を用意
+```{r data2 of 全員}
+data2 <-dbGetQuery(con,"
+                   SELECT
+                   distinct(P.house_num),
+                   S.sex,
+                   S.marriage,
+                   S.age
+                   FROM
+                   processed.profiledata as P
+                   LEFT JOIN
+                   (SELECT
+                   house_num,
+                   sample_date,
+                   age,
+                   sex,
+                   marriage
+                   FROM
+                   processed.tv_sample_p_cv
+                   WHERE
+                   (house_num, sample_date)
+                   IN
+                   (
+                   SELECT
+                   house_num,
+                   min(sample_date) as sample_date
+                   FROM
+                   processed.tv_sample_p_cv
+                   GROUP BY
+                   house_num
+                   )) as S
+                   ON
+                   S.house_num = P.house_num
+                   WHERE
+                   P.qu_genre_code = 3
+                   and
+                   P.question_code >= 22 
+                   and
+                   P.question_code <= 51
+                   GROUP BY
+                   P.house_num,
+                   S.sex,
+                   S.marriage,
+                   S.age,
+                   P.question_code,
+                   P.answer_code
+                   ORDER BY
+                   house_num;")
+
+```
+
+
+
+```{r 結合してNA消す}
+data <- merge(data1, data2, by = "house_num")
+table(is.na(data))
+data[!complete.cases(data),]
+data <- data[c(-1053,-4400,-4698),]
+data1 <- data1[c(-1053,-4400,-4698),]
+data2 <- data2[c(-1053,-4400,-4698),]
+```
+
+```{r labels}
+index <- rep(0,length=4712)
+genreIS <- rep(0,length=4712)
+genreL <- rep(0,length=4712)
+data2 <- cbind(data2, index, genreIS, genreL)
+```
+
+```{r index}
+for (i in 1:4712) {
+  if((data2$sex[i]==1) && (data2$marriage[i]==2)){
+    data2$index[i] <- "既婚男性"
+  }
+  else if((data2$sex[i]==1) && (data2$marriage[i]==1)){
+    data2$index[i] <- "未婚男性"
+  }
+  else if((data2$sex[i]==2) && (data2$marriage[i]==2)){
+    data2$index[i] <- "既婚女性"
+  }
+  else {
+    data2$index[i] <- "未婚女性"
+  }
+}
+index <- data2$index
+data <- cbind(data, index)
+
+```
+
+
+```{r 表現嗜好}
+dataL <- dbGetQuery(con,"
+                    SELECT
+                    house_num,
+                    question_code,
+                    answer_code
+                    FROM
+                    processed.profiledata
+                    WHERE
+                    qu_genre_code = 3
+                    and
+                    question_code >= 22 
+                    and
+                    question_code <= 51
+                    ORDER BY
+                    house_num,
+                    question_code,
+                    answer_code
+                    ;")
+
+dataL <- dataL %>%
+  tidyr::spread(key = question_code, value = answer_code)
+dataL <- dataL[,c(1,4,10,19,9,18,20,22,25,27,29,23,11,16,6,13,15,26,3,5,7,8,12,14,17,21,24,30,2,28,31)]
+colnames(dataL) <- c("house_num","L1","L2","L3","L4","L5","L6","L7","L8","L9","L10","L11","L12","L13","L14","L15","L16","L17","L18","L19","L20","L21","L22","L23","L24","L25","L26","L27","L28","L29","L30")
+```
+
+```{r data I S L}
+# 情報収集
+dataI <-data[,-11:-19]
+dataI1 <-data1[,-11:-19]
+
+# 購買行動
+dataS <-data[,-2:-10]
+dataS1 <-data1[,-2:-10]
+
+# 表現嗜好
+dataL <- merge(dataL, data2, by = "house_num")
+dataL1 <- dataL[,-32:-34]
+```
+
+
+```{r}
+
+```
+
+# dataに表現嗜好追加
+data <- data[,-20:-22]
+data <- merge(data, dataL, by = "house_num")
+
+```{r 男性既婚の場合}
+data_MM<- subset(data_M, marriage==2)
+
+dataI_MM1 <- dataI %>% 
+  dplyr::filter(dataI$sex == "1", dataI$marriage == "1") %>% 
+  dplyr::select(house_num, I1, I2, I3, I4, I5, I6, I7, I8, I9)
+
+dataS_MM1 <- dataS %>% 
+  dplyr::filter(dataI$sex == "1", dataI$marriage == "1") %>% 
+  dplyr::select(house_num, S1, S2, S3, S4, S5, S6, S7, S8, S9)
+```
+

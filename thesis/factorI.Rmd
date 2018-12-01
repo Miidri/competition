@@ -38,6 +38,8 @@ for(package in targetPackages) library(package, character.only = T)
 
 source("/home/miidri/competition/psql.R")
 source("/home/miidri/competition/data_name.R")
+source("/home/miidri/competition/genre.R")
+
 ```
 
 
@@ -116,9 +118,15 @@ scoresI <- data.frame(scoresI)
 rownames(scoresI) <- dataI$house_num
 scoresI <- cbind(scoresI, index)
 
+# colored by sex and marriage
 ggplot(scoresI, aes(x=ML1, y=ML2, col=index)) +
   geom_point(size = 1)+
   scale_color_manual(values = c( "#ff0000","#0000ff","#ff99cc","#00cbcb"))
+
+# colored by IS segmemnt
+
+ggplot(scoresI, aes(x=ML1, y=ML2, col=genreIS)) +
+  geom_point(size = 1)
 ```
 
 ```{r}

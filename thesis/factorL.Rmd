@@ -122,7 +122,7 @@ fa.parallel(dataL1[,-1:-2], main= "Like")
 ```{r promax}
 mlL	<-	fa(r=dataL1[,-1:-2],	nfactors=4,	rotate="promax",	fm="ml")
 print(mlL)
-par(mfrow=c(2,2)) 
+par(mfrow=c(1,2)) 
 barplot(mlL$loadings[,1], main="ML1") 
 barplot(mlL$loadings[,2], main="ML2") 
 barplot(mlL$loadings[,3], main="ML3") 
@@ -146,24 +146,28 @@ scoresL <- data.frame(scoresL)
 rownames(scoresL) <- dataL$house_num
 scoresL <- cbind(scoresL, index)
 
-ggplot(scoresL, aes(x=ML1, y=ML2, col=index)) +
+L12 <-ggplot(scoresL, aes(x=ML1, y=ML2, col=index)) +
   geom_point(size = 1)+
   scale_color_manual(values = c( "#ff0000","#0000ff","#ff99cc","#00cbcb"))
-ggplot(scoresL, aes(x=ML1, y=ML3, col=index)) +
+L13 <-ggplot(scoresL, aes(x=ML1, y=ML3, col=index)) +
   geom_point(size = 1)+
   scale_color_manual(values = c( "#ff0000","#0000ff","#ff99cc","#00cbcb"))
-ggplot(scoresL, aes(x=ML1, y=ML4, col=index)) +
+L14 <-ggplot(scoresL, aes(x=ML1, y=ML4, col=index)) +
   geom_point(size = 1)+
   scale_color_manual(values = c( "#ff0000","#0000ff","#ff99cc","#00cbcb"))
-ggplot(scoresL, aes(x=ML2, y=ML3, col=index)) +
+L23 <-ggplot(scoresL, aes(x=ML2, y=ML3, col=index)) +
   geom_point(size = 1)+
   scale_color_manual(values = c( "#ff0000","#0000ff","#ff99cc","#00cbcb"))
-ggplot(scoresL, aes(x=ML2, y=ML4, col=index)) +
+L24 <-ggplot(scoresL, aes(x=ML2, y=ML4, col=index)) +
   geom_point(size = 1)+
   scale_color_manual(values = c( "#ff0000","#0000ff","#ff99cc","#00cbcb"))
-ggplot(scoresL, aes(x=ML3, y=ML4, col=index)) +
+L34 <-ggplot(scoresL, aes(x=ML3, y=ML4, col=index)) +
   geom_point(size = 1)+
   scale_color_manual(values = c( "#ff0000","#0000ff","#ff99cc","#00cbcb"))
+
+grid.arrange(L12, L13, L14, L23, L24, L34,
+             ncol = 2)
+
 ```
 
 
@@ -187,15 +191,15 @@ scoresL_FU<-
    filter(index == "未婚女性")
 
 scoresL_MMp <- ggplot(scoresL_MM, aes(x=ML1, y=ML2)) +
-  geom_point(size = 1, color = "#0000ff")+ ggtitle("既婚男性")
+  geom_point(size = 1, color = "#0000ff")+ ggtitle("既婚男性")+theme_bw()
 scoresL_MUp <- ggplot(scoresL_MU, aes(x=ML1, y=ML2)) +
-  geom_point(size = 1, color = "#00cbcb")+ ggtitle("未婚男性")
+  geom_point(size = 1, color = "#00cbcb")+ ggtitle("未婚男性")+theme_bw()
 scoresL_FMp <- ggplot(scoresL_FM, aes(x=ML1, y=ML2)) +
-  geom_point(size = 1, color = "#ff0000")+ ggtitle("既婚女性")
+  geom_point(size = 1, color = "#ff0000")+ ggtitle("既婚女性")+theme_bw()
 scoresL_FUp <- ggplot(scoresL_FU, aes(x=ML1, y=ML2)) +
-  geom_point(size = 1, color = "#ff99cc")+ ggtitle("未婚女性")
+  geom_point(size = 1, color = "#ff99cc")+ ggtitle("未婚女性")+theme_bw()
 
-grid.arrange(scoresL_MMp, scoresL_MUp, scoresL_FMp, scoresL_FUp,
+grid.arrange(scoresL_MMp, scoresL_MUp, scoresL_FMp, scoresL_FUp,L12,
              ncol = 2)
 ```
 

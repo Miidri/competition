@@ -38,7 +38,6 @@ for(package in targetPackages) library(package, character.only = T)
 
 source("/home/miidri/competition/psql.R")
 source("/home/miidri/competition/data_name.R")
-source("/home/miidri/competition/genre.R")
 
 ```
 
@@ -116,21 +115,22 @@ biplot(mlI$scores, mlI$loadings)
 scoresI <- mlI$scores[,1:2]
 scoresI <- data.frame(scoresI)
 rownames(scoresI) <- dataI$house_num
-scoresI <- cbind(scoresI, index)
+scoresI <- cbind(scoresI, data2$index, data2$genreIS)
+colnames(scoresI) <- c("ML1","ML2","index","genreIS")
 
 # colored by sex and marriage
 ggplot(scoresI, aes(x=ML1, y=ML2, col=index)) +
   geom_point(size = 1)+
-  scale_color_manual(values = c( "#ff0000","#0000ff","#ff99cc","#00cbcb"))
-
-# colored by IS segmemnt
-
-ggplot(scoresI, aes(x=ML1, y=ML2, col=genreIS)) +
-  geom_point(size = 1)
+  scale_color_manual(values = c( "#ff0000","#0000ff","#ff99cc","#00cbcb"))+theme_bw()
 ```
 
 ```{r}
-# を分解してみた
+# colored by IS segmemnt
+ggplot(scoresI, aes(x=ML1, y=ML2, col=genreIS)) +
+  geom_point(size = 1)+theme_bw()
+```
+
+```{r indexで分解}
 scoresI_MM<-
   scoresI%>% 
    filter(index == "既婚男性")
@@ -145,13 +145,13 @@ scoresI_FU<-
    filter(index == "未婚女性")
 
 scoresI_MMp <- ggplot(scoresI_MM, aes(x=ML1, y=ML2)) +
-  geom_point(size = 1, color = "#0000ff")+ ggtitle("既婚男性")
+  geom_point(size = 1, color = "#0000ff")+ ggtitle("既婚男性")+theme_bw()
 scoresI_MUp <- ggplot(scoresI_MU, aes(x=ML1, y=ML2)) +
-  geom_point(size = 1, color = "#00cbcb")+ ggtitle("未婚男性")
+  geom_point(size = 1, color = "#00cbcb")+ ggtitle("未婚男性")+theme_bw()
 scoresI_FMp <- ggplot(scoresI_FM, aes(x=ML1, y=ML2)) +
-  geom_point(size = 1, color = "#ff0000")+ ggtitle("既婚女性")
+  geom_point(size = 1, color = "#ff0000")+ ggtitle("既婚女性")+theme_bw()
 scoresI_FUp <- ggplot(scoresI_FU, aes(x=ML1, y=ML2)) +
-  geom_point(size = 1, color = "#ff99cc")+ ggtitle("未婚女性")
+  geom_point(size = 1, color = "#ff99cc")+ ggtitle("未婚女性")+theme_bw()
 
 grid.arrange(scoresI_MMp, scoresI_MUp, scoresI_FMp, scoresI_FUp,
              ncol = 2)

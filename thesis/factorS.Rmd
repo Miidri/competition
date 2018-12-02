@@ -122,26 +122,38 @@ pairs(mlS$scores)
 scoresS <- mlS$scores[,1:3]
 scoresS <- data.frame(scoresS)
 rownames(scoresS) <- dataS$house_num
-scoresS <- cbind(scoresS, index)
+scoresS <- cbind(scoresS, data2$index, data2$genreIS)
+colnames(scoresS) <- c("ML1","ML2","ML3","index","genreIS")
 
-ggplot(scoresS, aes(x=ML1, y=ML2, col=index)) +
+# colored by sex and marriage
+S12 <- ggplot(scoresS, aes(x=ML1, y=ML2, col=index)) +
   geom_point(size = 1)+
-  scale_color_manual(values = c( "#ff0000","#0000ff","#ff99cc","#00cbcb"))
-ggplot(scoresS, aes(x=ML1, y=ML3, col=index)) +
+  scale_color_manual(values = c( "#ff0000","#0000ff","#ff99cc","#00cbcb"))+theme_bw()
+S13 <- ggplot(scoresS, aes(x=ML1, y=ML3, col=index)) +
   geom_point(size = 1)+
-  scale_color_manual(values = c( "#ff0000","#0000ff","#ff99cc","#00cbcb"))
-ggplot(scoresS, aes(x=ML2, y=ML3, col=index)) +
+  scale_color_manual(values = c( "#ff0000","#0000ff","#ff99cc","#00cbcb"))+theme_bw()
+S23 <- ggplot(scoresS, aes(x=ML2, y=ML3, col=index)) +
   geom_point(size = 1)+
-  scale_color_manual(values = c( "#ff0000","#0000ff","#ff99cc","#00cbcb"))
+  scale_color_manual(values = c( "#ff0000","#0000ff","#ff99cc","#00cbcb"))+theme_bw()
 
+grid.arrange(S12, S13, S23,
+             ncol = 2)
 ```
 
 ```{r}
-ggplot(scoresS, aes(x=ML1, y=ML2, col=index)) +
-  geom_point(size = 1)+
-  scale_color_manual(values = c( "#ff0000","#0000ff","#ff99cc","#00cbcb"))
+# colored by IS segmemnt
+SS12 <-ggplot(scoresS, aes(x=ML1, y=ML2, col=genreIS)) +
+  geom_point(size = 1)+theme_bw()
+SS13 <-ggplot(scoresS, aes(x=ML1, y=ML3, col=genreIS)) +
+  geom_point(size = 1)+theme_bw()
+SS23 <-ggplot(scoresS, aes(x=ML2, y=ML3, col=genreIS)) +
+  geom_point(size = 1)+theme_bw()
 
-# を分解してみた
+grid.arrange(SS12, SS13, SS23,
+             ncol = 2)
+```
+
+```{r ML1ML2 indexで分解}
 scoresS_MM<-
   scoresS%>% 
    filter(index == "既婚男性")
@@ -156,13 +168,13 @@ scoresS_FU<-
    filter(index == "未婚女性")
 
 scoresS_MMp <- ggplot(scoresS_MM, aes(x=ML1, y=ML2)) +
-  geom_point(size = 1, color = "#0000ff")+ ggtitle("既婚男性")
+  geom_point(size = 1, color = "#0000ff")+ ggtitle("既婚男性")+theme_bw()
 scoresS_MUp <- ggplot(scoresS_MU, aes(x=ML1, y=ML2)) +
-  geom_point(size = 1, color = "#00cbcb")+ ggtitle("未婚男性")
+  geom_point(size = 1, color = "#00cbcb")+ ggtitle("未婚男性")+theme_bw()
 scoresS_FMp <- ggplot(scoresS_FM, aes(x=ML1, y=ML2)) +
-  geom_point(size = 1, color = "#ff0000")+ ggtitle("既婚女性")
+  geom_point(size = 1, color = "#ff0000")+ ggtitle("既婚女性")+theme_bw()
 scoresS_FUp <- ggplot(scoresS_FU, aes(x=ML1, y=ML2)) +
-  geom_point(size = 1, color = "#ff99cc")+ ggtitle("未婚女性")
+  geom_point(size = 1, color = "#ff99cc")+ ggtitle("未婚女性")+theme_bw()
 
 grid.arrange(scoresS_MMp, scoresS_MUp, scoresS_FMp, scoresS_FUp,
              ncol = 2)

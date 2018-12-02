@@ -1,3 +1,8 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
 #read read.me
 
 ```{r data1}
@@ -95,14 +100,10 @@ data1 <- data1[c(-1053,-4400,-4698),]
 data2 <- data2[c(-1053,-4400,-4698),]
 ```
 
-```{r labels}
-index <- rep(0,length=4712)
-genreIS <- rep(0,length=4712)
-genreL <- rep(0,length=4712)
-data2 <- cbind(data2, index, genreIS, genreL)
-```
-
 ```{r index}
+index <- rep(0,length=4712)
+data2 <- cbind(data2, index)
+
 for (i in 1:4712) {
   if((data2$sex[i]==1) && (data2$marriage[i]==2)){
     data2$index[i] <- "既婚男性"
@@ -117,8 +118,7 @@ for (i in 1:4712) {
     data2$index[i] <- "未婚女性"
   }
 }
-index <- data2$index
-data <- cbind(data, index)
+
 
 ```
 
@@ -147,32 +147,124 @@ dataL <- dataL %>%
   tidyr::spread(key = question_code, value = answer_code)
 dataL <- dataL[,c(1,4,10,19,9,18,20,22,25,27,29,23,11,16,6,13,15,26,3,5,7,8,12,14,17,21,24,30,2,28,31)]
 colnames(dataL) <- c("house_num","L1","L2","L3","L4","L5","L6","L7","L8","L9","L10","L11","L12","L13","L14","L15","L16","L17","L18","L19","L20","L21","L22","L23","L24","L25","L26","L27","L28","L29","L30")
+dataL <- dataL[c(-1053,-4400,-4698),]
+
+```
+
+```{r genre}
+genreIS <-dbGetQuery(con,"
+                    SELECT
+                    house_num,
+                    answer_code
+                    FROM
+                    processed.profiledata
+                    WHERE
+                    qu_genre_code = 25
+                    and
+                    question_code = 1
+                    ORDER BY
+                    house_num,
+                    question_code
+                    ;")
+
+colnames(genreIS) <- c("house_num","genreIS" )
+
+genreL <-dbGetQuery(con,"
+                    SELECT
+                    house_num,
+                    answer_code
+                    FROM
+                    processed.profiledata
+                    WHERE
+                    qu_genre_code = 25
+                    and
+                    question_code = 2
+                    ORDER BY
+                    house_num,
+                    question_code
+                    ;")
+colnames(genreL) <- c("house_num", "genreL" )
+
+data2 <- merge(data2, genreIS, by = "house_num")
+data2 <- merge(data2, genreL, by = "house_num")
+
+for (i in 1:4712){
+  if(data2$genreIS[i]==1){
+    data2$genreIS[i] <- "スマート目利き"
+  }
+  else if(data2$genreIS[i]==2){
+    data2$genreIS[i] <- "トレンドフリーク"
+  }
+  else if(data2$genreIS[i]==3){
+    data2$genreIS[i] <- "堅実ストイック"
+  }
+  else if(data2$genreIS[i]==4){
+    data2$genreIS[i] <- "コミュニティ同調"
+  }
+  else if(data2$genreIS[i]==5){
+    data2$genreIS[i] <- "ナチュラル低関与"
+  }
+  else {
+    data2$genreIS[i] <- "雑学ロジカル"
+  }
+}
+
+for (i in 1:4712){
+  if(data2$genreL[i]==1){
+    data2$genreL[i] <- "表現嗜好なし"
+  }
+  else if(data2$genreL[i]==2){
+    data2$genreL[i] <- "ストーリー・感性"
+  }
+  else if(data2$genreL[i]==3){
+    data2$genreL[i] <- "表現無頓着"
+  }
+  else if(data2$genreL[i]==4){
+    data2$genreL[i] <- "タレント重視"
+  }
+  else if(data2$genreL[i]==5){
+    data2$genreL[i] <- "シンプル嗜好"
+  }
+  else {
+    data2$genreL[i] <- "機能実証派"
+  }
+}
 ```
 
 ```{r data I S L}
+data1 <- merge(data1, dataL, by = "house_num")
+data <- merge(data1, data2, by = "house_num")
+
+# これ以上この3つは変化しないのでここで確認
+head(data)
+head(data1)
+head(data2)
+
 # 情報収集
-dataI <-data[,-11:-19]
-dataI1 <-data1[,-11:-19]
+dataI <-data[,-11:-55]
+dataI1 <-merge(dataI, data2, by = "house_num")
+dataI1 <- dataI1[,-16]
 
 # 購買行動
-dataS <-data[,-2:-10]
-dataS1 <-data1[,-2:-10]
+dataS <-data[,-20:-55]
+dataS <-dataS[,-2:-10]
+dataS1 <-merge(dataS, data2, by = "house_num")
+dataS1 <- dataS1[,-16]
 
 # 表現嗜好
-dataL <- merge(dataL, data2, by = "house_num")
-dataL1 <- dataL[,-32:-34]
+dataL1 <-merge(dataL, data2, by = "house_num")
+dataL1 <- dataL1[,-36]
+
+# これももう変えん予定
+head(dataI)
+head(dataI1)
+head(dataS)
+head(dataS1)
+head(dataL)
+head(dataL1)
 ```
 
-
-```{r}
-
-```
-
-# dataに表現嗜好追加
-data <- data[,-20:-22]
-data <- merge(data, dataL, by = "house_num")
-
-```{r 男性既婚の場合}
+```{r 男性既婚の場合 ゴミ}
 data_MM<- subset(data_M, marriage==2)
 
 dataI_MM1 <- dataI %>% 

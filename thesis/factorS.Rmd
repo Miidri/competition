@@ -1,6 +1,18 @@
 ---
 title: "factorS"
 author: "Midori Omura"
+output:
+  html_document:
+    number_sections: true
+    fig_caption: true
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    fig_width: 7
+    fig_height: 4.5
+    theme: sandstone 
+    highlight: tango
+    code_folding: hide
 editor_options: 
   chunk_output_type: console
 ---
@@ -109,7 +121,7 @@ plot(mlS$loadings, type="n")
 text(mlS$loadings) 
 ```
 
-
+## biplot
 ```{r biplot}
 par(mfrow=c(1,3)) 
 
@@ -140,6 +152,7 @@ grid.arrange(S12, S13, S23,
              ncol = 2)
 ```
 
+## ラベル付け
 ```{r}
 # colored by IS segmemnt
 SS12 <-ggplot(scoresS, aes(x=ML1, y=ML2, col=genreIS)) +
@@ -153,6 +166,7 @@ grid.arrange(SS12, SS13, SS23,
              ncol = 2)
 ```
 
+## 基本属性
 ```{r ML1ML2 indexで分解}
 scoresS_MM<-
   scoresS%>% 
@@ -214,11 +228,10 @@ for (k in 1:nrow(loads)) {
             opacity = 1)
 }
 print(p)
-
-
-
 ```
 
+
+# 距離行列
 ```{r dist}
 dES <- proxy::dist(mlS$scores, method="Euclidean")
 head(dES,5)

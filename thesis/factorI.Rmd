@@ -1,6 +1,18 @@
 ---
 title: "factorI"
 author: "Midori Omura"
+output:
+  html_document:
+    number_sections: true
+    fig_caption: true
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    fig_width: 7
+    fig_height: 4.5
+    theme: sandstone 
+    highlight: tango
+    code_folding: hide
 editor_options: 
   chunk_output_type: console
 ---
@@ -99,7 +111,7 @@ fa.parallel(dataI1[,-1:-2], main = "情報収集")
 ***
 データ数が多いため, 最尤法を用いる.  
 また心理尺度であるため, 斜交回転 (promax)を行う.  
-
+## 因子内容
 ```{r promax}
 mlI	<-	fa(r=dataI1[,-1:-2],	nfactors=2,	rotate="promax",	fm="ml")
 print(mlI)
@@ -110,8 +122,13 @@ plot(mlI$loadings, type="n")
 text(mlI$loadings) 
 ```
 
+## biplot
 ```{r biplot}
 biplot(mlI$scores, mlI$loadings)
+```
+
+## ラベル付け
+```{r}
 scoresI <- mlI$scores[,1:2]
 scoresI <- data.frame(scoresI)
 rownames(scoresI) <- dataI$house_num
@@ -122,14 +139,13 @@ colnames(scoresI) <- c("ML1","ML2","index","genreIS")
 ggplot(scoresI, aes(x=ML1, y=ML2, col=index)) +
   geom_point(size = 1)+
   scale_color_manual(values = c( "#ff0000","#0000ff","#ff99cc","#00cbcb"))+theme_bw()
-```
 
-```{r}
 # colored by IS segmemnt
 ggplot(scoresI, aes(x=ML1, y=ML2, col=genreIS)) +
   geom_point(size = 1)+theme_bw()
 ```
 
+## 基本属性
 ```{r indexで分解}
 scoresI_MM<-
   scoresI%>% 
@@ -157,7 +173,7 @@ grid.arrange(scoresI_MMp, scoresI_MUp, scoresI_FMp, scoresI_FUp,
              ncol = 2)
 ```
 
-
+# 距離行列
 ```{r dist}
 dEI <- proxy::dist(mlI$scores, method="Euclidean")
 head(dEI)

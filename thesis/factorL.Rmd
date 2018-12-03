@@ -1,6 +1,18 @@
 ---
 title: "factorL"
 author: "Midori Omura"
+output:
+  html_document:
+    number_sections: true
+    fig_caption: true
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    fig_width: 7
+    fig_height: 4.5
+    theme: sandstone 
+    highlight: tango
+    code_folding: hide
 editor_options: 
   chunk_output_type: console
 ---
@@ -131,7 +143,9 @@ plot(mlL$loadings, type="n")
 text(mlL$loadings) 
 ```
 
+## biplot
 ```{r biplot}
+par(mfrow=c(1,2)) 
 biplot(mlL$scores[,c(1,2)], mlL$loadings)
 biplot(mlL$scores[,c(1,3)], mlL$loadings)
 biplot(mlL$scores[,c(1,4)], mlL$loadings)
@@ -140,6 +154,7 @@ biplot(mlL$scores[,c(2,4)], mlL$loadings)
 biplot(mlL$scores[,c(3,4)], mlL$loadings)
 ```
 
+## ラベル付け
 ```{r biplot by col}
 scoresL <- mlL$scores[,1:4]
 scoresL <- data.frame(scoresL)
@@ -171,6 +186,8 @@ grid.arrange(L12, L13, L14, L23, L24, L34,
 
 ```
 
+
+
 ```{r}
 # colored by IS segmemnt
 
@@ -191,6 +208,7 @@ grid.arrange(LL12, LL13, LL14, LL23, LL24, LL34,
              ncol = 2)
 ```
 
+## 基本属性
 ```{r ML1ML2 indexで分解}
 scoresL_MM<-
   scoresL%>% 
@@ -253,6 +271,7 @@ for (k in 1:nrow(loads)) {
 print(p)
 ```
 
+# 距離行列
 ```{r dist}
 dEL <- proxy::dist(mlL$scores, method="Euclidean")
 head(dEL)

@@ -83,7 +83,8 @@ F_fullBoot <- BootFromCompromise(DistanceCube,niter=1000)
 ```
 
 # 描画
-## Rv map
+## Rv map 距離行列同士の相関
+$$ R_v = \frac{tr \{ s_{[t]}^T s_{[t']}\}}{\sqrt{tr \{ s_{[t]}^T s_{[t]}\}tr \{ s_{[t']}^T s_{[t']}\}}}$$
 ```{r}
 rv.graph.out <- GraphDistatisRv(testDistatis$res4Cmat$G)
 ```
@@ -101,11 +102,11 @@ partial.scores.graph.out <-GraphDistatisPartial(testDistatis$res4Splus$F,testDis
 ##a bootstrap confidence interval plot
 ```{r}
 # 5.4 
-#5.4.1 with ellipses
+#5.4.1 ellipses 楕円あり
 boot.graph.out.ell <- GraphDistatisBoot(testDistatis$res4Splus$F,BootF)
 #or
 # boot.graph.out <- GraphDistatisBoot(testDistatis$res4Splus$F,F_fullBoot)
-#5.4.2 with hulls
+#5.4.2 with hull 凸包
 boot.graph.out.hull <- GraphDistatisBoot(testDistatis$res4Splus$F,BootF,ellipses=FALSE)
 #or
 # boot.graph.out <- GraphDistatisBoot(testDistatis$res4Splus$F,F_fullBoot,ellipses=FALSE)

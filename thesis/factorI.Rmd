@@ -182,7 +182,15 @@ dEI1 <- as.matrix(dEI)
 rownames(dEI1) <- dataI$house_num
 colnames(dEI1) <- dataI$house_num
 dEI1[1:5,1:5]
+
 ```
 
 
+```{r MDS 多次元尺度法}
+loc <- cmdscale(dEI)
+x <- loc[,1]
+y <- loc[,2]
+plot(x,y,type="n")
+text(x,y, cex = 0.8)
+```
 

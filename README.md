@@ -7,6 +7,9 @@ For the working process
 ## Rmd
 ### Directory
 ```
+├── Qdefine
+├── data_name
+├── genre
 ├── report
 │   ├── jiten
 │   ├── pro_per
@@ -20,36 +23,32 @@ For the working process
 │   └── perrformer_report
 └── thesis
     ├── cluster
+    ├── distatis
     ├── factor
+    ├── factorI
+    ├── factorS    
+    ├── factorL
     ├── profile
-    ├── QAbook
+    ├── question
+    ├── VRcluster
     ├── sample
     └── sample_new
 ```
 
 # data name
-|Name       |Target   |Contents   |I or S|
+|Name       |Target   |Contents   |ISL|
 |-----------|---------|-----------|------|
 |data       |全員     | all       || 
 |data1      |全員     |アンケート ||  
 |data2      |全員     |標本       ||
-|data_MM    |既婚男性 |all        ||
-|data_MU    |未婚男性 |all        ||
-|data_FM    |既婚女性 |all        ||  
-|data_FU    |未婚女性 |all        ||
-|data_MM1   |既婚男性 |アンケート ||  
-|data_MU1   |未婚男性 |アンケート ||
-|data_FM1   |既婚女性 |アンケート ||
-|data_FU1   |未婚女性 |アンケート ||
-|dataI      |         |all        |情報   |  
-|dataS      |         |all        |購買   |
-|dataI1     |         |アンケート |情報   |
-|dataS1     |         |アンケート |購買   |
-|dataI_MM1  |既婚男性 |アンケート |情報   |
-|dataS_MM1  |既婚男性 |アンケート |購買   |  
-|dataI_MU1  |未婚男性 |アンケート |情報   |
-|dataS_MU1  |未婚男性 |アンケート |購買   |
-|dataI_FM1  |既婚女性 |アンケート |情報   |
-|dataS_FM1  |既婚女性 |アンケート |購買   |
-|dataI_FU1  |未婚女性 |アンケート |情報   |
-|dataS_FU1  |未婚女性 |アンケート |購買   |
+|dataL       |全員     | all       |I| 
+|data1      |全員     |アンケート |I|  
+|data       |全員     | all       |S| 
+|data1      |全員     |アンケート |S|  
+|data       |全員     | all       |L| 
+|data1      |全員     |アンケート |L|  
+|index      |全員     |ラベル       ||
+|genreIS      |全員    |ラベル       |IS|
+|genreL      |全員     |ラベル       |L|
+|dataI_MM1    |既婚男性 |all        |I|
+|dataI_MM1    |既婚男性 |all        |S|

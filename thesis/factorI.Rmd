@@ -98,7 +98,7 @@ eigenI1
 # Minimum Average Partial, BIC
 VSS(dataI1[,-1:-2], n=10)
 # 平行分析
-fa.parallel(dataI1[,-1:-2], main = "情報収集")
+fa.parallel(dataI1[,-1:-2], main = "情報特性")
 ```
   
 - MAP:1  
@@ -115,11 +115,28 @@ fa.parallel(dataI1[,-1:-2], main = "情報収集")
 ```{r promax}
 mlI	<-	fa(r=dataI1[,-1:-2],	nfactors=2,	rotate="promax",	fm="ml")
 print(mlI)
-par(mfrow=c(1,2)) 
-barplot(mlI$loadings[,1], main = "ML1") 
-barplot(mlI$loadings[,2], main = "ML2") 
-plot(mlI$loadings, type="n")
-text(mlI$loadings) 
+#par(mfrow=c(1,2)) 
+#barplot(mlI$loadings[,1], main = "ML1") 
+#barplot(mlI$loadings[,2], main = "ML2")
+#plot(mlI$loadings, type="n")
+#text(mlI$loadings)
+loadingsI <- mlI$loadings[,1:2]
+loadingsI <- 
+  data.frame(
+    question_num = c("I1","I2","I3","I4","I5","I6","I7","I8","I9"),
+    loadingsI)
+
+load1 <- ggplot(loadingsI, aes(x = question_num, y = ML1)) +
+  geom_bar(stat = "identity", position = "identity") +
+  scale_fill_brewer(type ="seq",palette = 1)+ theme_bw()
+load2 <- ggplot(loadingsI, aes(x = question_num, y = ML2)) +
+  geom_bar(stat = "identity", position = "identity") +
+  scale_fill_brewer(type ="seq",palette = 1)+ theme_bw()
+loadT <- ggplot(loadingsI, aes(x = ML1, y = ML2, label = question_num)) +
+  geom_point() +theme_bw()+ geom_label(position = "nudge" )
+ 
+grid.arrange(load1, load2, loadT,
+             ncol = 2)
 ```
 
 ## biplot
@@ -187,10 +204,11 @@ dEI1[1:5,1:5]
 
 
 ```{r MDS 多次元尺度法}
-loc <- cmdscale(dEI)
-x <- loc[,1]
-y <- loc[,2]
-plot(x,y,type="n")
-text(x,y, cex = 0.8)
+# 重いからできるだけまわしたくない
+#loc <- cmdscale(dEI)
+#x <- loc[,1]
+#y <- loc[,2]
+#plot(x,y,type="n")
+#text(x,y, cex = 0.8)
 ```
 

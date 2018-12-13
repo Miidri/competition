@@ -96,9 +96,8 @@ eigenS1
 # Minimum Average Partial, BIC
 VSS(dataS1[,-1:-2], n=10)
 # 平行分析
-fa.parallel(dataS1[,-1:-2])
-```
-  
+fa.parallel(dataS1[,-1:-2], main = "購買特性")
+```  
 - MAP:2  
 - BIC:4  
 - PC:3  
@@ -109,16 +108,42 @@ fa.parallel(dataS1[,-1:-2])
 ***  
 データ数が多いため, 最尤法を用いる.  
 また心理尺度であるため, 斜交回転 (promax)を行う.  
-4
+
 ```{r promax}
 mlS	<-	fa(r=dataS1[,-1:-2],	nfactors=3,	rotate="promax",	fm="ml")
 print(mlS)
-par(mfrow=c(1,3)) 
-barplot(mlS$loadings[,1], main="ML1") 
-barplot(mlS$loadings[,2], main="ML2") 
-barplot(mlS$loadings[,3], main="ML3") 
-plot(mlS$loadings, type="n")
-text(mlS$loadings) 
+#par(mfrow=c(1,3)) 
+#barplot(mlS$loadings[,1], main="ML1") 
+#barplot(mlS$loadings[,2], main="ML2") 
+#barplot(mlS$loadings[,3], main="ML3") 
+#plot(mlS$loadings, type="n")
+#text(mlS$loadings) 
+
+loadingsS <- mlS$loadings[,1:3]
+loadingsS <- 
+  data.frame(
+    question_num = c("S1","S2","S3","S4","S5","S6","S7","S8","S9"),
+    loadingsS)
+
+load1 <- ggplot(loadingsS, aes(x = question_num, y = ML1)) +
+  geom_bar(stat = "identity", position = "identity") +
+  scale_fill_brewer(type ="seq",palette = 1)+ theme_bw()
+load2 <- ggplot(loadingsS, aes(x = question_num, y = ML2)) +
+  geom_bar(stat = "identity", position = "identity") +
+  scale_fill_brewer(type ="seq",palette = 1)+ theme_bw()
+load3 <- ggplot(loadingsS, aes(x = question_num, y = ML3)) +
+  geom_bar(stat = "identity", position = "identity") +
+  scale_fill_brewer(type ="seq",palette = 1)+ theme_bw()
+loadT1 <- ggplot(loadingsS, aes(x = ML1, y = ML2, label = question_num)) +
+  geom_point() +theme_bw()+ geom_label(position = "nudge" )
+loadT2 <- ggplot(loadingsS, aes(x = ML1, y = ML3, label = question_num)) +
+  geom_point() +theme_bw()+ geom_label(position = "nudge" )
+loadT3 <- ggplot(loadingsS, aes(x = ML2, y = ML3, label = question_num)) +
+  geom_point() +theme_bw()+ geom_label(position = "nudge" ) 
+grid.arrange(load1, load2, load3,
+             ncol = 2)
+grid.arrange(loadT1, loadT2, loadT3,
+             ncol = 2)
 ```
 
 ## biplot

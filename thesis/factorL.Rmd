@@ -117,7 +117,7 @@ eigenL1
 # Minimum Average Partial, BIC
 VSS(dataL1[,-1:-2], n=10)
 # 平行分析
-fa.parallel(dataL1[,-1:-2], main= "Like")
+fa.parallel(dataL1[,-1:-2], main= "表現嗜好")
 ```
   
 - MAP:4  
@@ -133,14 +133,54 @@ fa.parallel(dataL1[,-1:-2], main= "Like")
 
 ```{r promax}
 mlL	<-	fa(r=dataL1[,-1:-2],	nfactors=4,	rotate="promax",	fm="ml")
-print(mlL)
-par(mfrow=c(1,2)) 
-barplot(mlL$loadings[,1], main="ML1") 
-barplot(mlL$loadings[,2], main="ML2") 
-barplot(mlL$loadings[,3], main="ML3") 
-barplot(mlL$loadings[,4], main="ML4") 
-plot(mlL$loadings, type="n")
-text(mlL$loadings) 
+#print(mlL)
+#par(mfrow=c(1,2)) 
+#barplot(mlL$loadings[,1], main="ML1") 
+#barplot(mlL$loadings[,2], main="ML2") 
+#barplot(mlL$loadings[,3], main="ML3") 
+#barplot(mlL$loadings[,4], main="ML4") 
+#plot(mlL$loadings, type="n")
+#text(mlL$loadings)
+
+loadingsL <- mlL$loadings[,1:4]
+loadingsL <- 
+  data.frame(
+    question_num = c("L1","L2","L3","L4","L5","L6","L7","L8","L9","L10","L11","L12","L13","L14","L15","L16","L17","L18","L19","L20","L21","L22","L23","L24","L25","L26","L27","L28","L29","L30"),
+    loadingsL,
+    z = seq(1, 30))
+
+load1 <- ggplot(loadingsL, aes(x = reorder(question_num, z), y = ML1)) +
+  geom_bar(stat = "identity", position = "identity") +
+  theme_bw()
+load2 <- ggplot(loadingsL, aes(x = reorder(question_num, z), y = ML2)) +
+  geom_bar(stat = "identity", position = "identity") +
+   theme_bw()
+load3 <- ggplot(loadingsL, aes(x = reorder(question_num, z), y = ML3)) +
+  geom_bar(stat = "identity", position = "identity") +
+  theme_bw()
+load4 <- ggplot(loadingsL, aes(x = reorder(question_num, z), y = ML4)) +
+  geom_bar(stat = "identity", position = "identity") +
+  theme_bw()
+loadT1 <- ggplot(loadingsL, aes(x = ML1, y = ML2, label = question_num)) +
+  geom_point() +theme_bw()+ geom_label(position = "nudge" )
+loadT2 <- ggplot(loadingsL, aes(x = ML1, y = ML3, label = question_num)) +
+  geom_point() +theme_bw()+ geom_label(position = "nudge" )
+loadT3 <- ggplot(loadingsL, aes(x = ML1, y = ML4, label = question_num)) +
+  geom_point() +theme_bw()+ geom_label(position = "nudge" )
+loadT4 <- ggplot(loadingsL, aes(x = ML1, y = ML3, label = question_num)) +
+  geom_point() +theme_bw()+ geom_label(position = "nudge" )
+loadT5 <- ggplot(loadingsL, aes(x = ML2, y = ML4, label = question_num)) +
+  geom_point() +theme_bw()+ geom_label(position = "nudge" )
+loadT6 <- ggplot(loadingsL, aes(x = ML3, y = ML4, label = question_num)) +
+  geom_point() +theme_bw()+ geom_label(position = "nudge" )
+ 
+grid.arrange(load1, load2, load3, load4,
+             ncol = 2)
+grid.arrange(loadT1, loadT2, loadT3, loadT4,
+             ncol = 2)
+grid.arrange(loadT5, loadT6 ,
+             ncol = 2, nrow =2)
+
 ```
 
 ## biplot

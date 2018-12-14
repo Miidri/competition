@@ -69,10 +69,8 @@ source("/home/miidri/competition/data_name.R")
 # dataI
 ***
 
-```{r}
-dataI1 <- cbind(dataI1, index)
-dataI1 <- dataI1[c(1,11,2,3,4,5,6,7,8,9,10)]
-head(dataI1) %>% 
+```{r dataI 全部 を確認}
+head(dataI) %>% 
   kable()
 ```
 
@@ -80,7 +78,7 @@ head(dataI1) %>%
 ## 相関行列
 ```{r dataI1 相関行列}
 #相関行列の作成
-dataI.c <- cor(dataI1[,-1:-2])
+dataI.c <- cor(dataI1[,-1])
 
 dataI.c %>% 
   kable()
@@ -96,9 +94,9 @@ eigenI1
 ## 因子数決定
 ```{r dataI1 plot}
 # Minimum Average Partial, BIC
-VSS(dataI1[,-1:-2], n=10)
+VSS(dataI1[,-1], n=10)
 # 平行分析
-fa.parallel(dataI1[,-1:-2], main = "情報特性")
+fa.parallel(dataI1[,-1], main = "情報特性")
 ```
   
 - MAP:1  
@@ -113,7 +111,7 @@ fa.parallel(dataI1[,-1:-2], main = "情報特性")
 また心理尺度であるため, 斜交回転 (promax)を行う.  
 ## 因子内容
 ```{r promax}
-mlI	<-	fa(r=dataI1[,-1:-2],	nfactors=2,	rotate="promax",	fm="ml")
+mlI	<-	fa(r=dataI1[,-1],	nfactors=2,	rotate="promax",	fm="ml")
 print(mlI)
 #par(mfrow=c(1,2)) 
 #barplot(mlI$loadings[,1], main = "ML1") 

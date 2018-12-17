@@ -157,10 +157,13 @@ pairs(mlS$scores)
 scoresS <- mlS$scores[,1:3]
 scoresS <- data.frame(scoresS)
 rownames(scoresS) <- dataS$house_num
-scoresS <- cbind(scoresS, data2$index, data2$genreIS)
-colnames(scoresS) <- c("ML1","ML2","ML3","index","genreIS")
+scoresS <- cbind(scoresS, data2$index, data2$genreIS, data2$age_index)
+colnames(scoresS) <- c("ML1","ML2","ML3","index","genreIS", "age_index")
 
-# colored by sex and marriage
+```
+
+## 男女・未婚既婚別
+```{r}
 S12 <- ggplot(scoresS, aes(x=ML1, y=ML2, col=index)) +
   geom_point(size = 1)+
   scale_color_manual(values = c( "#ff0000","#0000ff","#ff99cc","#00cbcb"))+theme_bw()
@@ -175,7 +178,20 @@ grid.arrange(S12, S13, S23,
              ncol = 2)
 ```
 
-## ラベル付け
+## 年代別
+```{r}
+S_12 <-ggplot(scoresS, aes(x=ML1, y=ML2, col=age_index)) +
+  geom_point(size = 1)+theme_bw()
+S_13 <-ggplot(scoresS, aes(x=ML1, y=ML3, col=age_index)) +
+  geom_point(size = 1)+theme_bw()
+S_23 <-ggplot(scoresS, aes(x=ML2, y=ML3, col=age_index)) +
+  geom_point(size = 1)+theme_bw()
+
+grid.arrange(S_12, S_13, S_23,
+             ncol = 2)
+```
+
+## VRラベル付け
 ```{r}
 # colored by IS segmemnt
 SS12 <-ggplot(scoresS, aes(x=ML1, y=ML2, col=genreIS)) +
@@ -188,6 +204,7 @@ SS23 <-ggplot(scoresS, aes(x=ML2, y=ML3, col=genreIS)) +
 grid.arrange(SS12, SS13, SS23,
              ncol = 2)
 ```
+
 
 ## 基本属性
 ```{r ML1ML2 indexで分解}
@@ -217,6 +234,44 @@ grid.arrange(scoresS_MMp, scoresS_MUp, scoresS_FMp, scoresS_FUp,
              ncol = 2)
 ```
 
+
+```{r ML1ML2 age_indexで分解}
+scoresS_10<-
+  scoresS%>% 
+   filter(age_index == "10代")
+scoresS_20<-
+  scoresS%>% 
+   filter(age_index == "20代")
+scoresS_30<-
+  scoresS%>% 
+   filter(age_index == "30代")
+scoresS_40<-
+  scoresS%>% 
+   filter(age_index == "40代")
+scoresS_50<-
+  scoresS%>% 
+   filter(age_index == "50代")
+scoresS_60<-
+  scoresS%>% 
+   filter(age_index == "60代以上")
+
+scoresS_10p <- ggplot(scoresS_10, aes(x=ML1, y=ML2)) +
+  geom_point()+ ggtitle("10代")+theme_bw()
+scoresS_20p <- ggplot(scoresS_20, aes(x=ML1, y=ML2)) +
+  geom_point()+ ggtitle("20代")+theme_bw()
+scoresS_30p <- ggplot(scoresS_30, aes(x=ML1, y=ML2)) +
+  geom_point()+ ggtitle("30代")+theme_bw()
+scoresS_40p <- ggplot(scoresS_40, aes(x=ML1, y=ML2)) +
+  geom_point()+ ggtitle("40代")+theme_bw()
+scoresS_50p <- ggplot(scoresS_50, aes(x=ML1, y=ML2)) +
+  geom_point()+ ggtitle("50代")+theme_bw()
+scoresS_60p <- ggplot(scoresS_60, aes(x=ML1, y=ML2)) +
+  geom_point()+ ggtitle("60代以上")+theme_bw()
+
+
+grid.arrange(scoresS_10p, scoresS_20p, scoresS_30p, scoresS_40p, scoresS_50p, scoresS_60p,
+             ncol = 3)
+```
 ```{r}
 
 scores <- mlS$scores

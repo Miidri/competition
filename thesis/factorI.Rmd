@@ -147,15 +147,26 @@ biplot(mlI$scores, mlI$loadings)
 scoresI <- mlI$scores[,1:2]
 scoresI <- data.frame(scoresI)
 rownames(scoresI) <- dataI$house_num
-scoresI <- cbind(scoresI, data2$index, data2$genreIS)
-colnames(scoresI) <- c("ML1","ML2","index","genreIS")
+scoresI <- cbind(scoresI, data2$index, data2$genreIS, data2$age_index)
+colnames(scoresI) <- c("ML1","ML2","index","genreIS", "age_index")
+```
 
-# colored by sex and marriage
+## 男女・未婚既婚別
+```{r}
 ggplot(scoresI, aes(x=ML1, y=ML2, col=index)) +
   geom_point(size = 1)+
   scale_color_manual(values = c( "#ff0000","#0000ff","#ff99cc","#00cbcb"))+theme_bw()
+```
 
-# colored by IS segmemnt
+## 年代別
+```{r}
+ggplot(scoresI, aes(x=ML1, y=ML2, col=age_index)) +
+  geom_point(size = 1)+theme_bw()
+```
+
+## VRラベル付け
+
+```{r}
 ggplot(scoresI, aes(x=ML1, y=ML2, col=genreIS)) +
   geom_point(size = 1)+theme_bw()
 ```

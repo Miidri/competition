@@ -197,9 +197,13 @@ biplot(mlL$scores[,c(3,4)], mlL$loadings)
 scoresL <- mlL$scores[,1:4]
 scoresL <- data.frame(scoresL)
 rownames(scoresL) <- dataL$house_num
-scoresL <- cbind(scoresL, data2$index, data2$genreL)
-colnames(scoresL) <- c("ML1","ML2","ML3","ML4","index","genreL")
-# colored by sex and marriage
+scoresL <- cbind(scoresL, data2$index, data2$genreL, data$age_index)
+colnames(scoresL) <- c("ML1","ML2","ML3","ML4","index","genreL", "age_index")
+```
+
+## 男女・未婚既婚別
+
+```{r}
 L12 <-ggplot(scoresL, aes(x=ML1, y=ML2, col=index)) +
   geom_point(size = 1)+
   scale_color_manual(values = c( "#ff0000","#0000ff","#ff99cc","#00cbcb"))+theme_bw()
@@ -224,11 +228,27 @@ grid.arrange(L12, L13, L14, L23, L24, L34,
 
 ```
 
-
-
+## 年代別
 ```{r}
-# colored by IS segmemnt
+L_12 <-ggplot(scoresL, aes(x=ML1, y=ML2, col=age_index)) +
+  geom_point(size = 1)+theme_bw()
+L_13 <-ggplot(scoresL, aes(x=ML1, y=ML3, col=age_index)) +
+  geom_point(size = 1)+theme_bw()
+L_14 <-ggplot(scoresL, aes(x=ML1, y=ML4, col=age_index)) +
+  geom_point(size = 1)+theme_bw()
+L_23 <-ggplot(scoresL, aes(x=ML2, y=ML3, col=age_index)) +
+  geom_point(size = 1)+theme_bw()
+L_24 <-ggplot(scoresL, aes(x=ML2, y=ML4, col=age_index)) +
+  geom_point(size = 1)+theme_bw()
+L_34 <-ggplot(scoresL, aes(x=ML3, y=ML4, col=age_index)) +
+  geom_point(size = 1)+theme_bw()
 
+grid.arrange(L_12, L_13, L_14, L_23, L_24, L_34,
+             ncol = 2)
+```
+
+## VRラベル付け
+```{r}
 LL12 <-ggplot(scoresL, aes(x=ML1, y=ML2, col=genreL)) +
   geom_point(size = 1)+theme_bw()
 LL13 <-ggplot(scoresL, aes(x=ML1, y=ML3, col=genreL)) +

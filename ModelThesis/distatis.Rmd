@@ -12,7 +12,7 @@ output:
     fig_height: 4.5
     theme: sandstone 
     highlight: tango
-    code_folding: hide
+#    code_folding: hide
 editor_options: 
   chunk_output_type: console
 ---
@@ -56,16 +56,14 @@ head(Sort) %>%
 # 距離行列作成
 ```{r}
 DistanceCube <- DistanceFromSort(Sort)
-DistanceCube %>% 
-  kable
+DistanceCube
 ```
 
 Call the DISTATIS routine with the cube of distance as parameter.   
 3次元の距離をパラメータとしてDISTATISルーチンを呼び出す  
 ```{r}
 testDistatis <- distatis(DistanceCube)
-testDistatis %>% 
-  kable()
+testDistatis
 ```
 
 # ブーツストラップ
@@ -89,15 +87,21 @@ $$ R_v = \frac{tr \{ s_{[t]}^T s_{[t']}\}}{\sqrt{tr \{ s_{[t]}^T s_{[t]}\}tr \{ 
 rv.graph.out <- GraphDistatisRv(testDistatis$res4Cmat$G)
 ```
 
+![](/home/miidri/competition/ModelThesis/distatis_plots/01_rv.png)
+
 ## compromise plot
 ```{r}
 compromise.graph.out <- GraphDistatisCompromise(testDistatis$res4Splus$F)
 ```
 
+![](/home/miidri/competition/ModelThesis/distatis_plots/02_comp.png)
+
 ## a partial factor score plot
 ```{r}
 partial.scores.graph.out <-GraphDistatisPartial(testDistatis$res4Splus$F,testDistatis$res4Splus$PartialF)
 ```
+
+![](/home/miidri/competition/ModelThesis/distatis_plots/03_part.png)
 
 ##a bootstrap confidence interval plot
 ```{r}
@@ -111,7 +115,9 @@ boot.graph.out.hull <- GraphDistatisBoot(testDistatis$res4Splus$F,BootF,ellipses
 #or
 # boot.graph.out <- GraphDistatisBoot(testDistatis$res4Splus$F,F_fullBoot,ellipses=FALSE)
 #5.5 all the plots at once
-all.plots.out <-
-  GraphDistatisAll(testDistatis$res4Splus$F,testDistatis$res4Splus$PartialF,
-                   BootF,testDistatis$res4Cmat$G)
+#all.plots.out <-
+#  GraphDistatisAll(testDistatis$res4Splus$F,testDistatis$res4Splus$PartialF,
+#                   BootF,testDistatis$res4Cmat$G)
 ```
+
+![](/home/miidri/competition/ModelThesis/distatis_plots/bootstrap.png)

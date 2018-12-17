@@ -197,8 +197,8 @@ biplot(mlL$scores[,c(3,4)], mlL$loadings)
 scoresL <- mlL$scores[,1:4]
 scoresL <- data.frame(scoresL)
 rownames(scoresL) <- dataL$house_num
-scoresL <- cbind(scoresL, data2$index, data2$genreL, data$age_index)
-colnames(scoresL) <- c("ML1","ML2","ML3","ML4","index","genreL", "age_index")
+scoresL <- cbind(scoresL, data2$index, data2$genreL, data$age_index, data2$genreIS)
+colnames(scoresL) <- c("ML1","ML2","ML3","ML4","index","genreL", "age_index", "genreIS")
 ```
 
 ## 男女・未婚既婚別
@@ -247,7 +247,7 @@ grid.arrange(L_12, L_13, L_14, L_23, L_24, L_34,
              ncol = 2)
 ```
 
-## VRラベル付け
+## VR Lラベル付け
 ```{r}
 LL12 <-ggplot(scoresL, aes(x=ML1, y=ML2, col=genreL)) +
   geom_point(size = 1)+theme_bw()
@@ -263,6 +263,25 @@ LL34 <-ggplot(scoresL, aes(x=ML3, y=ML4, col=genreL)) +
   geom_point(size = 1)+theme_bw()
 
 grid.arrange(LL12, LL13, LL14, LL23, LL24, LL34,
+             ncol = 2)
+```
+
+## VR ISラベル付け
+```{r}
+Lis12 <-ggplot(scoresL, aes(x=ML1, y=ML2, col=genreIS)) +
+  geom_point(size = 1)+theme_bw()
+Lis13 <-ggplot(scoresL, aes(x=ML1, y=ML3, col=genreIS)) +
+  geom_point(size = 1)+theme_bw()
+Lis14 <-ggplot(scoresL, aes(x=ML1, y=ML4, col=genreIS)) +
+  geom_point(size = 1)+theme_bw()
+Lis23 <-ggplot(scoresL, aes(x=ML2, y=ML3, col=genreIS)) +
+  geom_point(size = 1)+theme_bw()
+Lis24 <-ggplot(scoresL, aes(x=ML2, y=ML4, col=genreIS)) +
+  geom_point(size = 1)+theme_bw()
+Lis34 <-ggplot(scoresL, aes(x=ML3, y=ML4, col=genreIS)) +
+  geom_point(size = 1)+theme_bw()
+
+grid.arrange(Lis12, Lis13, Lis14, Lis23, Lis24, Lis34,
              ncol = 2)
 ```
 

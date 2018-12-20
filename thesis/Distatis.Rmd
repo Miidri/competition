@@ -32,71 +32,80 @@ if(length(newPackages)) install.packages(newPackages, repos = "http://cran.us.r-
 for(package in targetPackages) library(package, character.only = T)
 
 source("/home/miidri/competition/psql.R")
-source("/home/miidri/competition/data_name.R")
+source("/home/miidri/competition/name_data.R")
+source("/home/miidri/competition/name_dist.R")
 ```
 
+# 行列内容
+4,712 \* 4,712 \* 3  
+とりあえず5*5だけ出力
 
-```{r make I}
-mlI	<-	fa(r=dataI1[,-1],	nfactors=2,	rotate="promax",	fm="ml")
-
-scoresI <- mlI$scores[,1:2]
-scoresI <- data.frame(scoresI)
-rownames(scoresI) <- dataI$house_num
-scoresI <- cbind(scoresI, data2$index, data2$genreIS, data2$age_index)
-colnames(scoresI) <- c("ML1","ML2","index","genreIS", "age_index")
-
-dEI <- proxy::dist(mlI$scores, method="Euclidean")
-head(dEI)
-dEI1 <- as.matrix(dEI)
-#write.csv(dEI1, file= "/home/miidri/competition/dEI1.csv")
-rownames(dEI1) <- dataI$house_num
-colnames(dEI1) <- dataI$house_num
-dEI1[1:5,1:5]
-
+```{r 3次元行列を確認}
+Cube[1:5,1:5,]
 ```
 
-```{r make S}
-mlS	<-	fa(r=dataS1[,-1],	nfactors=3,	rotate="promax",	fm="ml")
-
-scoresS <- mlS$scores[,1:3]
-scoresS <- data.frame(scoresS)
-rownames(scoresS) <- dataS$house_num
-scoresS <- cbind(scoresS, data2$index, data2$genreIS, data2$age_index)
-colnames(scoresS) <- c("ML1","ML2","ML3","index","genreIS", "age_index")
-
-dES <- proxy::dist(mlS$scores, method="Euclidean")
-head(dES)
-dES1 <- as.matrix(dES)
-rownames(dES1) <- dataS$house_num
-colnames(dES1) <- dataS$house_num
-dES1[1:5,1:5]
-```
-
-```{r make L}
-mlL	<-	fa(r=dataL1[,-1],	nfactors=4,	rotate="promax",	fm="ml")
-
-scoresL <- mlL$scores[,1:4]
-scoresL <- data.frame(scoresL)
-rownames(scoresL) <- dataL$house_num
-scoresL <- cbind(scoresL, data2$index, data2$genreL, data2$age_index)
-colnames(scoresL) <- c("ML1","ML3","ML2","ML4","index","genreIS", "age_index")
-
-dEL <- proxy::dist(mlL$scores, method="Euclidean")
-head(dEL)
-dEL1 <- as.matrix(dEL)
-rownames(dEL1) <- dataL$house_num
-colnames(dEL1) <- dataL$house_num
-dEL1[1:5,1:5]
-
-```
-
-```{r list作成}
-Cube <- list(dEI1, dES1, dEL1)
-head(Cube)
-```
+# distatis
 
 ```{r}
+# めちゃ時間かかるから注意
 testD <- distatis(Cube)
 testD
 ```
+
+# ブーツストラップ
+ 1. Bootstrap on factors 
+ 処理は早いが, 標本数が大きいとふるまいの正確さに欠ける.
+
+ 2. 妥協点を計算してそれらを投影して得た完全なブートストラップ
+ 計算量が多いので時間がかかる. だからやらない.
+```{r}
+# 4.1 Get the bootstrap factor scores (with default 1000 iterations)
+BootF <- BootFactorScores(testD$res4Splus$PartialF)
+
+# 4.2 Get the boostrap from full bootstrap (default niter = 1000)
+# 時間かかるからパス
+#F_fullBoot <- BootFromCompromise(Cube,niter=1000)
+```
+
+# 描画
+## Rv map 距離行列同士の相関
+$$ R_v = \frac{tr \{ s_{[t]}^T s_{[t']}\}}{\sqrt{tr \{ s_{[t]}^T s_{[t]}\}tr \{ s_{[t']}^T s_{[t']}\}}}$$
+
+```{r}
+#rv.graph.out <- GraphDistatisRv(testD$res4Cmat$G)
+```
+
+![](/home/miidri/competition/thesis/fig_distatis/01.png)
+
+## compromise plot
+```{r}
+compromise.graph.out <- GraphDistatisCompromise(testD$res4Splus$F) %>% 
+
+```
+
+![](/home/miidri/competition/thesis/fig_distatis/02.png)
+
+## a partial factor score plot
+```{r}
+#partial.scores.graph.out <-GraphDistatisPartial(testD$res4Splus$F,testD$res4Splus$PartialF)
+```
+
+![](/home/miidri/competition/thesis/fig_distatis/03.png)
+```{r}
+# 5.4 
+#5.4.1 ellipses 楕円あり
+#boot.graph.out.ell <- GraphDistatisBoot(testD$res4Splus$F,BootF)
+#or
+# boot.graph.out <- GraphDistatisBoot(testDistatis$res4Splus$F,F_fullBoot)
+#5.4.2 with hull 凸包
+#boot.graph.out.hull <- GraphDistatisBoot(testD$res4Splus$F,BootF,ellipses=FALSE)
+#or
+# boot.graph.out <- GraphDistatisBoot(testDistatis$res4Splus$F,F_fullBoot,ellipses=FALSE)
+#5.5 all the plots at once
+#all.plots.out <-
+#  GraphDistatisAll(testDistatis$res4Splus$F,testDistatis$res4Splus$PartialF,
+#                   BootF,testDistatis$res4Cmat$G)
+```
+![](/home/miidri/competition/thesis/fig_distatis/04.png)
+![](/home/miidri/competition/thesis/fig_distatis/05.png)
 

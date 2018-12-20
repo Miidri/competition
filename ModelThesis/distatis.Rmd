@@ -35,9 +35,10 @@ for(package in targetPackages) library(package, character.only = T)
 
 # データ行列作成
 ```{r}
-BeerName <- c('Affligen', 'Budweiser','Buckler Blonde',
-              'Killian','St.Landelin','Buckler Highland',
-              'Fruit Defendu','EKU28')
+#BeerName <- c('Affligen', 'Budweiser','Buckler Blonde',
+#              'Killian','St.Landelin','Buckler Highland',
+#              'Fruit Defendu','EKU28')
+BeerName <- c('A', 'B','C', 'D','E','F', 'G','H')
 Juges <- c('F1','M2', 'F3', 'F4', 'M5', 'M6', 'M7', 'M8', 'F9', 'M10')
 SortData <- c(1, 4, 3, 4, 1, 1, 2, 2, 1, 3,
               4, 5, 2, 5, 2, 3, 1, 1, 4, 3,
@@ -49,7 +50,7 @@ SortData <- c(1, 4, 3, 4, 1, 1, 2, 2, 1, 3,
               5, 2, 4, 2, 4, 2, 5, 3, 4, 5)
 Sort <- matrix(SortData,ncol = 10, byrow= TRUE, dimnames = list(BeerName, Juges))
 
-head(Sort) %>% 
+Sort %>% 
   kable()
 ```
 

@@ -33,7 +33,7 @@ if(length(newPackages)) install.packages(newPackages, repos = "http://cran.us.r-
 for(package in targetPackages) library(package, character.only = T)
 
 source("/home/miidri/competition/psql.R")
-source("/home/miidri/competition/data_name.R")
+source("/home/miidri/competition/name_data.R")
 ```
 
 

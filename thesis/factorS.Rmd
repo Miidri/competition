@@ -16,22 +16,7 @@ output:
 editor_options: 
   chunk_output_type: console
 ---
-title: "因子分析 facter analysis"
-output:
-  html_document:
-    number_sections: true
-    fig_caption: true
-    toc: true
-    toc_float: true
-    toc_depth: 2
-    fig_width: 7
-    fig_height: 4.5
-    theme: sandstone
-    highlight: tango
-    code_folding: hide
-editor_options: 
-  chunk_output_type: console
----
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, 

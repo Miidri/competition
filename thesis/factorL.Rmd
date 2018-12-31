@@ -253,17 +253,23 @@ grid.arrange(LL12, LL13, LL14, LL23, LL24, LL34,
 ## VR ISラベル付け
 ```{r}
 Lis12 <-ggplot(scoresL, aes(x=ML1, y=ML2, col=genreIS)) +
-  geom_point(size = 1)+theme_bw()
+  geom_point(size = 1)+theme_bw()+
+  scale_color_manual(values = c( "#802AE8","#E82C0C","#2CC6FF","#FF0DFF","#C46FFF","#294BE8"))
 Lis13 <-ggplot(scoresL, aes(x=ML1, y=ML3, col=genreIS)) +
-  geom_point(size = 1)+theme_bw()
+  geom_point(size = 1)+theme_bw()+
+  scale_color_manual(values = c( "#802AE8","#E82C0C","#2CC6FF","#FF0DFF","#C46FFF","#294BE8"))
 Lis14 <-ggplot(scoresL, aes(x=ML1, y=ML4, col=genreIS)) +
-  geom_point(size = 1)+theme_bw()
+  geom_point(size = 1)+theme_bw()+
+  scale_color_manual(values = c( "#802AE8","#E82C0C","#2CC6FF","#FF0DFF","#C46FFF","#294BE8"))
 Lis23 <-ggplot(scoresL, aes(x=ML2, y=ML3, col=genreIS)) +
-  geom_point(size = 1)+theme_bw()
+  geom_point(size = 1)+theme_bw()+
+  scale_color_manual(values = c( "#802AE8","#E82C0C","#2CC6FF","#FF0DFF","#C46FFF","#294BE8"))
 Lis24 <-ggplot(scoresL, aes(x=ML2, y=ML4, col=genreIS)) +
-  geom_point(size = 1)+theme_bw()
+  geom_point(size = 1)+theme_bw()+
+  scale_color_manual(values = c( "#802AE8","#E82C0C","#2CC6FF","#FF0DFF","#C46FFF","#294BE8"))
 Lis34 <-ggplot(scoresL, aes(x=ML3, y=ML4, col=genreIS)) +
-  geom_point(size = 1)+theme_bw()
+  geom_point(size = 1)+theme_bw()+
+  scale_color_manual(values = c( "#802AE8","#E82C0C","#2CC6FF","#FF0DFF","#C46FFF","#294BE8"))
 
 grid.arrange(Lis12, Lis13, Lis14, Lis23, Lis24, Lis34,
              ncol = 2)
@@ -297,6 +303,50 @@ grid.arrange(scoresL_MMp, scoresL_MUp, scoresL_FMp, scoresL_FUp,L12,
              ncol = 2)
 ```
 
+```{r ML1ML2 labelで分解}
+# colored by IS segmemnt
+L12 <-ggplot(scoresL, aes(x=ML1, y=ML2, col=genreIS)) +
+  geom_point(size = 1)+theme_bw()
+L13 <-ggplot(scoresL, aes(x=ML1, y=ML3, col=genreIS)) +
+  geom_point(size = 1)+theme_bw()
+L23 <-ggplot(scoresL, aes(x=ML2, y=ML3, col=genreIS)) +
+  geom_point(size = 1)+theme_bw()
+
+scoresL_1<-
+  scoresL%>% 
+   filter(genreIS == "スマート目利き")
+scoresL_2<-
+  scoresL%>% 
+   filter(genreIS == "トレンドフリーク")
+scoresL_3<-
+  scoresL%>% 
+   filter(genreIS == "堅実ストイック")
+scoresL_4<-
+  scoresL%>% 
+   filter(genreIS == "コミュニティ同調")
+scoresL_5<-
+  scoresL%>% 
+   filter(genreIS == "ナチュラル低関与")
+scoresL_6<-
+  scoresL%>% 
+   filter(genreIS == "雑学ロジカル")
+
+scoresL_1p <- ggplot(scoresL_1, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#802AE8")+xlim(-3,3)+ylim(-2,2)+ ggtitle("スマート目利き")+theme_bw()
+scoresL_2p <- ggplot(scoresL_2, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#E82C0C")+xlim(-3,3)+ylim(-2,2)+ ggtitle("トレンドフリーク")+theme_bw()
+scoresL_3p <- ggplot(scoresL_3, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#2CC6FF")+xlim(-3,3)+ylim(-2,2)+ ggtitle("堅実ストイック")+theme_bw()
+scoresL_4p <- ggplot(scoresL_4, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#FF0DFF")+xlim(-3,3)+ylim(-2,2)+ ggtitle("コミュニティ同調")+theme_bw()
+scoresL_5p <- ggplot(scoresL_5, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#C46FFF")+xlim(-3,3)+ylim(-2,2)+ ggtitle("ナチュラル低関与")+theme_bw()
+scoresL_6p <- ggplot(scoresL_6, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#294BE8")+xlim(-3,3)+ylim(-2,2)+ ggtitle("雑学ロジカル")+theme_bw()
+
+grid.arrange(scoresL_2p, scoresL_4p, scoresL_1p, scoresL_5p, scoresL_6p, scoresL_3p,
+             ncol = 2)
+```
 
 ```{r 3D}
 ML1 <- scoresL[,1]

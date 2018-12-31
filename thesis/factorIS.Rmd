@@ -188,11 +188,14 @@ grid.arrange(IS_12, IS_13, IS_23,
 ```{r}
 # colored by IS segmemnt
 IS12 <-ggplot(scoresIS, aes(x=ML1, y=ML2, col=genreIS)) +
-  geom_point(size = 1)+theme_bw()
+  geom_point(size = 1)+theme_bw()+
+  scale_color_manual(values = c( "#802AE8","#E82C0C","#2CC6FF","#FF0DFF","#C46FFF","#294BE8"))
 IS13 <-ggplot(scoresIS, aes(x=ML1, y=ML3, col=genreIS)) +
-  geom_point(size = 1)+theme_bw()
+  geom_point(size = 1)+theme_bw()+
+  scale_color_manual(values = c( "#802AE8","#E82C0C","#2CC6FF","#FF0DFF","#C46FFF","#294BE8"))
 IS23 <-ggplot(scoresIS, aes(x=ML2, y=ML3, col=genreIS)) +
-  geom_point(size = 1)+theme_bw()
+  geom_point(size = 1)+theme_bw()+
+  scale_color_manual(values = c( "#802AE8","#E82C0C","#2CC6FF","#FF0DFF","#C46FFF","#294BE8"))
 
 grid.arrange(IS12, IS13, IS23,
              ncol = 2)
@@ -266,8 +269,52 @@ grid.arrange(scoresIS_10p, scoresIS_20p, scoresIS_30p, scoresIS_40p, scoresIS_50
              ncol = 3)
 ```
 
-```{r}
+```{r ML1ML2 labelで分解}
+# colored by IS segmemnt
+IS12 <-ggplot(scoresIS, aes(x=ML1, y=ML2, col=genreIS)) +
+  geom_point(size = 1)+theme_bw()
+IS13 <-ggplot(scoresIS, aes(x=ML1, y=ML3, col=genreIS)) +
+  geom_point(size = 1)+theme_bw()
+IS23 <-ggplot(scoresIS, aes(x=ML2, y=ML3, col=genreIS)) +
+  geom_point(size = 1)+theme_bw()
 
+scoresIS_1<-
+  scoresIS%>% 
+   filter(genreIS == "スマート目利き")
+scoresIS_2<-
+  scoresIS%>% 
+   filter(genreIS == "トレンドフリーク")
+scoresIS_3<-
+  scoresIS%>% 
+   filter(genreIS == "堅実ストイック")
+scoresIS_4<-
+  scoresIS%>% 
+   filter(genreIS == "コミュニティ同調")
+scoresIS_5<-
+  scoresIS%>% 
+   filter(genreIS == "ナチュラル低関与")
+scoresIS_6<-
+  scoresIS%>% 
+   filter(genreIS == "雑学ロジカル")
+
+scoresIS_1p <- ggplot(scoresIS_1, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#802AE8")+xlim(-3,3)+ylim(-2,2)+ ggtitle("スマート目利き")+theme_bw()
+scoresIS_2p <- ggplot(scoresIS_2, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#E82C0C")+xlim(-3,3)+ylim(-2,2)+ ggtitle("トレンドフリーク")+theme_bw()
+scoresIS_3p <- ggplot(scoresIS_3, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#2CC6FF")+xlim(-3,3)+ylim(-2,2)+ ggtitle("堅実ストイック")+theme_bw()
+scoresIS_4p <- ggplot(scoresIS_4, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#FF0DFF")+xlim(-3,3)+ylim(-2,2)+ ggtitle("コミュニティ同調")+theme_bw()
+scoresIS_5p <- ggplot(scoresIS_5, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#C46FFF")+xlim(-3,3)+ylim(-2,2)+ ggtitle("ナチュラル低関与")+theme_bw()
+scoresIS_6p <- ggplot(scoresIS_6, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#294BE8")+xlim(-3,3)+ylim(-2,2)+ ggtitle("雑学ロジカル")+theme_bw()
+
+grid.arrange(scoresIS_2p, scoresIS_4p, scoresIS_1p, scoresIS_5p, scoresIS_6p, scoresIS_3p,
+             ncol = 2)
+```
+
+```{r}
 scores <- mlIS$scores
 fa1 <- scores[,1]
 fa2 <- scores[,2]

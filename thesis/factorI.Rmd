@@ -184,6 +184,51 @@ grid.arrange(scoresI_MMp, scoresI_MUp, scoresI_FMp, scoresI_FUp,
              ncol = 2)
 ```
 
+```{r ML1ML2 labelで分解}
+# colored by I segmemnt
+I12 <-ggplot(scoresI, aes(x=ML1, y=ML2, col=genreIS)) +
+  geom_point(size = 1)+theme_bw()
+I13 <-ggplot(scoresI, aes(x=ML1, y=ML3, col=genreIS)) +
+  geom_point(size = 1)+theme_bw()
+I23 <-ggplot(scoresI, aes(x=ML2, y=ML3, col=genreIS)) +
+  geom_point(size = 1)+theme_bw()
+
+scoresI_1<-
+  scoresI%>% 
+   filter(genreIS == "スマート目利き")
+scoresI_2<-
+  scoresIS%>% 
+   filter(genreIS == "トレンドフリーク")
+scoresI_3<-
+  scoresIS%>% 
+   filter(genreIS == "堅実ストイック")
+scoresI_4<-
+  scoresIS%>% 
+   filter(genreIS == "コミュニティ同調")
+scoresI_5<-
+  scoresIS%>% 
+   filter(genreIS == "ナチュラル低関与")
+scoresI_6<-
+  scoresIS%>% 
+   filter(genreIS == "雑学ロジカル")
+
+scoresI_1p <- ggplot(scoresI_1, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#802AE8")+xlim(-3,3)+ylim(-2,2)+ ggtitle("スマート目利き")+theme_bw()
+scoresI_2p <- ggplot(scoresI_2, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#E82C0C")+xlim(-3,3)+ylim(-2,2)+ ggtitle("トレンドフリーク")+theme_bw()
+scoresI_3p <- ggplot(scoresI_3, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#2CC6FF")+xlim(-3,3)+ylim(-2,2)+ ggtitle("堅実ストイック")+theme_bw()
+scoresI_4p <- ggplot(scoresI_4, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#FF0DFF")+xlim(-3,3)+ylim(-2,2)+ ggtitle("コミュニティ同調")+theme_bw()
+scoresI_5p <- ggplot(scoresI_5, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#C46FFF")+xlim(-3,3)+ylim(-2,2)+ ggtitle("ナチュラル低関与")+theme_bw()
+scoresI_6p <- ggplot(scoresI_6, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#294BE8")+xlim(-3,3)+ylim(-2,2)+ ggtitle("雑学ロジカル")+theme_bw()
+
+grid.arrange(scoresI_2p, scoresI_4p, scoresI_1p, scoresI_5p, scoresI_6p, scoresI_3p,
+             ncol = 2)
+```
+
 # 距離行列
 ```{r dist}
 dEI <- proxy::dist(mlI$scores, method="Euclidean")

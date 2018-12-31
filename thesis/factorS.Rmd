@@ -293,6 +293,50 @@ for (k in 1:nrow(loads)) {
 print(p)
 ```
 
+```{r ML1ML2 labelで分解}
+# colored by IS segmemnt
+S12 <-ggplot(scoresS, aes(x=ML1, y=ML2, col=genreIS)) +
+  geom_point(size = 1)+theme_bw()
+S13 <-ggplot(scoresS, aes(x=ML1, y=ML3, col=genreIS)) +
+  geom_point(size = 1)+theme_bw()
+S23 <-ggplot(scoresS, aes(x=ML2, y=ML3, col=genreIS)) +
+  geom_point(size = 1)+theme_bw()
+
+scoresS_1<-
+  scoresS%>% 
+   filter(genreIS == "スマート目利き")
+scoresS_2<-
+  scoresS%>% 
+   filter(genreIS == "トレンドフリーク")
+scoresS_3<-
+  scoresS%>% 
+   filter(genreIS == "堅実ストイック")
+scoresS_4<-
+  scoresS%>% 
+   filter(genreIS == "コミュニティ同調")
+scoresS_5<-
+  scoresS%>% 
+   filter(genreIS == "ナチュラル低関与")
+scoresS_6<-
+  scoresS%>% 
+   filter(genreIS == "雑学ロジカル")
+
+scoresS_1p <- ggplot(scoresS_1, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#802AE8")+xlim(-3,3)+ylim(-2,2)+ ggtitle("スマート目利き")+theme_bw()
+scoresS_2p <- ggplot(scoresS_2, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#E82C0C")+xlim(-3,3)+ylim(-2,2)+ ggtitle("トレンドフリーク")+theme_bw()
+scoresS_3p <- ggplot(scoresS_3, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#2CC6FF")+xlim(-3,3)+ylim(-2,2)+ ggtitle("堅実ストイック")+theme_bw()
+scoresS_4p <- ggplot(scoresS_4, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#FF0DFF")+xlim(-3,3)+ylim(-2,2)+ ggtitle("コミュニティ同調")+theme_bw()
+scoresS_5p <- ggplot(scoresS_5, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#C46FFF")+xlim(-3,3)+ylim(-2,2)+ ggtitle("ナチュラル低関与")+theme_bw()
+scoresS_6p <- ggplot(scoresS_6, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#294BE8")+xlim(-3,3)+ylim(-2,2)+ ggtitle("雑学ロジカル")+theme_bw()
+
+grid.arrange(scoresS_2p, scoresS_4p, scoresS_1p, scoresS_5p, scoresS_6p, scoresS_3p,
+             ncol = 2)
+```
 
 # 距離行列
 ```{r dist}

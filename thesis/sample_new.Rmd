@@ -106,14 +106,17 @@ summary(data$age)
 age_count = dplyr::count(data,age)
 age_countP <-
   ggplot(age_count, aes(x = age, y = n))+
-  geom_bar(stat = "identity")+
+  geom_bar(stat = "identity", size=14)+
   labs(title = "ユーザの年齢分布")
 
 ##10歳刻み
 #ヒストグラム
 age_count10 <-
   ggplot(data, aes(x = age))+
-  geom_histogram(binwidth=10,  col="white")
+  geom_histogram(binwidth=10,  col="white")+
+  theme_bw()+
+  theme(axis.text=element_text(size=28),
+        axis.title=element_text(size=28))
 #+  labs(title = "ユーザの年齢分布")
 age_count10
 

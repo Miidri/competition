@@ -153,7 +153,8 @@ ggplot(scoresI, aes(x=ML1, y=ML2, col=age_index)) +
 
 ```{r}
 ggplot(scoresI, aes(x=ML1, y=ML2, col=genreIS)) +
-  geom_point(size = 1)+theme_bw()
+  geom_point(size = 1)+theme_bw()+
+  scale_color_manual(values = c( "#802AE8","#E82C0C","#2CC6FF","#FF0DFF","#C46FFF","#294BE8"))
 ```
 
 ## 基本属性
@@ -197,19 +198,19 @@ scoresI_1<-
   scoresI%>% 
    filter(genreIS == "スマート目利き")
 scoresI_2<-
-  scoresIS%>% 
+  scoresI%>% 
    filter(genreIS == "トレンドフリーク")
 scoresI_3<-
-  scoresIS%>% 
+  scoresI%>% 
    filter(genreIS == "堅実ストイック")
 scoresI_4<-
-  scoresIS%>% 
+  scoresI%>% 
    filter(genreIS == "コミュニティ同調")
 scoresI_5<-
-  scoresIS%>% 
+  scoresI%>% 
    filter(genreIS == "ナチュラル低関与")
 scoresI_6<-
-  scoresIS%>% 
+  scoresI%>% 
    filter(genreIS == "雑学ロジカル")
 
 scoresI_1p <- ggplot(scoresI_1, aes(x=ML1, y=ML2)) +

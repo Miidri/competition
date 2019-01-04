@@ -27,7 +27,7 @@ knitr::opts_chunk$set(echo = TRUE,
 ```{r set_up}
 #パッケージのインストールと読み込み
 #持ってないパッケージはインストールする
-targetPackages <- c('knitr','DBI','RPostgreSQL','tidyverse',"reshape2","lubridate","dbplot","DT","gridExtra","fmsb","corrplot","graphics","GGally","psych", "GPArotation", "e1071","cluster") 
+targetPackages <- c('knitr','DBI','RPostgreSQL','tidyverse',"reshape2","lubridate","dbplot","DT","gridExtra","fmsb","corrplot","graphics","GGally","psych", "GPArotation", "e1071","cluster","useful") 
 newPackages <- targetPackages[!(targetPackages %in% installed.packages()[,"Package"])]
 if(length(newPackages)) install.packages(newPackages, repos = "http://cran.us.r-project.org")
 for(package in targetPackages) library(package, character.only = T)
@@ -37,6 +37,7 @@ source("/home/miidri/competition/name_data.R")
 source("/home/miidri/competition/name_dist.R")
 ```
 
+# caliculate
 ```{r}
 calcEntropy <- function(ct){
 	-sum( (apply(ct,1,sum)/sum(ct))
@@ -55,28 +56,166 @@ calcPurity <-function(ct){
 ```
 Entropyは小さく、Purityは大きい、ほうが良いクラスタリング
 
-# k-means
-```{r}
-km <- kmeans(dIS,6)
-head(km$cluster, 10) 
-clusplot(dIS, km$cluster, color=TRUE, shade=TRUE, labels=2, lines=0)
-```
-
-```{r}
+#I {.tabset .tabset-fade .tabset-pills}
+## k-means
+```{r kmI}
 kmI <- kmeans(dI,6)
 head(kmI$cluster, 10) 
-clusplot(dI, kmI$cluster, color=TRUE, shade=TRUE, labels=2, lines=0)
+require(useful)
+#plot(kmI, data=scoresI1)+theme_bw()
+#plot(kmI, data=dI)+theme_bw()
+#clusplot(dataI1, kmI$cluster, color=TRUE, shade=TRUE, labels=2, lines=0)
+
+clusI <- kmI$cluster
+clusI <- data.frame(clusI)
+clusI <- cbind(scoresI, clusI)
+
+ggplot(clusI, aes(x=ML1, y=ML2, col=clusI)) +
+  geom_point(size = 1)+theme_bw()
+
 ```
 
-```{r}
-result <- km$cluster
+## c-means
+
+```{r cmI}
+cmI <- cmeans(dI, centers = 6)
+head(cmI$cluster, 10) 
+#plot(cmI, data=dI)+theme_bw()
+#clusplot(dI, cmI$cluster, color = TRUE, shade = TRUE, labels = 2, lines = 0)
+```
+
+```{r crossI}
+result <- kmI$cluster
+
 answer <- data2$genreIS # Piecesのデータ
-ctbl <- table(answer, result)
-ctbl
+ctblI <- table(answer, result)
+ctblI %>% 
+  kable()
 
-calcEntropy(ctbl) #エントロピー(Entropy)の算出
-calcPurity(ctbl)  #純度 (Purity)の算出 
+calcEntropy(ctblI) #エントロピー(Entropy)の算出
+calcPurity(ctblI)  #純度 (Purity)の算出 
 
 ```
 
-# c-means
+#S {.tabset .tabset-fade .tabset-pills}
+## k-means
+```{r kmS}
+kmS <- kmeans(dS,6)
+head(kmS$cluster, 10) 
+require(useful)
+#plot(kmI, data=scoresI1)+theme_bw()
+#plot(kmI, data=dI)+theme_bw()
+#clusplot(dataI1, kmI$cluster, color=TRUE, shade=TRUE, labels=2, lines=0)
+clusS <- kmS$cluster
+clusS <- data.frame(clusS)
+clusS <- cbind(scoresS, clusS)
+
+ggplot(clusS, aes(x=ML1, y=ML2, col=clusS)) +
+  geom_point(size = 1)+theme_bw()
+```
+
+## c-means
+
+```{r cmS}
+cmS <- cmeans(dS, centers = 6)
+head(cmS$cluster, 10) 
+#clusplot(dataI1, cmI$cluster, color = TRUE, shade = TRUE, labels = 2, lines = 0)
+```
+
+```{r crossS}
+result <- kmS$cluster
+
+answer <- data2$genreIS # Piecesのデータ
+ctblS <- table(answer, result)
+ctblS %>% 
+  kable()
+
+calcEntropy(ctblS) #エントロピー(Entropy)の算出
+calcPurity(ctblS)  #純度 (Purity)の算出 
+
+```
+
+# L {.tabset .tabset-fade .tabset-pills}
+## k-means
+```{r kmL}
+kmL <- kmeans(dL,6)
+head(kmL$cluster, 10) 
+require(useful)
+#plot(kmL, data=scoresL1)+theme_bw()
+#plot(kmL, data=dL)+theme_bw()
+#clusplot(dataI1, kmI$cluster, color=TRUE, shade=TRUE, labels=2, lines=0)
+clusL <- kmL$cluster
+clusL <- data.frame(clusL)
+clusL <- cbind(scoresL, clusL)
+
+ggplot(clusL, aes(x=ML1, y=ML2, col=clusL)) +
+  geom_point(size = 1)+theme_bw()
+```
+
+## c-means
+
+```{r cmL}
+cmL <- cmeans(dL, centers = 6)
+head(cmL$cluster, 10) 
+#clusplot(dataI1, cmI$cluster, color = TRUE, shade = TRUE, labels = 2, lines = 0)
+```
+
+```{r crossL}
+result <- kmL$cluster
+
+answerL <- data2$genreL 
+
+ctblL <- table(answer, result)
+ctblL %>% 
+  kable()
+ctblL1 <- table(answerL, result)
+ctblL1 %>% 
+  kable()
+
+calcEntropy(ctblL) #エントロピー(Entropy)の算出
+calcPurity(ctblL)  #純度 (Purity)の算出 
+
+```
+
+
+# IS {.tabset .tabset-fade .tabset-pills}
+## k-means
+```{r kmIS}
+kmIS <- kmeans(dIS,6)
+head(kmIS$cluster, 10) 
+require(useful)
+#plot(kmIS, data=scoresIS1)+theme_bw()
+#plot(kmIS, data=dIS)+theme_bw()
+#clusplot(dataIS1, kmI$cluster, color=TRUE, shade=TRUE, labels=2, lines=0)
+clusIS <- kmIS$cluster
+clusIS <- data.frame(clusIS)
+clusIS <- cbind(scoresIS, clusIS)
+
+ggplot(clusIS, aes(x=ML1, y=ML2, col=clusIS)) +
+  geom_point(size = 1)+theme_bw()
+```
+
+## c-means
+
+```{r cmIS}
+cmL <- cmeans(dIS, centers = 6)
+head(cmL$cluster, 10) 
+#clusplot(dataI1, cmI$cluster, color = TRUE, shade = TRUE, labels = 2, lines = 0)
+```
+
+```{r crossIS}
+result <- kmL$cluster
+
+answer <- data2$genreIS # Piecesのデータ
+ctblL <- table(answer, result)
+ctblL %>% 
+  kable()
+
+calcEntropy(ctblL) #エントロピー(Entropy)の算出
+calcPurity(ctblL)  #純度 (Purity)の算出 
+```
+
+```{r count}
+
+```
+

@@ -1,0 +1,82 @@
+---
+title: "means"
+author: "Midori Omura"
+output:
+  html_document:
+    number_sections: true
+    fig_caption: true
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    fig_width: 7
+    fig_height: 4.5
+    theme: sandstone 
+    highlight: tango
+#    code_folding: hide
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      warning = FALSE,
+                      message = FALSE)
+```
+
+
+```{r set_up}
+#パッケージのインストールと読み込み
+#持ってないパッケージはインストールする
+targetPackages <- c('knitr','DBI','RPostgreSQL','tidyverse',"reshape2","lubridate","dbplot","DT","gridExtra","fmsb","corrplot","graphics","GGally","psych", "GPArotation", "e1071","cluster") 
+newPackages <- targetPackages[!(targetPackages %in% installed.packages()[,"Package"])]
+if(length(newPackages)) install.packages(newPackages, repos = "http://cran.us.r-project.org")
+for(package in targetPackages) library(package, character.only = T)
+
+source("/home/miidri/competition/psql.R")
+source("/home/miidri/competition/name_data.R")
+source("/home/miidri/competition/name_dist.R")
+```
+
+```{r}
+calcEntropy <- function(ct){
+	-sum( (apply(ct,1,sum)/sum(ct))
+	   * apply(ct,1,calcEntropy0))/log(ncol(ct))
+}
+calcEntropy0<-function(pv){
+	p1<-pv/sum(pv)
+	p2<-p1[p1 !=0]
+	sum(p2*log(p2))
+}
+
+#関数：純度 (Purity)算出
+calcPurity <-function(ct){
+	sum(apply(ct,1,max))/sum(ct)
+}
+```
+Entropyは小さく、Purityは大きい、ほうが良いクラスタリング
+
+# k-means
+```{r}
+km <- kmeans(dIS,6)
+head(km$cluster, 10) 
+clusplot(dIS, km$cluster, color=TRUE, shade=TRUE, labels=2, lines=0)
+```
+
+```{r}
+kmI <- kmeans(dI,6)
+head(kmI$cluster, 10) 
+clusplot(dI, kmI$cluster, color=TRUE, shade=TRUE, labels=2, lines=0)
+```
+
+```{r}
+result <- km$cluster
+answer <- data2$genreIS # Piecesのデータ
+ctbl <- table(answer, result)
+ctbl
+
+calcEntropy(ctbl) #エントロピー(Entropy)の算出
+calcPurity(ctbl)  #純度 (Purity)の算出 
+
+```
+
+# c-means

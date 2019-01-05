@@ -1,5 +1,5 @@
 ---
-title: "means"
+title: "クロス集計"
 author: "Midori Omura"
 output:
   html_document:
@@ -12,7 +12,7 @@ output:
     fig_height: 4.5
     theme: sandstone 
     highlight: tango
-#    code_folding: hide
+    code_folding: hide
 editor_options: 
   chunk_output_type: console
 ---
@@ -56,7 +56,7 @@ calcPurity <-function(ct){
 ```
 Entropyは小さく、Purityは大きい、ほうが良いクラスタリング
 
-#I {.tabset .tabset-fade .tabset-pills}
+#I 
 ## k-means
 ```{r kmI}
 kmI <- kmeans(dI,6)
@@ -84,11 +84,19 @@ head(cmI$cluster, 10)
 #clusplot(dI, cmI$cluster, color = TRUE, shade = TRUE, labels = 2, lines = 0)
 ```
 
-```{r crossI}
-result <- kmI$cluster
+## 階層的クラスタリング
+サイズ大きすぎて出来なかった.  
+NAないことは確認済み.  
+```{r}
+#rcI <- hclust(dI,method="ward.D2")
+```
 
-answer <- data2$genreIS # Piecesのデータ
-ctblI <- table(answer, result)
+## cross
+```{r crossI}
+resultI <- kmI$cluster
+
+answer <- data2$genreIS # 情報選択の正解ラベル
+ctblI <- table(answer, resultI)
 ctblI %>% 
   kable()
 
@@ -97,7 +105,7 @@ calcPurity(ctblI)  #純度 (Purity)の算出
 
 ```
 
-#S {.tabset .tabset-fade .tabset-pills}
+#S 
 ## k-means
 ```{r kmS}
 kmS <- kmeans(dS,6)
@@ -123,10 +131,9 @@ head(cmS$cluster, 10)
 ```
 
 ```{r crossS}
-result <- kmS$cluster
+resultS <- kmS$cluster
 
-answer <- data2$genreIS # Piecesのデータ
-ctblS <- table(answer, result)
+ctblS <- table(answer, resultS)
 ctblS %>% 
   kable()
 
@@ -135,7 +142,7 @@ calcPurity(ctblS)  #純度 (Purity)の算出
 
 ```
 
-# L {.tabset .tabset-fade .tabset-pills}
+# L 
 ## k-means
 ```{r kmL}
 kmL <- kmeans(dL,6)
@@ -147,28 +154,27 @@ require(useful)
 clusL <- kmL$cluster
 clusL <- data.frame(clusL)
 clusL <- cbind(scoresL, clusL)
-
 ggplot(clusL, aes(x=ML1, y=ML2, col=clusL)) +
   geom_point(size = 1)+theme_bw()
 ```
 
 ## c-means
-
 ```{r cmL}
 cmL <- cmeans(dL, centers = 6)
 head(cmL$cluster, 10) 
 #clusplot(dataI1, cmI$cluster, color = TRUE, shade = TRUE, labels = 2, lines = 0)
 ```
 
+## cross
 ```{r crossL}
-result <- kmL$cluster
+resultL <- kmL$cluster
 
-answerL <- data2$genreL 
+answerL <- data2$genreL #表現嗜好の正解ラベル
 
-ctblL <- table(answer, result)
+ctblL <- table(answer, resultL)
 ctblL %>% 
   kable()
-ctblL1 <- table(answerL, result)
+ctblL1 <- table(answerL, resultL)
 ctblL1 %>% 
   kable()
 
@@ -178,7 +184,7 @@ calcPurity(ctblL)  #純度 (Purity)の算出
 ```
 
 
-# IS {.tabset .tabset-fade .tabset-pills}
+# IS
 ## k-means
 ```{r kmIS}
 kmIS <- kmeans(dIS,6)
@@ -198,24 +204,295 @@ ggplot(clusIS, aes(x=ML1, y=ML2, col=clusIS)) +
 ## c-means
 
 ```{r cmIS}
-cmL <- cmeans(dIS, centers = 6)
-head(cmL$cluster, 10) 
+cmIS <- cmeans(dIS, centers = 6)
+head(cmIS$cluster, 10) 
 #clusplot(dataI1, cmI$cluster, color = TRUE, shade = TRUE, labels = 2, lines = 0)
 ```
 
+## cross
 ```{r crossIS}
-result <- kmL$cluster
+resultIS <- kmIS$cluster
 
-answer <- data2$genreIS # Piecesのデータ
-ctblL <- table(answer, result)
-ctblL %>% 
+ctblIS <- table(answer, resultIS)
+ctblIS %>% 
   kable()
 
-calcEntropy(ctblL) #エントロピー(Entropy)の算出
-calcPurity(ctblL)  #純度 (Purity)の算出 
+calcEntropy(ctblIS) #エントロピー(Entropy)の算出
+calcPurity(ctblIS)  #純度 (Purity)の算出 
 ```
 
-```{r count}
+# VRラベル クロス分析
+```{r crossVR}
+ctbl <- table(answer, answerL) 
+cross0 <- xtabs(~answer + answerL) 
+ctbl <- data.frame(ctbl)
+cross0 %>% 
+  kable()
+cross1 <- ggplot(ctbl, aes(x=answer, y=Freq, fill=answerL)) +
+  geom_bar(stat = "identity", position="fill") + theme_bw()
+#cross1
+cross2 <- ggplot(ctbl, aes(x=answerL, y=Freq, fill=answer)) +
+  geom_bar(stat = "identity", position="fill") + theme_bw()
+#cross2
+plot(cross0,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
+     ,cex.lab=2,las=1)
+```
 
+# 情報選択・表現選択 クロス分析
+```{r cross IS L}
+ctbl0 <- table(resultIS, resultL)
+cross3 <- xtabs(~resultIS + resultL)
+ctbl0 <- data.frame(ctbl0)
+cross3 %>% 
+  kable()
+cross4 <- ggplot(ctbl0, aes(x=resultIS, y=Freq, fill=resultL)) +
+  geom_bar(stat = "identity", position="fill") + theme_bw()
+#cross4
+cross5 <- ggplot(ctbl0, aes(x=resultL, y=Freq, fill=resultIS)) +
+  geom_bar(stat = "identity", position="fill") + theme_bw()
+#cross5
+plot(cross3,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
+     ,cex.lab=2,las=1)
+```
+
+# 各要素平均IS
+```{r}
+dataA <- cbind(data1, resultIS, resultL)
+IS <- dataA %>% 
+  group_by(resultIS) %>% 
+  summarise(I1 = mean(I1),
+            I2 = mean(I2),
+            I3 = mean(I3),
+            I4 = mean(I4),
+            I5 = mean(I5),
+            I6 = mean(I6),
+            I7 = mean(I7),
+            I8 = mean(I8),
+            I9 = mean(I9),
+            S1 = mean(S1),
+            S2 = mean(S2),
+            S3 = mean(S3),
+            S4 = mean(S4),
+            S5 = mean(S5),
+            S6 = mean(S6),
+            S7 = mean(S7),
+            S8 = mean(S8),
+            S9 = mean(S9))
+
+sdL<- dataA %>% 
+  group_by(resultIS) %>% 
+  summarise(I1 = sd(I1),
+            I2 = sd(I2),
+            I3 = sd(I3),
+            I4 = sd(I4),
+            I5 = sd(I5),
+            I6 = sd(I6),
+            I7 = sd(I7),
+            I8 = sd(I8),
+            I9 = sd(I9),
+            S1 = sd(S1),
+            S2 = sd(S2),
+            S3 = sd(S3),
+            S4 = sd(S4),
+            S5 = sd(S5),
+            S6 = sd(S6),
+            S7 = sd(S7),
+            S8 = sd(S8),
+            S9 = sd(S9))
+sdIS %>% 
+  kable()
+
+IS1 <- IS %>% 
+  filter(resultIS==1) %>% 
+  data.frame() %>% 
+  gather(Question_num, mean)
+
+IS2 <- IS %>% 
+  filter(resultIS==2) %>% 
+  data.frame() %>% 
+  gather(Question_num, mean)
+
+IS3 <- IS %>% 
+  filter(resultIS==3) %>% 
+  data.frame() %>% 
+  gather(Question_num, mean)
+
+IS4 <- IS %>% 
+  filter(resultIS==4) %>% 
+  data.frame() %>% 
+  gather(Question_num, mean)
+
+IS5 <- IS %>% 
+  filter(resultIS==5) %>% 
+  data.frame() %>% 
+  gather(Question_num, mean)
+
+IS6 <- IS %>% 
+  filter(resultIS==6) %>% 
+  data.frame() %>% 
+  gather(Question_num, mean)
+
+IS1p <- ggplot(IS1[-1,], aes(x = Question_num, y = mean)) +
+  geom_bar(stat = "identity", position = "identity") +
+  scale_fill_brewer(type ="seq",palette = 1)+ theme_bw()+ylim(0,5)
+
+IS2p <- ggplot(IS2[-1,], aes(x = Question_num, y = mean)) +
+  geom_bar(stat = "identity", position = "identity") +
+  scale_fill_brewer(type ="seq",palette = 1)+ theme_bw()+ylim(0,5)
+
+IS3p <- ggplot(IS3[-1,], aes(x = Question_num, y = mean)) +
+  geom_bar(stat = "identity", position = "identity") +
+  scale_fill_brewer(type ="seq",palette = 1)+ theme_bw()+ylim(0,5)
+
+IS4p <- ggplot(IS4[-1,], aes(x = Question_num, y = mean)) +
+  geom_bar(stat = "identity", position = "identity") +
+  scale_fill_brewer(type ="seq",palette = 1)+ theme_bw()+ylim(0,5)
+
+IS5p <- ggplot(IS5[-1,], aes(x = Question_num, y = mean)) +
+  geom_bar(stat = "identity", position = "identity") +
+  scale_fill_brewer(type ="seq",palette = 1)+ theme_bw()+ylim(0,5)
+
+IS6p <- ggplot(IS6[-1,], aes(x = Question_num, y = mean)) +
+  geom_bar(stat = "identity", position = "identity") +
+  scale_fill_brewer(type ="seq",palette = 1)+ theme_bw()+ylim(0,5)
+
+grid.arrange(IS1p, IS2p, IS3p, IS4p, IS5p, IS6p,
+             ncol = 2)
+```
+
+# 各要素平均L
+```{r}
+L <- dataA %>% 
+  group_by(resultL) %>% 
+  summarise(L1 = mean(L1),
+            L2 = mean(L2),
+            L3 = mean(L3),
+            L4 = mean(L4),
+            L5 = mean(L5),
+            L6 = mean(L6),
+            L7 = mean(L7),
+            L8 = mean(L8),
+            L9 = mean(L9),
+            L10 = mean(L10),
+            L11 = mean(L11),
+            L12 = mean(L12),
+            L13 = mean(L13),
+            L14 = mean(L14),
+            L15 = mean(L15),
+            L16 = mean(L16),
+            L17 = mean(L17),
+            L18 = mean(L18),
+            L19 = mean(L19),
+            L20 = mean(L20),
+            L21 = mean(L21),
+            L22 = mean(L22),
+            L23 = mean(L23),
+            L24 = mean(L24),
+            L25 = mean(L25),
+            L26 = mean(L26),
+            L27 = mean(L27),
+            L28 = mean(L28),
+            L29 = mean(L29),
+            L30 = mean(L30))
+sdL<- dataA %>% 
+  group_by(resultL) %>% 
+  summarise(L1 = sd(L1),
+            L2 = sd(L2),
+            L3 = sd(L3),
+            L4 = sd(L4),
+            L5 = sd(L5),
+            L6 = sd(L6),
+            L7 = sd(L7),
+            L8 = sd(L8),
+            L9 = sd(L9),
+            L10 = sd(L10),
+            L11 = sd(L11),
+            L12 = sd(L12),
+            L13 = sd(L13),
+            L14 = sd(L14),
+            L15 = sd(L15),
+            L16 = sd(L16),
+            L17 = sd(L17),
+            L18 = sd(L18),
+            L19 = sd(L19),
+            L20 = sd(L20),
+            L21 = sd(L21),
+            L22 = sd(L22),
+            L23 = sd(L23),
+            L24 = sd(L24),
+            L25 = sd(L25),
+            L26 = sd(L26),
+            L27 = sd(L27),
+            L28 = sd(L28),
+            L29 = sd(L29),
+            L30 = sd(L30))
+sdL %>% 
+  kable()
+
+L1 <- L %>% 
+  filter(resultL==1) %>% 
+  data.frame() %>% 
+  gather(Question_num, mean)
+
+L2 <- L %>% 
+  filter(resultL==2) %>% 
+  data.frame() %>% 
+  gather(Question_num, mean)
+
+L3 <- L %>% 
+  filter(resultL==3) %>% 
+  data.frame() %>% 
+  gather(Question_num, mean)
+
+L4 <- L %>% 
+  filter(resultL==4) %>% 
+  data.frame() %>% 
+  gather(Question_num, mean)
+
+L5 <- L %>% 
+  filter(resultL==5) %>% 
+  data.frame() %>% 
+  gather(Question_num, mean)
+
+L6 <- L %>% 
+  filter(resultL==6) %>% 
+  data.frame() %>% 
+  gather(Question_num, mean)
+
+z = seq(1, 30) # Lを順番に並べるため.
+
+L1p <- ggplot(L1[-1,], aes(x = reorder(Question_num, z), y = mean)) +
+  geom_bar(stat = "identity", position = "identity") +
+  scale_fill_brewer(type ="seq",palette = 1)+ theme_bw()+ ylim(0,5) + 
+  xlab("Question_num")
+
+
+L2p <- ggplot(L2[-1,], aes(x = reorder(Question_num, z), y = mean)) +
+  geom_bar(stat = "identity", position = "identity") +
+  scale_fill_brewer(type ="seq",palette = 1)+ theme_bw()+ ylim(0,5) + 
+  xlab("Question_num")
+
+L3p <- ggplot(L3[-1,], aes(x = reorder(Question_num, z), y = mean)) +
+  geom_bar(stat = "identity", position = "identity") +
+  scale_fill_brewer(type ="seq",palette = 1)+ theme_bw()+ ylim(0,5) + 
+  xlab("Question_num")
+
+L4p <- ggplot(L4[-1,], aes(x = reorder(Question_num, z), y = mean)) +
+  geom_bar(stat = "identity", position = "identity") +
+  scale_fill_brewer(type ="seq",palette = 1)+ theme_bw()+ ylim(0,5) + 
+  xlab("Question_num")
+
+L5p <- ggplot(L5[-1,], aes(x = reorder(Question_num, z), y = mean)) +
+  geom_bar(stat = "identity", position = "identity") +
+  scale_fill_brewer(type ="seq",palette = 1)+ theme_bw()+ ylim(0,5) + 
+  xlab("Question_num")
+
+L6p <- ggplot(L6[-1,], aes(x = reorder(Question_num, z), y = mean)) +
+  geom_bar(stat = "identity", position = "identity") +
+  scale_fill_brewer(type ="seq",palette = 1)+ theme_bw()+ ylim(0,5) + 
+  xlab("Question_num")
+
+grid.arrange(L1p, L2p, L3p, L4p, L5p, L6p,
+             ncol = 2)
 ```
 

@@ -39,7 +39,7 @@ source("/home/miidri/competition/name_dist.R")
 # 表現嗜好
 ## k-medoid
 ```{r}
-set.seed(4415)
+set.seed(4410)
 pamL <- pam(scoresL[1:4], 6)
 # medoidを基にしたプロット
 # autoplot(pamL, frame = TRUE, frame.type = 'norm')+
@@ -120,69 +120,140 @@ L %>%
   xlim(1,30)+
   theme_bw()
 
+
+# L %>% 
+#   gather(question, answer, -clust, -house_num) %>% 
+# #  mutate(question = as.integer(str_sub(question, 2,-1))) %>% 
+#   ggplot(x = reorder(question, z), y = answer)+
+#   geom_bar(stat = "identity")+
+#   facet_wrap(~clust)+ 
+#   ylim(0,5)+
+#   xlab("question")+
+#   theme_bw()
+
+
 L %>% kable()
-
-
-# L1 <- L[1,] %>% 
-#   data.frame() %>% 
-#   gather(question_num, answer)
-# 
-# L2 <- L[2,] %>% 
-#   data.frame() %>% 
-#   gather(question_num, answer)
-# 
-# L3 <- L[3,] %>% 
-#   data.frame() %>% 
-#   gather(question_num, answer)
-# 
-# L4 <- L[4,] %>% 
-#   data.frame() %>% 
-#   gather(question_num, answer)
-# 
-# L5 <- L[5,] %>% 
-#   data.frame() %>% 
-#   gather(question_num, answer)
-# 
-# L6 <- L[6,] %>% 
-#   data.frame() %>% 
-#   gather(question_num, answer)
-# 
-# L1p <- ggplot(L1[-1,], aes(x = reorder(question_num, z), y = answer)) +
-#   geom_bar(stat = "identity", position = "identity") +
-#   scale_fill_brewer(type ="seq",palette = 1)+ theme_bw()+ ylim(0,5) + 
-#   xlab("question_num")
-# 
-# 
-# L2p <- ggplot(L2[-1,], aes(x = reorder(question_num, z), y = answer)) +
-#   geom_bar(stat = "identity", position = "identity") +
-#   scale_fill_brewer(type ="seq",palette = 1)+ theme_bw()+ ylim(0,5) + 
-#   xlab("question_num")
-# 
-# L3p <- ggplot(L3[-1,], aes(x = reorder(question_num, z), y = answer)) +
-#   geom_bar(stat = "identity", position = "identity") +
-#   scale_fill_brewer(type ="seq",palette = 1)+ theme_bw()+ ylim(0,5) + 
-#   xlab("question_num")
-# 
-# L4p <- ggplot(L4[-1,], aes(x = reorder(question_num, z), y = answer)) +
-#   geom_bar(stat = "identity", position = "identity") +
-#   scale_fill_brewer(type ="seq",palette = 1)+ theme_bw()+ ylim(0,5) + 
-#   xlab("question_num")
-# 
-# L5p <- ggplot(L5[-1,], aes(x = reorder(question_num, z), y = answer)) +
-#   geom_bar(stat = "identity", position = "identity") +
-#   scale_fill_brewer(type ="seq",palette = 1)+ theme_bw()+ ylim(0,5) + 
-#   xlab("question_num")
-# 
-# L6p <- ggplot(L6[-1,], aes(x = reorder(question_num, z), y = answer)) +
-#   geom_bar(stat = "identity", position = "identity") +
-#   scale_fill_brewer(type ="seq",palette = 1)+ theme_bw()+ ylim(0,5) + 
-#   xlab("question_num")
-# 
-# grid.arrange(L1p, L2p, L3p, L4p, L5p, L6p,
-#              ncol = 2)
 ```
 
-## レーダーチャート
+
+
+# 情報選択
+## k-medoid
+```{r}
+set.seed(4410)
+pamIS <- pam(scoresIS[1:3], 6)
+# medoidを基にしたプロット
+# autoplot(pamIS, frame = TRUE, frame.type = 'norm')+
+#   theme_bw()
+pamIS$data %>% 
+  as_tibble() %>% 
+  mutate(clust = pamIS$clustering) %>% 
+  ggplot(aes(ML1, ML2, colour = factor(clust), fill=factor(clust)))+
+  # geom_density_2d()+
+  geom_point(size=.5, alpha = .1)+
+  stat_ellipse(geom = "polygon", alpha=.3, type = "norm")+
+  facet_wrap(~clust)+
+  theme_bw()
+
+pamIS$data %>% 
+  as_tibble() %>% 
+  mutate(clust = pamIS$clustering) %>% 
+  ggplot(aes(ML1, ML2, colour = factor(clust), fill=factor(clust)))+
+  # geom_density_2d()+
+  geom_point(size=.5, alpha = .1)+
+  stat_ellipse(geom = "polygon", alpha=.3, type = "norm")+
+  theme_bw()
+
+clusIS <- pamIS$clustering
+clusIS <- data.frame(clusIS)
+clusIS <- cbind(scoresIS, clusIS)
+# せっかくだからもとの因子に落としてみた
+# ggplot(clusIS, aes(x=ML1, y=ML2, col=clusIS)) +
+#   geom_point(size = 1)+theme_bw()
+```
+
+## cross
+```{r crossS}
+resultIS <- pamIS$clustering #clusIS の clusIS と同じ
+
+ctblIS <- table(answer, resultIS)
+ctblIS %>% 
+  kable()
+ctblIS1 <- table(answerL, resultIS)
+ctblIS1 %>% 
+  kable()
+
+crossIS <- xtabs(~resultIS + answer) 
+crossIS %>% 
+  kable()
+plot(crossIS,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
+     ,cex.lab=2,las=1) #VR情報選択と答え合わせ
+```
+
+## 特徴
+```{r}
+pamIS$medoids # とりあえず6個のmedoidみてみる
+
+medoidIS <- pamIS$medoids %>% 
+  rownames() %>% 
+  as.integer() # medoidのhouse_numだけ格納
+
+IS <- dataIS1 %>% 
+  filter(house_num %in% medoidIS) %>% 
+  left_join(tibble(house_num = medoidIS,
+                   clust = 1:6),
+            by = "house_num") %>% 
+  arrange(clust)
+
+IS %>% 
+  gather(question, answer, -clust, -house_num) %>% 
+#  mutate(question = as.integer(str_sub(question, 2,-1))) %>% 
+  ggplot(aes(question, answer))+
+  geom_bar(stat = "identity")+
+  facet_wrap(~clust)+ 
+  ylim(0,5) +
+  theme_bw()
+
+IS %>% kable()
+```
+
+# VRラベル クロス分析
+```{r crossVR}
+ctbl <- table(answer, answerL) 
+cross0 <- xtabs(~answer + answerL) 
+ctbl <- data.frame(ctbl)
+cross0 %>% 
+  kable()
+cross1 <- ggplot(ctbl, aes(x=answer, y=Freq, fill=answerL)) +
+  geom_bar(stat = "identity", position="fill") + theme_bw()
+#cross1
+cross2 <- ggplot(ctbl, aes(x=answerL, y=Freq, fill=answer)) +
+  geom_bar(stat = "identity", position="fill") + theme_bw()
+#cross2
+plot(cross0,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
+     ,cex.lab=2,las=1)
+```
+
+# 情報選択・表現選択 クロス分析
+```{r cross IS L}
+ctbl0 <- table(resultIS, resultL)
+cross3 <- xtabs(~resultIS + resultL)
+ctbl0 <- data.frame(ctbl0)
+cross3 %>% 
+  kable()
+cross4 <- ggplot(ctbl0, aes(x=resultIS, y=Freq, fill=resultL)) +
+  geom_bar(stat = "identity", position="fill") + theme_bw()
+#cross4
+cross5 <- ggplot(ctbl0, aes(x=resultL, y=Freq, fill=resultIS)) +
+  geom_bar(stat = "identity", position="fill") + theme_bw()
+#cross5
+plot(cross3,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
+     ,cex.lab=2,las=1)
+```
+
+
+# 付録
+## レーダーチャートL
 ```{r}
 #install.packages("fmsb")
 library(fmsb)
@@ -238,172 +309,4 @@ LL <- rbind(maxmin, LL)
 radarchart(LL, axistype = 2, seg = 5, plty = 1, vlcex = 1.5,
            centerzero = TRUE, vlabels = vLabel)
 
-```
-
-
-# 情報選択
-## k-medoid
-```{r}
-set.seed(4415)
-pamIS <- pam(scoresIS[1:3], 6)
-# medoidを基にしたプロット
-# autoplot(pamIS, frame = TRUE, frame.type = 'norm')+
-#   theme_bw()
-pamIS$data %>% 
-  as_tibble() %>% 
-  mutate(clust = pamIS$clustering) %>% 
-  ggplot(aes(ML1, ML2, colour = factor(clust), fill=factor(clust)))+
-  # geom_density_2d()+
-  geom_point(size=.5, alpha = .1)+
-  stat_ellipse(geom = "polygon", alpha=.3, type = "norm")+
-  facet_wrap(~clust)+
-  theme_bw()
-
-pamIS$data %>% 
-  as_tibble() %>% 
-  mutate(clust = pamIS$clustering) %>% 
-  ggplot(aes(ML1, ML2, colour = factor(clust), fill=factor(clust)))+
-  # geom_density_2d()+
-  geom_point(size=.5, alpha = .1)+
-  stat_ellipse(geom = "polygon", alpha=.3, type = "norm")+
-  theme_bw()
-
-clusIS <- pamIS$clustering
-clusIS <- data.frame(clusIS)
-clusIS <- cbind(scoresIS, clusIS)
-# せっかくだからもとの因子に落としてみた
-ggplot(clusIS, aes(x=ML1, y=ML2, col=clusIS)) +
-  geom_point(size = 1)+theme_bw()
-```
-
-## cross
-```{r crossS}
-resultIS <- pamIS$clustering #clusIS の clusIS と同じ
-
-ctblIS <- table(answer, resultIS)
-ctblIS %>% 
-  kable()
-ctblIS1 <- table(answerL, resultIS)
-ctblIS1 %>% 
-  kable()
-
-crossIS <- xtabs(~resultIS + answer) 
-crossIS %>% 
-  kable()
-plot(crossIS,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
-     ,cex.lab=2,las=1) #VR情報選択と答え合わせ
-```
-
-## 特徴
-```{r}
-pamIS$medoids # とりあえず6個のmedoidみてみる
-
-medoidIS <- pamIS$medoids %>% 
-  rownames() %>% 
-  as.integer() # medoidのhouse_numだけ格納
-
-IS <- dataIS1 %>% 
-  filter(house_num %in% medoidIS) %>% 
-  left_join(tibble(house_num = medoidIS,
-                   clust = 1:6),
-            by = "house_num") %>% 
-  arrange(clust)
-
-IS %>% 
-  gather(question, answer, -clust, -house_num) %>% 
-#  mutate(question = as.integer(str_sub(question, 2,-1))) %>% 
-  ggplot(aes(question, answer))+
-  geom_bar(stat = "identity")+
-  facet_wrap(~clust)+ 
-  ylim(0,5) +
-  theme_bw()
-
-IS %>% kable()
-
-
-# 
-# IS1 <- IS[1,] %>% 
-#   data.frame() %>% 
-#   gather(question_num, answer)
-# 
-# IS2 <- IS[2,] %>% 
-#   data.frame() %>% 
-#   gather(question_num, answer)
-# 
-# IS3 <- IS[3,] %>% 
-#   data.frame() %>% 
-#   gather(question_num, answer)
-# 
-# IS4 <- IS[4,] %>% 
-#   data.frame() %>% 
-#   gather(question_num, answer)
-# 
-# IS5 <- IS[5,] %>% 
-#   data.frame() %>% 
-#   gather(question_num, answer)
-# 
-# IS6 <- IS[6,] %>% 
-#   data.frame() %>% 
-#   gather(question_num, answer)
-# 
-# IS1p <- ggplot(IS1[-1,], aes(x = question_num, y = answer)) +
-#   geom_bar(stat = "identity", position = "identity") +
-#   scale_fill_brewer(type ="seq",palette = 1)+ theme_bw()+ ylim(0,5) 
-# 
-# IS2p <- ggplot(IS2[-1,], aes(x = question_num, y = answer)) +
-#   geom_bar(stat = "identity", position = "identity") +
-#   scale_fill_brewer(type ="seq",palette = 1)+ theme_bw()+ ylim(0,5) 
-# 
-# IS3p <- ggplot(IS3[-1,], aes(x = question_num, y = answer)) +
-#   geom_bar(stat = "identity", position = "identity") +
-#   scale_fill_brewer(type ="seq",palette = 1)+ theme_bw()+ ylim(0,5) 
-# 
-# IS4p <- ggplot(IS4[-1,], aes(x = question_num, y = answer)) +
-#   geom_bar(stat = "identity", position = "identity") +
-#   scale_fill_brewer(type ="seq",palette = 1)+ theme_bw()+ ylim(0,5) 
-# 
-# IS5p <- ggplot(IS5[-1,], aes(x = question_num, y = answer)) +
-#   geom_bar(stat = "identity", position = "identity") +
-#   scale_fill_brewer(type ="seq",palette = 1)+ theme_bw()+ ylim(0,5) 
-# 
-# IS6p <- ggplot(IS6[-1,], aes(x = question_num, y = answer)) +
-#   geom_bar(stat = "identity", position = "identity") +
-#   scale_fill_brewer(type ="seq",palette = 1)+ theme_bw()+ ylim(0,5) 
-# 
-# grid.arrange(IS1p, IS2p, IS3p, IS4p, IS5p, IS6p,
-#              ncol = 2)
-```
-
-# VRラベル クロス分析
-```{r crossVR}
-ctbl <- table(answer, answerL) 
-cross0 <- xtabs(~answer + answerL) 
-ctbl <- data.frame(ctbl)
-cross0 %>% 
-  kable()
-cross1 <- ggplot(ctbl, aes(x=answer, y=Freq, fill=answerL)) +
-  geom_bar(stat = "identity", position="fill") + theme_bw()
-#cross1
-cross2 <- ggplot(ctbl, aes(x=answerL, y=Freq, fill=answer)) +
-  geom_bar(stat = "identity", position="fill") + theme_bw()
-#cross2
-plot(cross0,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
-     ,cex.lab=2,las=1)
-```
-
-# 情報選択・表現選択 クロス分析
-```{r cross IS L}
-ctbl0 <- table(resultIS, resultL)
-cross3 <- xtabs(~resultIS + resultL)
-ctbl0 <- data.frame(ctbl0)
-cross3 %>% 
-  kable()
-cross4 <- ggplot(ctbl0, aes(x=resultIS, y=Freq, fill=resultL)) +
-  geom_bar(stat = "identity", position="fill") + theme_bw()
-#cross4
-cross5 <- ggplot(ctbl0, aes(x=resultL, y=Freq, fill=resultIS)) +
-  geom_bar(stat = "identity", position="fill") + theme_bw()
-#cross5
-plot(cross3,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
-     ,cex.lab=2,las=1)
 ```

@@ -54,6 +54,7 @@ pamL$data %>%
   # geom_density_2d()+
   geom_point(size=.5, alpha = .1)+
   stat_ellipse(geom = "polygon", alpha=.3, type = "norm")+
+#  scale_color_manual(values = c( "#ff0000","#0000ff","#ffcc99","#99cbcb","#ff99cc","#00cbcb"))+
   facet_wrap(~clust)+
   theme_bw()
 
@@ -76,18 +77,18 @@ clusL <- cbind(scoresL, clusL)
 
 ## cross
 ```{r crossL}
-resultL <- pamL$clustering #clusL の clusL と同じ
-answer <- data2$genreIS # 情報選択の正解ラベル
-answerL <- data2$genreL #表現嗜好の正解ラベル
+resultAI <- pamL$clustering #clusL の clusL と同じ
+segment2 <- data2$genreIS # 情報選択の正解ラベル
+segment1 <- data2$genreL #表現嗜好の正解ラベル
 
-ctblL <- table(answer, resultL)
+ctblL <- table(segment1, resultAI)
 ctblL %>% 
   kable()
-ctblL1 <- table(answerL, resultL)
+ctblL1 <- table(segment2, resultAI)
 ctblL1 %>% 
   kable()
 
-crossL <- xtabs(~resultL + answerL) 
+crossL <- xtabs(~resultAI + segment1) 
 crossL %>% 
   kable()
 plot(crossL,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
@@ -119,17 +120,6 @@ L %>%
   ylim(0,5)+
   xlim(1,30)+
   theme_bw()
-
-
-# L %>% 
-#   gather(question, answer, -clust, -house_num) %>% 
-# #  mutate(question = as.integer(str_sub(question, 2,-1))) %>% 
-#   ggplot(x = reorder(question, z), y = answer)+
-#   geom_bar(stat = "identity")+
-#   facet_wrap(~clust)+ 
-#   ylim(0,5)+
-#   xlab("question")+
-#   theme_bw()
 
 
 L %>% kable()
@@ -174,16 +164,16 @@ clusIS <- cbind(scoresIS, clusIS)
 
 ## cross
 ```{r crossS}
-resultIS <- pamIS$clustering #clusIS の clusIS と同じ
+resultSAS <- pamIS$clustering #clusIS の clusIS と同じ
 
-ctblIS <- table(answer, resultIS)
+ctblIS <- table(segment2, resultSAS)
 ctblIS %>% 
   kable()
-ctblIS1 <- table(answerL, resultIS)
+ctblIS1 <- table(segment1, resultSAS)
 ctblIS1 %>% 
   kable()
 
-crossIS <- xtabs(~resultIS + answer) 
+crossIS <- xtabs(~resultSAS + segment2) 
 crossIS %>% 
   kable()
 plot(crossIS,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
@@ -207,11 +197,15 @@ IS <- dataIS1 %>%
 
 IS %>% 
   gather(question, answer, -clust, -house_num) %>% 
-#  mutate(question = as.integer(str_sub(question, 2,-1))) %>% 
-  ggplot(aes(question, answer))+
+  mutate(number = as.integer(str_sub(question, 2,-1)),
+         type = str_sub(question, 1, 1),
+         number = if_else(type == "S", number + 9L, number)) %>% 
+  ggplot(aes(number, answer))+
   geom_bar(stat = "identity")+
   facet_wrap(~clust)+ 
+  labs(x = "question number ")+
   ylim(0,5) +
+#  xlim(1,18)+
   theme_bw()
 
 IS %>% kable()
@@ -219,15 +213,15 @@ IS %>% kable()
 
 # VRラベル クロス分析
 ```{r crossVR}
-ctbl <- table(answer, answerL) 
-cross0 <- xtabs(~answer + answerL) 
+ctbl <- table(segment1, segment2) 
+cross0 <- xtabs(~segment1 + segment2) 
 ctbl <- data.frame(ctbl)
 cross0 %>% 
   kable()
-cross1 <- ggplot(ctbl, aes(x=answer, y=Freq, fill=answerL)) +
+cross1 <- ggplot(ctbl, aes(x=segment2, y=Freq, fill=segment1)) +
   geom_bar(stat = "identity", position="fill") + theme_bw()
 #cross1
-cross2 <- ggplot(ctbl, aes(x=answerL, y=Freq, fill=answer)) +
+cross2 <- ggplot(ctbl, aes(x=segment1, y=Freq, fill=segment2)) +
   geom_bar(stat = "identity", position="fill") + theme_bw()
 #cross2
 plot(cross0,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
@@ -236,15 +230,15 @@ plot(cross0,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
 
 # 情報選択・表現選択 クロス分析
 ```{r cross IS L}
-ctbl0 <- table(resultIS, resultL)
-cross3 <- xtabs(~resultIS + resultL)
+ctbl0 <- table(resultSAS, resultAI)
+cross3 <- xtabs(~resultSAS + resultAI)
 ctbl0 <- data.frame(ctbl0)
 cross3 %>% 
   kable()
-cross4 <- ggplot(ctbl0, aes(x=resultIS, y=Freq, fill=resultL)) +
+cross4 <- ggplot(ctbl0, aes(x=resultSAS, y=Freq, fill=resultAI)) +
   geom_bar(stat = "identity", position="fill") + theme_bw()
 #cross4
-cross5 <- ggplot(ctbl0, aes(x=resultL, y=Freq, fill=resultIS)) +
+cross5 <- ggplot(ctbl0, aes(x=resultAI, y=Freq, fill=resultsSAS)) +
   geom_bar(stat = "identity", position="fill") + theme_bw()
 #cross5
 plot(cross3,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")

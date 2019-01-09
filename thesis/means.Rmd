@@ -36,9 +36,9 @@ source("/home/miidri/competition/name_data.R")
 source("/home/miidri/competition/name_dist.R")
 ```
 
-# 表現嗜好
+# 表現嗜好 AI
 ## k-medoid
-```{r}
+```{r AI}
 set.seed(4410)
 pamL <- pam(scoresL[1:4], 6)
 # medoidを基にしたプロット
@@ -76,27 +76,24 @@ clusL <- cbind(scoresL, clusL)
 ```
 
 ## cross
-```{r crossL}
+```{r crossAI}
 resultAI <- pamL$clustering #clusL の clusL と同じ
 segment2 <- data2$genreIS # 情報選択の正解ラベル
 segment1 <- data2$genreL #表現嗜好の正解ラベル
 
-ctblL <- table(segment1, resultAI)
-ctblL %>% 
-  kable()
-ctblL1 <- table(segment2, resultAI)
-ctblL1 %>% 
-  kable()
+# ctblL <- table(segment1, resultAI)
+# ctblL %>% 
+#   kable()
 
-crossL <- xtabs(~resultAI + segment1) 
-crossL %>% 
+crossAI <- xtabs(~resultAI + segment1) 
+crossAI %>% 
   kable()
-plot(crossL,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
+plot(crossAI,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
      ,cex.lab=2,las=1) # VR表現嗜好と答え合わせ
 ```
 
 ## 特徴
-```{r}
+```{r medoids AI}
 pamL$medoids # とりあえず6個のmedoidみてみる
 
 medoidL <- pamL$medoids %>% 
@@ -121,15 +118,12 @@ L %>%
   xlim(1,30)+
   theme_bw()
 
-
 L %>% kable()
 ```
 
-
-
-# 情報選択
+# 情報選択 SAS
 ## k-medoid
-```{r}
+```{r pam SAS}
 set.seed(4410)
 pamIS <- pam(scoresIS[1:3], 6)
 # medoidを基にしたプロット
@@ -163,25 +157,25 @@ clusIS <- cbind(scoresIS, clusIS)
 ```
 
 ## cross
-```{r crossS}
+```{r crossSAS}
 resultSAS <- pamIS$clustering #clusIS の clusIS と同じ
 
-ctblIS <- table(segment2, resultSAS)
-ctblIS %>% 
-  kable()
-ctblIS1 <- table(segment1, resultSAS)
-ctblIS1 %>% 
-  kable()
+# ctblIS <- table(segment2, resultSAS)
+# ctblIS %>% 
+#   kable()
+# ctblIS1 <- table(segment1, resultSAS)
+# ctblIS1 %>% 
+#   kable()
 
-crossIS <- xtabs(~resultSAS + segment2) 
-crossIS %>% 
+crossSAS <- xtabs(~resultSAS + segment2) 
+crossSAS %>% 
   kable()
-plot(crossIS,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
+plot(crossSAS,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
      ,cex.lab=2,las=1) #VR情報選択と答え合わせ
 ```
 
 ## 特徴
-```{r}
+```{r medoids}
 pamIS$medoids # とりあえず6個のmedoidみてみる
 
 medoidIS <- pamIS$medoids %>% 
@@ -205,44 +199,46 @@ IS %>%
   facet_wrap(~clust)+ 
   labs(x = "question number ")+
   ylim(0,5) +
-#  xlim(1,18)+
+  xlim(1,18)+
   theme_bw()
+
 
 IS %>% kable()
 ```
 
 # VRラベル クロス分析
 ```{r crossVR}
-ctbl <- table(segment1, segment2) 
 cross0 <- xtabs(~segment1 + segment2) 
-ctbl <- data.frame(ctbl)
 cross0 %>% 
   kable()
-cross1 <- ggplot(ctbl, aes(x=segment2, y=Freq, fill=segment1)) +
-  geom_bar(stat = "identity", position="fill") + theme_bw()
-#cross1
-cross2 <- ggplot(ctbl, aes(x=segment1, y=Freq, fill=segment2)) +
-  geom_bar(stat = "identity", position="fill") + theme_bw()
-#cross2
 plot(cross0,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
      ,cex.lab=2,las=1)
+#ctbl <- table(segment1, segment2) 
+#ctbl <- data.frame(ctbl)
+# ggplot だとあまりx軸が均一でよく伝わらないかなぁ
+# cross1 <- ggplot(ctbl, aes(x=segment2, y=Freq, fill=segment1)) +
+#   geom_bar(stat = "identity", position="fill") + theme_bw()
+# cross1
+# cross2 <- ggplot(ctbl, aes(x=segment1, y=Freq, fill=segment2)) +
+#   geom_bar(stat = "identity", position="fill") + theme_bw()
+# cross2
 ```
 
 # 情報選択・表現選択 クロス分析
 ```{r cross IS L}
-ctbl0 <- table(resultSAS, resultAI)
 cross3 <- xtabs(~resultSAS + resultAI)
-ctbl0 <- data.frame(ctbl0)
 cross3 %>% 
   kable()
-cross4 <- ggplot(ctbl0, aes(x=resultSAS, y=Freq, fill=resultAI)) +
-  geom_bar(stat = "identity", position="fill") + theme_bw()
-#cross4
-cross5 <- ggplot(ctbl0, aes(x=resultAI, y=Freq, fill=resultsSAS)) +
-  geom_bar(stat = "identity", position="fill") + theme_bw()
-#cross5
 plot(cross3,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
      ,cex.lab=2,las=1)
+#ctbl0 <- table(resultSAS, resultAI)
+#ctbl0 <- data.frame(ctbl0)
+# cross4 <- ggplot(ctbl0, aes(x=resultSAS, y=Freq, fill=resultAI)) +
+#   geom_bar(stat = "identity", position="fill") + theme_bw()
+# cross4
+# cross5 <- ggplot(ctbl0, aes(x=resultAI, y=Freq, fill=resultsSAS)) +
+#   geom_bar(stat = "identity", position="fill") + theme_bw()
+# cross5
 ```
 
 
@@ -302,5 +298,313 @@ LL <- rbind(maxmin, LL)
 
 radarchart(LL, axistype = 2, seg = 5, plty = 1, vlcex = 1.5,
            centerzero = TRUE, vlabels = vLabel)
+```
+
+# デモグラフィック属性
+## 男女
+```{r}
+cross10 <- xtabs(~data2$sex + resultAI)
+cross10 %>% 
+  kable()
+plot(cross10,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
+     ,cex.lab=2,las=1, main="",cex.axis=1.3, xlab = "sex")
+
+cross11 <- xtabs(~data2$sex + resultSAS)
+cross11 %>% 
+  kable()
+plot(cross11,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
+     ,cex.lab=2,las=1, main="",cex.axis=1.3)
+```
+
+
+## 男女・未既婚
+```{r}
+cross6 <- xtabs(~index + resultAI)
+cross6 %>% 
+  kable()
+plot(cross6,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
+     ,cex.lab=2,las=1, main="",cex.axis=1.3)
+
+cross7 <- xtabs(~index + resultSAS)
+cross7 %>% 
+  kable()
+plot(cross7,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
+     ,cex.lab=2,las=1, main="",cex.axis=1.3)
+```
+
+## 年齢
+```{r}
+cross8 <- xtabs(~age_index + resultAI)
+cross8 %>% 
+  kable()
+plot(cross8,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
+     ,cex.lab=2,las=1, main="",cex.axis=1.3)
+
+cross9 <- xtabs(~ age_index+ resultSAS)
+cross9 %>% 
+  kable()
+plot(cross9,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
+     ,cex.lab=2,las=1, main="",cex.axis=1.3)
+```
+
+# plot まとめ
+```{r 白黒用}
+pam1 <- pamL$data %>% 
+  as_tibble() %>% 
+  mutate(clust = pamL$clustering) %>% 
+  ggplot(aes(ML1, ML2, colour = factor(clust), fill=factor(clust)))+
+  # geom_density_2d()+
+  geom_point(size=.1, alpha = 1)+
+  stat_ellipse(geom = "polygon", alpha=.3, type = "norm")+
+  scale_color_manual(values = c( "#000000","#000000","#000000","#000000","#000000","#000000"))+
+  facet_wrap(~clust)+
+  theme_bw()+
+  theme(axis.text=element_text(size=10),
+        legend.position = 'none',
+        strip.background =element_rect(fill = "transparent", colour = "black"),
+        strip.text = element_text(size=10))
+
+
+pam2 <- pamL$data %>% 
+  as_tibble() %>% 
+  mutate(clust = pamL$clustering) %>% 
+  ggplot(aes(ML1, ML2, colour = factor(clust), fill=factor(clust)))+
+  scale_color_manual(values = c( "#000000","#000000","#000000","#000000","#000000","#000000"))+
+  # geom_density_2d()+
+  geom_point(size=.1, alpha = 1)+
+  stat_ellipse(geom = "polygon", alpha=.3, type = "norm")+
+  theme_bw()+
+  theme(axis.text=element_text(size=10),
+        legend.position = 'none')
+
+# SAS クラスタリング結果
+pam3 <- pamIS$data %>% 
+  as_tibble() %>% 
+  mutate(clust = pamIS$clustering) %>% 
+  ggplot(aes(ML1, ML2, colour = factor(clust), fill=factor(clust)))+
+  scale_color_manual(values = c( "#000000","#000000","#000000","#000000","#000000","#000000"))+
+  # geom_density_2d()+
+  geom_point(size=.1, alpha = 1)+
+  stat_ellipse(geom = "polygon", alpha=.3, type = "norm")+
+  facet_wrap(~clust)+
+  theme_bw()+
+  theme(axis.text=element_text(size=10),
+        legend.position = 'none',
+        strip.background =element_rect(fill = "transparent", colour = "black"),
+        strip.text = element_text(size=10))
+
+
+pam4 <- pamIS$data %>% 
+  as_tibble() %>% 
+  mutate(clust = pamIS$clustering) %>% 
+  ggplot(aes(ML1, ML2, colour = factor(clust), fill=factor(clust)))+
+  scale_color_manual(values = c( "#000000","#000000","#000000","#000000","#000000","#000000"))+
+  # geom_density_2d()+
+  geom_point(size=.1, alpha = 1)+
+  stat_ellipse(geom = "polygon", alpha=.3, type = "norm")+
+  theme_bw()+
+  theme(axis.text=element_text(size=10),
+        legend.position = 'none')
+
+grid.arrange(pam2, pam1, ncol = 2)
+grid.arrange(pam4, pam3, ncol = 2)
+
+# AI medoid
+med1 <- L %>% 
+  gather(question, answer, -clust, -house_num) %>% 
+  mutate(question = as.integer(str_sub(question, 2,-1))) %>% 
+  ggplot(aes(question, answer))+
+  geom_bar(stat = "identity")+
+  facet_wrap(~clust)+ 
+  ylim(0,5)+
+  xlim(1,30)+
+  theme_bw()+
+  theme(axis.text=element_text(size=10),
+        strip.background =element_rect(fill = "white", colour = "black"),
+        strip.text = element_text(size=10))
+
+# SAS medoids
+med2 <-IS %>% 
+  gather(question, answer, -clust, -house_num) %>% 
+  mutate(number = as.integer(str_sub(question, 2,-1)),
+         type = str_sub(question, 1, 1),
+         number = if_else(type == "S", number + 9L, number)) %>% 
+  ggplot(aes(number, answer))+
+  geom_bar(stat = "identity")+
+  facet_wrap(~clust)+ 
+  labs(x = "question number ")+
+  ylim(0,5) +
+  xlim(1,18)+
+  theme_bw()+
+  theme(axis.text=element_text(size=10),
+        strip.background =element_rect(fill = "white", colour = "black"),
+        strip.text = element_text(size=10))
+
+grid.arrange(med1, med2, ncol = 2)
+
+ par(mfrow=c(1,2))
+
+ ggplot(data = data2) +
+   geom_mosaic(aes(x = product(sex_data, resultAI), fill=sex_data), na.rm=TRUE) + 
+  labs(x="label(A・I)", y="性別")+
+  theme_bw()+
+  theme(legend.position = 'none',
+        axis.text=element_text(size=12),
+        axis.title = element_text(size=15))
+ 
+ 
+# AI VR表現嗜好と答え合わせ
+plot(crossAI,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
+     ,cex.lab=2,las=1, main="",cex.axis=1.3) 
+# SAS VR情報選択と答え合わせ
+plot(crossSAS,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
+     ,cex.lab=2,las=1, main="",cex.axis=1.3) 
+# 男女AI
+plot(cross10,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
+     ,cex.lab=1,las=1, main="",cex.axis=1.3, xlab = "sex")
+# AISAS モザイク
+plot(cross3,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
+     , cex.lab=1,las=1, main="",cex.axis=1.3)
+
+data2 <- cbind(data2, resultAI, resultSAS)
+mosaic1 <- ggplot(data = data2) +
+   geom_mosaic(aes(x = product(genreL, resultAI), fill=genreL), na.rm=TRUE) + 
+  labs(x="label(A・I)", y="表現嗜好")+
+  theme_bw()+
+  theme(legend.position = 'none',
+        axis.text=element_text(size=12),
+        axis.title = element_text(size=15))
+
+mosaic2 <- ggplot(data = data2) +
+   geom_mosaic(aes(x = product(genreIS, resultSAS), fill=genreIS), na.rm=TRUE) + 
+  labs(x="label(A・I)", y="情報選択")+
+  theme_bw()+
+  theme(legend.position = 'none',
+        axis.text=element_text(size=12),
+        axis.title = element_text(size=15))
+
+mosaic3 <- ggplot(data = data2) +
+   geom_mosaic(aes(x = product(sex_data, resultAI), fill=sex_data), na.rm=TRUE) + 
+  labs(x="label(S・A・S)", y="性別")+
+  theme_bw()+
+  theme(legend.position = 'none',
+        axis.text=element_text(size=12),
+        axis.title = element_text(size=15))
+
+mosaic4 <- ggplot(data = data2) +
+   geom_mosaic(aes(x = product(resultSAS, resultAI), fill=resultSAS), na.rm=TRUE) + 
+  labs(x="label(A・I)", y="label(S・A・S)")+
+  theme_bw()+
+  theme(legend.position = 'none',
+        axis.text=element_text(size=12),
+        axis.title = element_text(size=15))
+
+
+grid.arrange(mosaic1, mosaic2, ncol = 2)
+grid.arrange(mosaic3, mosaic4, ncol = 2)
 
 ```
+
+```{r カラー用}
+pamL$data %>% 
+  as_tibble() %>% 
+  mutate(clust = pamL$clustering) %>% 
+  ggplot(aes(ML1, ML2, colour = factor(clust), fill=factor(clust)))+
+  # geom_density_2d()+
+  geom_point(size=.2, alpha = .5)+
+  stat_ellipse(geom = "polygon", alpha=.3, type = "norm")+
+#  scale_color_manual(values = c( "#000000","#000000","#000000","#000000","#000000","#000000"))+
+  facet_wrap(~clust)+
+  theme_bw()
+
+pamL$data %>% 
+  as_tibble() %>% 
+  mutate(clust = pamL$clustering) %>% 
+  ggplot(aes(ML1, ML2, colour = factor(clust), fill=factor(clust)))+
+  # geom_density_2d()+
+  geom_point(size=.2, alpha = .5)+
+  stat_ellipse(geom = "polygon", alpha=.3, type = "norm")+
+  theme_bw()
+
+# SAS クラスタリング結果
+pamIS$data %>% 
+  as_tibble() %>% 
+  mutate(clust = pamIS$clustering) %>% 
+  ggplot(aes(ML1, ML2, colour = factor(clust), fill=factor(clust)))+
+  # geom_density_2d()+
+  geom_point(size=.2, alpha = .5)+
+  stat_ellipse(geom = "polygon", alpha=.3, type = "norm")+
+  facet_wrap(~clust)+
+  theme_bw()
+
+pamIS$data %>% 
+  as_tibble() %>% 
+  mutate(clust = pamIS$clustering) %>% 
+  ggplot(aes(ML1, ML2, colour = factor(clust), fill=factor(clust)))+
+  # geom_density_2d()+
+  geom_point(size=.2, alpha = .5)+
+  stat_ellipse(geom = "polygon", alpha=.3, type = "norm")+
+  theme_bw()
+
+
+# AI medoid
+L %>% 
+  gather(question, answer, -clust, -house_num) %>% 
+  mutate(question = as.integer(str_sub(question, 2,-1))) %>% 
+  ggplot(aes(question, answer))+
+  geom_bar(stat = "identity")+
+  facet_wrap(~clust)+ 
+  ylim(0,5)+
+  xlim(1,30)+
+  theme_bw()
+
+# SAS medoids
+IS %>% 
+  gather(question, answer, -clust, -house_num) %>% 
+  mutate(number = as.integer(str_sub(question, 2,-1)),
+         type = str_sub(question, 1, 1),
+         number = if_else(type == "S", number + 9L, number)) %>% 
+  ggplot(aes(number, answer))+
+  geom_bar(stat = "identity")+
+  facet_wrap(~clust)+ 
+  labs(x = "question number ")+
+  ylim(0,5) +
+  xlim(1,18)+
+  theme_bw()
+
+# 日本語を使うためのオプション
+options(  X11fonts = c(
+     "-*-gothic-%s-%s-normal--%d-*-*-*-*-*-*-*"
+    ,"-adobe-symbol-*-*-*-*-%d-*-*-*-*-*-*-*"
+   ))
+
+# AI VR表現嗜好と答え合わせ
+plot(crossAI,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
+     ,cex.lab=2,las=1, main="") 
+
+# SAS VR情報選択と答え合わせ
+plot(crossSAS,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
+     ,cex.lab=2,las=1, main="") 
+
+# VR モザイク
+#plot(cross0,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
+#     ,cex.lab=2,las=1, main="")
+
+# AISAS モザイク
+plot(cross3,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
+     ,cex.lab=2,las=1, main="")
+
+```
+
+# モザイク
+```{r}
+ggplot(data = data2) +
+   geom_mosaic(aes(x = product(sex_data, resultAI), fill=sex_data), na.rm=TRUE) + 
+  labs(x="label(A・I)", y="性別")+
+  theme_bw()+
+  theme(legend.position = 'none',
+        axis.text=element_text(size=12),
+        axis.title = element_text(size=15))
+
+```
+

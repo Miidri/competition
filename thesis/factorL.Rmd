@@ -99,14 +99,14 @@ eigenL1
 # Minimum Average Partial, BIC
 VSS(dataL1[,-1], n=10)
 # 平行分析
-fa.parallel(dataL1[,-1], main= "表現嗜好")
-```
+fa.parallel(dataL1[,-1], main= "")
   
 - MAP:4  
 - BIC:9  
 - PC:5  
 - FA:8  
 第4固有値までで行ってみる.
+```  
 
 # 因子分析
 ***
@@ -115,7 +115,7 @@ fa.parallel(dataL1[,-1], main= "表現嗜好")
 
 ```{r promax}
 mlL	<-	fa(r=dataL1[,-1],	nfactors=4,	rotate="promax",	fm="ml")
-#print(mlL)
+print(mlL)
 #par(mfrow=c(1,2)) 
 #barplot(mlL$loadings[,1], main="ML1") 
 #barplot(mlL$loadings[,2], main="ML2") 
@@ -392,3 +392,4 @@ rownames(dEL1) <- dataL$house_num
 colnames(dEL1) <- dataL$house_num
 dEL1[1:5,1:5]
 ```
+

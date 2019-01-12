@@ -87,7 +87,7 @@ eigenIS1
 # Minimum Average Partial, BIC
 VSS(dataIS1[,-1], n=10)
 # 平行分析
-fa.parallel(dataIS1[,-1], main = "情報購買特性")
+fa.parallel(dataIS1[,-1], main = "")
 ```  
 - MAP:3  
 - BIC:7  

@@ -85,7 +85,7 @@ segment1 <- data2$genreL #表現嗜好の正解ラベル
 # ctblL %>% 
 #   kable()
 
-crossAI <- xtabs(~resultAI + segment1) 
+crossAI <- xtabs(~segment1 + resultAI) 
 crossAI %>% 
   kable()
 plot(crossAI,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
@@ -167,7 +167,7 @@ resultSAS <- pamIS$clustering #clusIS の clusIS と同じ
 # ctblIS1 %>% 
 #   kable()
 
-crossSAS <- xtabs(~resultSAS + segment2) 
+crossSAS <- xtabs(~segment2 + resultSAS) 
 crossSAS %>% 
   kable()
 plot(crossSAS,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
@@ -303,7 +303,7 @@ radarchart(LL, axistype = 2, seg = 5, plty = 1, vlcex = 1.5,
 # デモグラフィック属性
 ## 男女
 ```{r}
-cross10 <- xtabs(~data2$sex + resultAI)
+cross10 <- xtabs(~sex_data + resultAI)
 cross10 %>% 
   kable()
 plot(cross10,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
@@ -348,7 +348,13 @@ plot(cross9,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
 ```
 
 # plot まとめ
-```{r 白黒用}
+```{r 出力用}
+par(mfrow=c(1,2))
+fa.parallel(dataL1[,-1], main= "")
+dataIS1[,-1] %>% 
+  fa.parallel(main = "",ps = 15) 
+
+
 pam1 <- pamL$data %>% 
   as_tibble() %>% 
   mutate(clust = pamL$clustering) %>% 
@@ -356,25 +362,25 @@ pam1 <- pamL$data %>%
   # geom_density_2d()+
   geom_point(size=.1, alpha = 1)+
   stat_ellipse(geom = "polygon", alpha=.3, type = "norm")+
-  scale_color_manual(values = c( "#000000","#000000","#000000","#000000","#000000","#000000"))+
   facet_wrap(~clust)+
   theme_bw()+
-  theme(axis.text=element_text(size=10),
-        legend.position = 'none',
+  theme(axis.text=element_text(size=12),
+        axis.title = element_text(size=15),
         strip.background =element_rect(fill = "transparent", colour = "black"),
-        strip.text = element_text(size=10))
+        strip.text = element_text(size=12),
+        legend.position = 'none')
 
 
 pam2 <- pamL$data %>% 
   as_tibble() %>% 
   mutate(clust = pamL$clustering) %>% 
   ggplot(aes(ML1, ML2, colour = factor(clust), fill=factor(clust)))+
-  scale_color_manual(values = c( "#000000","#000000","#000000","#000000","#000000","#000000"))+
   # geom_density_2d()+
   geom_point(size=.1, alpha = 1)+
   stat_ellipse(geom = "polygon", alpha=.3, type = "norm")+
   theme_bw()+
-  theme(axis.text=element_text(size=10),
+  theme(axis.text=element_text(size=12),
+        axis.title = element_text(size=15),
         legend.position = 'none')
 
 # SAS クラスタリング結果
@@ -382,28 +388,28 @@ pam3 <- pamIS$data %>%
   as_tibble() %>% 
   mutate(clust = pamIS$clustering) %>% 
   ggplot(aes(ML1, ML2, colour = factor(clust), fill=factor(clust)))+
-  scale_color_manual(values = c( "#000000","#000000","#000000","#000000","#000000","#000000"))+
-  # geom_density_2d()+
   geom_point(size=.1, alpha = 1)+
   stat_ellipse(geom = "polygon", alpha=.3, type = "norm")+
   facet_wrap(~clust)+
   theme_bw()+
-  theme(axis.text=element_text(size=10),
-        legend.position = 'none',
+  theme(axis.text=element_text(size=12),
+        axis.title = element_text(size=15),
         strip.background =element_rect(fill = "transparent", colour = "black"),
-        strip.text = element_text(size=10))
+        strip.text = element_text(size=12),
+        legend.position = 'none')
+
 
 
 pam4 <- pamIS$data %>% 
   as_tibble() %>% 
   mutate(clust = pamIS$clustering) %>% 
   ggplot(aes(ML1, ML2, colour = factor(clust), fill=factor(clust)))+
-  scale_color_manual(values = c( "#000000","#000000","#000000","#000000","#000000","#000000"))+
   # geom_density_2d()+
   geom_point(size=.1, alpha = 1)+
   stat_ellipse(geom = "polygon", alpha=.3, type = "norm")+
   theme_bw()+
-  theme(axis.text=element_text(size=10),
+  theme(axis.text=element_text(size=12),
+        axis.title = element_text(size=15),
         legend.position = 'none')
 
 grid.arrange(pam2, pam1, ncol = 2)
@@ -417,9 +423,11 @@ med1 <- L %>%
   geom_bar(stat = "identity")+
   facet_wrap(~clust)+ 
   ylim(0,5)+
-  xlim(1,30)+
+  xlim(1,30)+ 
+  labs(x = "question number ")+
   theme_bw()+
-  theme(axis.text=element_text(size=10),
+  theme(axis.text=element_text(size=12),
+        axis.title = element_text(size=15),
         strip.background =element_rect(fill = "white", colour = "black"),
         strip.text = element_text(size=10))
 
@@ -436,23 +444,16 @@ med2 <-IS %>%
   ylim(0,5) +
   xlim(1,18)+
   theme_bw()+
-  theme(axis.text=element_text(size=10),
+  theme(axis.text=element_text(size=12),
+        axis.title = element_text(size=15),
         strip.background =element_rect(fill = "white", colour = "black"),
         strip.text = element_text(size=10))
 
 grid.arrange(med1, med2, ncol = 2)
 
- par(mfrow=c(1,2))
 
- ggplot(data = data2) +
-   geom_mosaic(aes(x = product(sex_data, resultAI), fill=sex_data), na.rm=TRUE) + 
-  labs(x="label(A・I)", y="性別")+
-  theme_bw()+
-  theme(legend.position = 'none',
-        axis.text=element_text(size=12),
-        axis.title = element_text(size=15))
- 
- 
+par(mfrow=c(1,4))
+
 # AI VR表現嗜好と答え合わせ
 plot(crossAI,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
      ,cex.lab=2,las=1, main="",cex.axis=1.3) 
@@ -465,43 +466,6 @@ plot(cross10,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
 # AISAS モザイク
 plot(cross3,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
      , cex.lab=1,las=1, main="",cex.axis=1.3)
-
-data2 <- cbind(data2, resultAI, resultSAS)
-mosaic1 <- ggplot(data = data2) +
-   geom_mosaic(aes(x = product(genreL, resultAI), fill=genreL), na.rm=TRUE) + 
-  labs(x="label(A・I)", y="表現嗜好")+
-  theme_bw()+
-  theme(legend.position = 'none',
-        axis.text=element_text(size=12),
-        axis.title = element_text(size=15))
-
-mosaic2 <- ggplot(data = data2) +
-   geom_mosaic(aes(x = product(genreIS, resultSAS), fill=genreIS), na.rm=TRUE) + 
-  labs(x="label(A・I)", y="情報選択")+
-  theme_bw()+
-  theme(legend.position = 'none',
-        axis.text=element_text(size=12),
-        axis.title = element_text(size=15))
-
-mosaic3 <- ggplot(data = data2) +
-   geom_mosaic(aes(x = product(sex_data, resultAI), fill=sex_data), na.rm=TRUE) + 
-  labs(x="label(S・A・S)", y="性別")+
-  theme_bw()+
-  theme(legend.position = 'none',
-        axis.text=element_text(size=12),
-        axis.title = element_text(size=15))
-
-mosaic4 <- ggplot(data = data2) +
-   geom_mosaic(aes(x = product(resultSAS, resultAI), fill=resultSAS), na.rm=TRUE) + 
-  labs(x="label(A・I)", y="label(S・A・S)")+
-  theme_bw()+
-  theme(legend.position = 'none',
-        axis.text=element_text(size=12),
-        axis.title = element_text(size=15))
-
-
-grid.arrange(mosaic1, mosaic2, ncol = 2)
-grid.arrange(mosaic3, mosaic4, ncol = 2)
 
 ```
 
@@ -593,13 +557,58 @@ plot(crossSAS,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
 # AISAS モザイク
 plot(cross3,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
      ,cex.lab=2,las=1, main="")
+resultAI0 <- as.character(resultAI)
+resultSAS0 <- as.character(resultSAS)
+data2 <- cbind(data2, resultAI0, resultSAS0)
+mosaic1 <- ggplot(data = data2) +
+   geom_mosaic(aes(x = product(genreL, resultAI0), fill=genreL), na.rm=TRUE, col = "Black")+ 
+  labs(x="label(A・I)", y="表現嗜好")+
+  theme_bw()+
+  theme(legend.position = 'none',
+        axis.text=element_text(size=12),
+        axis.title = element_text(size=15))
 
+mosaic2 <- ggplot(data = data2) +
+   geom_mosaic(aes(x = product(genreIS, resultSAS0), fill=genreIS), na.rm=TRUE, col = "Black") + 
+  labs(x="label(A・I)", y="情報選択")+
+  theme_bw()+
+  theme(legend.position = 'none',
+        axis.text=element_text(size=12),
+        axis.title = element_text(size=15))
+
+mosaic3 <- ggplot(data = data2) +
+   geom_mosaic(aes(x = product(sex_data, resultAI0), fill=sex_data), na.rm=TRUE, col = "Black") + 
+  labs(x="label(S・A・S)", y="性別")+
+  theme_bw()+
+  theme(legend.position = 'none',
+        axis.text=element_text(size=12),
+        axis.title = element_text(size=15))
+
+mosaic4 <- ggplot(data = data2) +
+   geom_mosaic(aes(x = product(resultSAS0, resultAI0), fill=resultSAS), na.rm=TRUE, col = "Black") + 
+  labs(x="label(A・I)", y="label(S・A・S)")+
+  theme_bw()+
+  theme(legend.position = 'none',
+        axis.text=element_text(size=12),
+        axis.title = element_text(size=15))
+
+mosaic4 <- data2 %>% 
+    mutate(resultSAS = as.character(resultSAS),
+           resultAI = as.character(resultAI))%>% ggplot() +
+   geom_mosaic(aes(x = product(resultSAS, resultAI), fill=resultSAS), na.rm=TRUE, col = "Black") + 
+  labs(x="label(A・I)", y="label(S・A・S)")+
+  theme_bw()+
+  theme(legend.position = 'none',
+        axis.text=element_text(size=12),
+        axis.title = element_text(size=15))
+grid.arrange(mosaic1, mosaic2, ncol = 2)
+grid.arrange(mosaic3, mosaic4, ncol = 2)
 ```
 
 # モザイク
 ```{r}
 ggplot(data = data2) +
-   geom_mosaic(aes(x = product(sex_data, resultAI), fill=sex_data), na.rm=TRUE) + 
+  geom_mosaic(aes(x = product(sex_data, resultAI), fill=sex_data), na.rm=TRUE) + 
   labs(x="label(A・I)", y="性別")+
   theme_bw()+
   theme(legend.position = 'none',

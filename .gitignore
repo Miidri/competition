@@ -2,7 +2,7 @@
 .Rhistory
 .RData
 .Ruserdata
-*.R
+psql.R
 *.html
 senpai
 *.png

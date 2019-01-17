@@ -1,0 +1,429 @@
+---
+title: "SAS"
+author: "Midori Omura"
+output:
+  html_document:
+    number_sections: true
+    fig_caption: true
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    fig_width: 7
+    fig_height: 4.5
+    theme: sandstone 
+    highlight: tango
+    code_folding: hide
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      warning = FALSE,
+                      message = FALSE)
+```
+
+
+```{r set_up}
+#パッケージのインストールと読み込み
+#持ってないパッケージはインストールする
+#install.packages("MASS")
+library(knitr)
+library(DBI)
+library(tidyverse)
+library(reshape2)
+library(dbplot)
+library(lubridate)
+library(DT)
+library(gridExtra)
+library(fmsb)
+library(corrplot)
+library(GGally)
+library(graphics)
+library(psych)
+library(GPArotation)
+library(proxy)
+library(MASS)
+source("/home/miidri/re1/psql.R")
+source("/home/miidri/re1/name_data.R")
+```
+
+
+# 情報購買セグメント dataIS
+***
+- I1 情報収集に時間をかけるのはもったいない
+- I2 最低限の情報を持っていれば十分だ
+- I3 情報は広く浅く知っていれば十分だと思う
+- I4 口コミ情報を参考にすることが多い
+- I5 良いと思った情報はできるだけ多くの人と共有することが多い
+- I6 趣味や興味関心ごとなどのうんちくはたくさん持っている
+- I7 面白いと思った情報は周りの人に話したくなる
+- I8 情報収集は自ら積極的に行うほうだ
+- I9 情報は人より早く知っていることが多い  
+- S1 どうしても必要なもの以外、買わないほうだ
+- S2 丈夫で長持ちするモノを選ぶことが多い
+- S3 流行に左右されない、長年使い続けられるものを選ぶことが多い
+- S4 周りの人が持っているモノなどを見て思わず自分も欲しくなってしまうことが多い
+- S5 周りのみんなが持っているモノを自分だけ持っていないと不安に感じる
+- S6 周りの人がみんな買っているならその商品は間違いなく良いモノだと思う
+- S7 買い物をすること自体が楽しく、好きだ
+- S8 「限定モノ」や「流行モノ」に弱く、すぐ欲しくなる
+- S9 一流・有名ブランド、メーカーの商品を買うのが好きだ（衣料品、バッグ、時計など）
+***
+
+```{r dataIS}
+head(dataIS) %>% 
+  kable()
+```
+
+## 相関行列
+```{r dataIS1 相関行列}
+#相関行列の作成
+dataIS.c <- cor(dataIS1[,-1])
+dataIS.c %>% 
+  kable()
+```
+  
+## 固有値
+```{r dataIS1 固有値}
+eigenIS1 <- eigen(dataIS.c)$values
+# 固有値
+eigenIS1
+```
+
+## 因子数決定
+```{r dataIS1 plot}
+# Minimum Average Partial, BIC
+VSS(dataIS1[,-1], n=10)
+# 平行分析
+fa.parallel(dataIS1[,-1], main = "")
+```  
+- MAP:3  
+- BIC:7  
+- PC:4  
+- FA:6  
+第3固有値までで行ってみる.
+
+# 因子分析
+***  
+データ数が多いため, 最尤法を用いる.  
+また心理尺度であるため, 斜交回転 (promax)を行う.  
+
+```{r promax}
+mlIS	<-	fa(r=dataIS1[,-1],	nfactors=3,	rotate="promax",	fm="ml")
+print(mlIS)
+#par(mfrow=c(1,3)) 
+#barplot(mlS$loadings[,1], main="ML1") 
+#barplot(mlS$loadings[,2], main="ML2") 
+#barplot(mlS$loadings[,3], main="ML3") 
+#plot(mlS$loadings, type="n")
+#text(mlS$loadings) 
+loadingsIS <- mlIS$loadings[,1:3]
+loadingsIS<- loadingsIS[,c(1,3,2)]
+ loadingsIS <- 
+   data.frame(
+     question_num = c(1:18),
+     loadingsIS)
+load1 <- ggplot(loadingsIS, aes(x = question_num, y = ML1)) +
+  geom_bar(stat = "identity", position = "identity") + 
+  xlim(0,18)+
+  labs(x = "question number ")+
+  scale_fill_brewer(type ="seq",palette = 1)+ 
+  theme_bw()+
+  theme(axis.text=element_text(size=12),
+        axis.title = element_text(size=15))
+
+load2 <- ggplot(loadingsIS, aes(x = question_num, y = ML2)) +
+  geom_bar(stat = "identity", position = "identity")+
+  xlim(0,18)+
+  labs(x = "question number ")+
+  scale_fill_brewer(type ="seq",palette = 1)+ 
+  theme_bw()+
+  theme(axis.text=element_text(size=12),
+        axis.title = element_text(size=15))
+
+load3 <- ggplot(loadingsIS, aes(x = question_num, y = ML3)) +
+  geom_bar(stat = "identity", position = "identity") +
+  xlim(0,18)+
+  labs(x = "question number ")+
+  scale_fill_brewer(type ="seq",palette = 1)+ 
+  theme_bw()+
+  theme(axis.text=element_text(size=12),
+        axis.title = element_text(size=15))
+
+loadT1 <- ggplot(loadingsIS, aes(x = ML1, y = ML2, label = question_num)) +
+  geom_point() +theme_bw()+ geom_label(position = "nudge" )+
+  theme(axis.text=element_text(size=12),
+        axis.title = element_text(size=15))
+
+loadT2 <- ggplot(loadingsIS, aes(x = ML1, y = ML3, label = question_num)) +
+  geom_point() +theme_bw()+ geom_label(position = "nudge" )+
+  theme(axis.text=element_text(size=12),
+        axis.title = element_text(size=15))
+
+loadT3 <- ggplot(loadingsIS, aes(x = ML2, y = ML3, label = question_num)) +
+  geom_point() +theme_bw()+ geom_label(position = "nudge" ) +
+  theme(axis.text=element_text(size=12),
+        axis.title = element_text(size=15))
+
+# slide 3_SAS
+grid.arrange(load1, load2, load3,
+             ncol = 3)
+# fa faIS1
+grid.arrange(load1, load2, load3,
+             ncol = 2)
+
+# fa num_SAS
+pairsSAS <- ggpairs(loadingsIS[,-1],  aes(label = loadingsIS$question_num))+
+  theme_bw() +
+  theme(axis.text=element_text(size=12),
+        axis.title = element_text(size=15),
+        strip.background =element_rect(fill = "white", colour = "black"),
+        strip.text = element_text(size=10))
+
+pairsSAS <- putPlot(pairsSAS, loadT1, 2, 1)  
+pairsSAS <- putPlot(pairsSAS, loadT2, 3, 1)
+pairsSAS <- putPlot(pairsSAS, loadT3, 3, 2) 
+
+pairsSAS
+
+#grid.arrange(loadT1, loadT2, loadT3, ncol = 2)
+```
+
+## biplot
+```{r biplot}
+scoresIS <- mlIS$scores[,1:3]
+scoresIS <- scoresIS[,c(1,3,2)]
+scoresIS <- data.frame(scoresIS)
+rownames(scoresIS) <- dataIS$house_num
+scoresIS <- cbind(scoresIS, index, genreIS, age_index)
+colnames(scoresIS) <- c("ML1","ML2","ML3","index","genreIS", "age_index")
+scoresIS_new <- cbind(scoresIS_new, index, genreIS, age_index)
+
+```
+
+## 男女・未婚既婚別
+```{r}
+S12 <- ggplot(scoresIS_new, aes(x=ML1, y=ML2, col=index)) +
+  geom_point(size = 0.5)+
+  scale_color_manual(values = c( "#ff0000","#0000ff","#ff99cc","#00cbcb"))+theme_bw()+
+  theme(axis.text=element_text(size=12),
+        axis.title = element_text(size=15),
+        legend.position = 'none')
+
+S13 <- ggplot(scoresIS, aes(x=ML1, y=ML3, col=index)) +
+  geom_point(size = 0.5)+
+  scale_color_manual(values = c( "#ff0000","#0000ff","#ff99cc","#00cbcb"))+theme_bw()
+S23 <- ggplot(scoresIS, aes(x=ML2, y=ML3, col=index)) +
+  geom_point(size = 0.5)+
+  scale_color_manual(values = c( "#ff0000","#0000ff","#ff99cc","#00cbcb"))+theme_bw()
+grid.arrange(S12, S13, S23,
+             ncol = 2)
+
+rownames(scoresIS) <- house_num 
+scoresIS <- cbind(scoresIS, index, age_index)
+
+pairsSAS1 <- ggpairs(scoresIS[,1:3],  aes(col=scoresIS$index), lower=list(continuous="points", size=0.1)) +
+#  scale_color_manual(values = c( "#ff0000","#0000ff","#ff99cc","#00cbcb"))+
+  theme_bw() +
+  theme(axis.text=element_text(size=12),
+        axis.title = element_text(size=15),
+        strip.background =element_rect(fill = "white", colour = "black"),
+        strip.text = element_text(size=10))
+
+for(i in 1:pairsSAS1$nrow) {
+  for(j in 1:pairsSAS1$ncol){
+    pairsSAS1[i,j] <- pairsSAS1[i,j] + 
+        scale_fill_manual(values= c( "#ff0000","#0000ff","#ff99cc","#00cbcb")) +
+        scale_color_manual(values = c( "#ff0000","#0000ff","#ff99cc","#00cbcb"))
+  }
+}
+
+pairsSAS1
+
+#pairsSAS2 <- ggpairs(scoresIS[,1:3],  aes(col=scoresIS$age_index))+
+#  scale_color_manual(values = c( "#ff0000","#0000ff","#ff99cc","#00cbcb"))+
+  # theme_bw() +
+  # theme(axis.text=element_text(size=12),
+  #       axis.title = element_text(size=15),
+  #       strip.background =element_rect(fill = "white", colour = "black"),
+  #       strip.text = element_text(size=10))
+
+# pairsSAS <- putPlot(pairsSAS, loadT1, 2, 1)  
+# pairsSAS <- putPlot(pairsSAS, loadT2, 3, 1)
+# pairsSAS <- putPlot(pairsSAS, loadT3, 3, 2) 
+
+#pairsSAS2
+```
+
+## 年代別
+```{r}
+IS_12 <-ggplot(scoresIS, aes(x=ML1, y=ML2, col=age_index)) +
+  geom_point(size = 1)+theme_bw()
+IS_13 <-ggplot(scoresIS, aes(x=ML1, y=ML3, col=age_index)) +
+  geom_point(size = 1)+theme_bw()
+IS_23 <-ggplot(scoresIS, aes(x=ML2, y=ML3, col=age_index)) +
+  geom_point(size = 1)+theme_bw()
+grid.arrange(IS_12, IS_13, IS_23,
+             ncol = 2)
+```
+
+## VRラベル付け
+```{r}
+# colored by IS segmemnt
+IS12 <-ggplot(scoresIS, aes(x=ML1, y=ML2, col=genreIS)) +
+  geom_point(size = 1)+theme_bw()+
+  scale_color_manual(values = c( "#802AE8","#E82C0C","#2CC6FF","#FF0DFF","#C46FFF","#294BE8"))
+IS13 <-ggplot(scoresIS, aes(x=ML1, y=ML3, col=genreIS)) +
+  geom_point(size = 1)+theme_bw()+
+  scale_color_manual(values = c( "#802AE8","#E82C0C","#2CC6FF","#FF0DFF","#C46FFF","#294BE8"))
+IS23 <-ggplot(scoresIS, aes(x=ML2, y=ML3, col=genreIS)) +
+  geom_point(size = 1)+theme_bw()+
+  scale_color_manual(values = c( "#802AE8","#E82C0C","#2CC6FF","#FF0DFF","#C46FFF","#294BE8"))
+grid.arrange(IS12, IS13, IS23,
+             ncol = 2)
+```
+
+
+## 基本属性
+```{r ML1ML2 indexで分解}
+scoresIS_MM<-
+  scoresIS_new%>% 
+   filter(index == "既婚男性")
+scoresIS_MU<-
+  scoresIS_new%>% 
+   filter(index == "未婚男性")
+scoresIS_FM<-
+  scoresIS_new%>% 
+   filter(index == "既婚女性")
+scoresIS_FU<-
+  scoresIS%>% 
+   filter(index == "未婚女性")
+scoresIS_MMp <- ggplot(scoresIS_MM, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#0000ff")+ ggtitle("既婚男性")+theme_bw()+
+  theme(axis.text=element_text(size=12),
+        axis.title = element_text(size=15))
+
+scoresIS_MUp <- ggplot(scoresIS_MU, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#00cbcb")+ ggtitle("未婚男性")+theme_bw()+
+  theme(axis.text=element_text(size=12),
+        axis.title = element_text(size=15))
+
+scoresIS_FMp <- ggplot(scoresIS_FM, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#ff0000")+ ggtitle("既婚女性")+theme_bw()+
+  theme(axis.text=element_text(size=12),
+        axis.title = element_text(size=15))
+
+scoresIS_FUp <- ggplot(scoresIS_FU, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#ff99cc")+ ggtitle("未婚女性")+theme_bw()+
+  theme(axis.text=element_text(size=12),
+        axis.title = element_text(size=15))
+
+# fa segSAS
+scoresIS_0 <- grid.arrange(scoresIS_MMp, scoresIS_MUp, scoresIS_FMp, scoresIS_FUp,
+             ncol = 2)
+# slide 3_segSAS
+grid.arrange(S12, scoresIS_0,
+             ncol = 2)
+```
+
+
+```{r ML1ML2 age_indexで分解}
+scoresIS_10<-
+  scoresIS%>% 
+   filter(age_index == "10代")
+scoresIS_20<-
+  scoresIS%>% 
+   filter(age_index == "20代")
+scoresIS_30<-
+  scoresIS%>% 
+   filter(age_index == "30代")
+scoresIS_40<-
+  scoresIS%>% 
+   filter(age_index == "40代")
+scoresIS_50<-
+  scoresIS%>% 
+   filter(age_index == "50代")
+scoresIS_60<-
+  scoresIS%>% 
+   filter(age_index == "60代以上")
+scoresIS_10p <- ggplot(scoresIS_10, aes(x=ML1, y=ML2)) +
+  geom_point()+ ggtitle("10代")+theme_bw()
+scoresIS_20p <- ggplot(scoresIS_20, aes(x=ML1, y=ML2)) +
+  geom_point()+ ggtitle("20代")+theme_bw()
+scoresIS_30p <- ggplot(scoresIS_30, aes(x=ML1, y=ML2)) +
+  geom_point()+ ggtitle("30代")+theme_bw()
+scoresIS_40p <- ggplot(scoresIS_40, aes(x=ML1, y=ML2)) +
+  geom_point()+ ggtitle("40代")+theme_bw()
+scoresIS_50p <- ggplot(scoresIS_50, aes(x=ML1, y=ML2)) +
+  geom_point()+ ggtitle("50代")+theme_bw()
+scoresIS_60p <- ggplot(scoresIS_60, aes(x=ML1, y=ML2)) +
+  geom_point()+ ggtitle("60代以上")+theme_bw()
+grid.arrange(scoresIS_10p, scoresIS_20p, scoresIS_30p, scoresIS_40p, scoresIS_50p, scoresIS_60p,
+             ncol = 3)
+```
+
+```{r ML1ML2 labelで分解}
+# colored by IS segmemnt
+IS12 <-ggplot(scoresIS, aes(x=ML1, y=ML2, col=genreIS)) +
+  geom_point(size = 1)+theme_bw()
+IS13 <-ggplot(scoresIS, aes(x=ML1, y=ML3, col=genreIS)) +
+  geom_point(size = 1)+theme_bw()
+IS23 <-ggplot(scoresIS, aes(x=ML2, y=ML3, col=genreIS)) +
+  geom_point(size = 1)+theme_bw()
+scoresIS_1<-
+  scoresIS%>% 
+   filter(genreIS == "スマート目利き")
+scoresIS_2<-
+  scoresIS%>% 
+   filter(genreIS == "トレンドフリーク")
+scoresIS_3<-
+  scoresIS%>% 
+   filter(genreIS == "堅実ストイック")
+scoresIS_4<-
+  scoresIS%>% 
+   filter(genreIS == "コミュニティ同調")
+scoresIS_5<-
+  scoresIS%>% 
+   filter(genreIS == "ナチュラル低関与")
+scoresIS_6<-
+  scoresIS%>% 
+   filter(genreIS == "雑学ロジカル")
+scoresIS_1p <- ggplot(scoresIS_1, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#802AE8")+xlim(-3,3)+ylim(-2,2)+ ggtitle("スマート目利き")+theme_bw()
+scoresIS_2p <- ggplot(scoresIS_2, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#E82C0C")+xlim(-3,3)+ylim(-2,2)+ ggtitle("トレンドフリーク")+theme_bw()
+scoresIS_3p <- ggplot(scoresIS_3, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#2CC6FF")+xlim(-3,3)+ylim(-2,2)+ ggtitle("堅実ストイック")+theme_bw()
+scoresIS_4p <- ggplot(scoresIS_4, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#FF0DFF")+xlim(-3,3)+ylim(-2,2)+ ggtitle("コミュニティ同調")+theme_bw()
+scoresIS_5p <- ggplot(scoresIS_5, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#C46FFF")+xlim(-3,3)+ylim(-2,2)+ ggtitle("ナチュラル低関与")+theme_bw()
+scoresIS_6p <- ggplot(scoresIS_6, aes(x=ML1, y=ML2)) +
+  geom_point(size = 1, color = "#294BE8")+xlim(-3,3)+ylim(-2,2)+ ggtitle("雑学ロジカル")+theme_bw()
+grid.arrange(scoresIS_2p, scoresIS_4p, scoresIS_1p, scoresIS_5p, scoresIS_6p, scoresIS_3p,
+             ncol = 2)
+```
+
+```{r}
+# scores <- mlIS$scores
+# fa1 <- scores[,1]
+# fa2 <- scores[,2]
+# fa3 <- scores[,3]
+# # Loadings
+# loads <- mlIS$loadings
+# # Scale factor for loadings
+# scale.loads <- 9
+```
+
+
+# 距離行列
+```{r dist}
+dEIS <- proxy::dist(mlIS$scores, method="Euclidean")
+head(dEIS,5)
+dEIS1 <- as.matrix(dEIS)
+#write.csv(dES1, file= "/home/miidri/competition/dEI1.csv")
+rownames(dEIS1) <- dataIS$house_num
+colnames(dEIS1) <- dataIS$house_num
+dEIS1[1:5,1:5]
+```

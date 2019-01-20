@@ -115,10 +115,18 @@ age_count10 <-
   ggplot(data, aes(x = age))+
   geom_histogram(binwidth=10,  col="white")+
   theme_bw()+
-  theme(axis.text=element_text(size=28),
-        axis.title=element_text(size=28))
+  theme(axis.text=element_text(size=16),
+        axis.title=element_text(size=20))
 #+  labs(title = "ユーザの年齢分布")
 age_count10
+
+data2 %>% 
+  ggplot(aes(x = age_index))+
+  geom_bar(col="white")+
+  xlab("年齢")+
+  theme_bw()+
+  theme(axis.text=element_text(size=16),
+        axis.title=element_text(size=20))
 
 #円グラフ
 age_freq10 <- cut(data$age, breaks=seq(10,70,10))

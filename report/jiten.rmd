@@ -31,7 +31,7 @@ newPackages <- targetPackages[!(targetPackages %in% installed.packages()[,"Packa
 if(length(newPackages)) install.packages(newPackages, repos = "http://cran.us.r-project.org")
 for(package in targetPackages) library(package, character.only = T)
 
-source("psql.R")
+source("/home/midori/competition/psql.R")
 ```
 
 

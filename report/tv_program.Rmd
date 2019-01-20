@@ -9,7 +9,7 @@ output:
     toc_depth: 2
     fig_width: 7
     fig_height: 4.5
-    theme: cosmo
+    theme: sandstone 
     highlight: tango
     code_folding: hide
 editor_options: 
@@ -17,7 +17,7 @@ editor_options:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, 
+knitr::opts_chunk$set(echo = TRUE, 
                       warning = FALSE,
                       message = FALSE)
 ```
@@ -33,7 +33,7 @@ for(package in targetPackages) library(package, character.only = T)
 
 
 
-source("/home/miidri/competition/psql.R")
+source("/home/midori/competition/psql.R")
 
 ```
 
@@ -462,7 +462,6 @@ grid.arrange(sta555P, sta666P, sta777P,
 NHK系列は基本的に30分以内, 特に5分ほどの短い番組に偏りがあった.
   
 ##24時間テレビの区分
-![](figures/fb_24h.jpg)
 ```{r 24jikan}
 
 jikan_24 <- dbGetQuery(con,"
@@ -494,7 +493,6 @@ jikan_24 %>%
 特筆すべきは新番・特番コードで, 特番ではなく普通番組に記録されていた. → 新番・特番コードにて説明
 
 ##最長の410分番組
-![](figures/main.png)
 ```{r}
 jikan_max <- dbGetQuery(con,"
               SELECT

@@ -33,8 +33,9 @@ for(package in targetPackages) library(package, character.only = T)
 
 
 theme_set(theme_bw(base_family = "HiraKakuPro-W3"))
-
-source("/home/miidri/competition/psql.R")
+#install.packages("prettydoc")
+library(prettydoc)
+source("/home/midori/competition/psql.R")
 
 ```
 

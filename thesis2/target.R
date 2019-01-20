@@ -55,16 +55,64 @@ t_2796 <- dbGetQuery(con,"
 
                    ")
 
-t_188 %>% 
-  str()
-t_1092 %>% 
-  str()
-t_2016 %>% 
-  str()
-t_2796%>% 
-  str()
+
+o_188 <- dbGetQuery(con,"
+                      select
+                        br_start_datetime,
+                        br_end_datetime,
+                        br_day_week,
+                        station_code,
+                        data_agg_type
+                      from
+                        processed.tv_orgn_p_cv
+                      where
+                        house_num = 188
+                      order by
+                        br_start_datetime;
+                    ")
 
 
+o_1092 <- dbGetQuery(con,"
+                      select
+                    br_start_datetime,
+                    br_end_datetime,
+                    br_day_week,
+                    station_code,
+                    data_agg_type
+                    from
+                    processed.tv_orgn_p_cv
+                    where
+                    house_num = 1092
+                    order by
+                    br_start_datetime;
+                    ")
 
+o_2016 <- dbGetQuery(con,"
+                      select
+                    br_start_datetime,
+                    br_end_datetime,
+                    br_day_week,
+                    station_code,
+                    data_agg_type
+                    from
+                    processed.tv_orgn_p_cv
+                    where
+                    house_num = 2016
+                    order by
+                    br_start_datetime;
+                    ")
 
-
+o_2796 <- dbGetQuery(con,"
+                      select
+                    br_start_datetime,
+                    br_end_datetime,
+                    br_day_week,
+                    station_code,
+                    data_agg_type
+                    from
+                    processed.tv_orgn_p_cv
+                    where
+                    house_num = 2796
+                    order by
+                    br_start_datetime;
+                    ")

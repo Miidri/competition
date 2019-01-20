@@ -1,0 +1,66 @@
+---
+title: "target analysis"
+author: "Midori Omura"
+output:
+  html_document:
+    number_sections: true
+    fig_caption: true
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    fig_width: 7
+    fig_height: 4.5
+    theme: sandstone 
+    highlight: tango
+    code_folding: hide
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      warning = FALSE,
+                      message = FALSE)
+source("/home/midori/competition/psql.R")
+source("/home/midori/competition/data_name.R")
+source("/home/midori/competition/thesis2/target.R")
+```
+
+```{r setup2,include=FALSE}
+library(tidyverse)
+```
+
+# ターゲットリスト作成
+今回ターゲットとしたのは, 
+- AI 1
+- SAS 6
+- 女性
+- 20&30代
+```{r}
+target <- data2 %>% 
+  filter(resultAI == 1, resultSAS==6, sex =="女性", age >= 20, age <= 39) %>% 
+  dplyr::select(house_num, age, genreL, genreIS) 
+target %>% kable()
+# house_num だけ格納
+target_num <- data2 %>% 
+  filter(resultAI == 1, resultSAS==6, sex =="女性", age >= 20, age <= 39) %>%
+  dplyr::select(house_num) 
+target_num <- as.integer(target_num$house_num)
+```
+
+カウントしてみる  
+```{r}
+target$age <-  as.integer(target$age)
+
+target %>%
+  dplyr::select(age, genreL, genreIS) %>% 
+  group_by(genreL, genreIS) %>% 
+  summarise(age_ave= mean(age, na.rm = TRUE),
+            countL = n()) %>% 
+  kable()
+```
+サンプルとして
+- タレント重視, コミュニティ同調 4人  
+- タレント重視, トレンドフリーク 5人  
+- 機能実証派  , トレンドフリーク 1人  
+を抽出してこようかな  

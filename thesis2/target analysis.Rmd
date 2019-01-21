@@ -22,30 +22,42 @@ knitr::opts_chunk$set(echo = TRUE,
                       warning = FALSE,
                       message = FALSE)
 source("/home/midori/competition/psql.R")
-source("/home/midori/competition/data_name.R")
-source("/home/midori/competition/thesis2/target.R")
+source("/home/midori/competition/name_data.R")
+source("/home/midori/competition/name_cluster.R")
+source("/home/midori/competition/name_target.R")
 ```
 
 ```{r setup2,include=FALSE}
+library(knitr)
 library(tidyverse)
+library(dbplyr)
 ```
 
 # ターゲットリスト作成
-今回ターゲットとしたのは, 
-- AI 1
-- SAS 6
-- 女性
-- 20&30代
+今回ターゲットとしたのは,  
+-  AI 1  
+-  SAS 6  
+-  女性  
+-  20&30代  
 ```{r}
-target <- data2 %>% 
-  filter(resultAI == 1, resultSAS==6, sex =="女性", age >= 20, age <= 39) %>% 
-  dplyr::select(house_num, age, genreL, genreIS) 
-target %>% kable()
+data2$house_num <- as.integer(data2$house_num)
+target_num <-as.data.frame(target_num)                 
+colnames(target_num) <- c("house_num")
+
+target <- merge(target_num, data2, by="house_num")
+
+target <- as.data.frame(target)
+  
+
+# target <- data2 %>% 
+#   filter(resultAI == 1, resultSAS==6, sex =="女性", age >= 20, age <= 39) %>% 
+#   dplyr::select(house_num, age, genreL, genreIS) 
+# target %>% kable()
 # house_num だけ格納
-target_num <- data2 %>% 
-  filter(resultAI == 1, resultSAS==6, sex =="女性", age >= 20, age <= 39) %>%
-  dplyr::select(house_num) 
-target_num <- as.integer(target_num$house_num)
+  # target_num <- data2 %>% 
+  #   filter(resultAI == 1, resultSAS==6, sex =="女性", age >= 20, age <= 39) %>%
+  #   dplyr::select(house_num) 
+# target_num <- as.integer(target_num$house_num)
 ```
 
 カウントしてみる  
@@ -59,8 +71,143 @@ target %>%
             countL = n()) %>% 
   kable()
 ```
+
 サンプルとして
-- タレント重視, コミュニティ同調 4人  
-- タレント重視, トレンドフリーク 5人  
-- 機能実証派  , トレンドフリーク 1人  
+- タレント重視, コミュニティ同調 4人  188,1092,2016,2796  
+- タレント重視, トレンドフリーク 5人  523,1512,4231,5174,6913  
+- 機能実証派  , トレンドフリーク 1人  948
 を抽出してこようかな  
+
+# 各データ数と期間の確認
+```{r}
+# 全員のデータをがっちゃんこ
+target_o <-rbind(o_188, o_1092, o_2016, o_2796, o_523, o_1512, o_4231, o_5174, o_6913, o_948)
+
+target_o %>% 
+  group_by(house_num) %>% 
+  summarise(count = n(),
+            first_time = min(br_start_datetime),
+            last_time = max(br_end_datetime)) 
+```
+
+# 局別
+局別番組数
+```{r}
+count_sta <- dbGetQuery(con,"
+SELECT
+	A.st_code,
+	A.count,
+	B.station_jp,
+	B.station_ab
+FROM
+	processed.sta_mst AS B
+LEFT JOIN
+	(SELECT
+		distinct(station_code) AS st_code,
+		count(station_code) AS count
+	FROM
+		processed.tv_program 
+	GROUP BY 
+		station_code) AS A
+ON
+	A.st_code = B.station_code
+ORDER BY
+	A.st_code;
+")
+
+count_sta %>%
+  kable()
+```
+
+```{r}
+# どの番組見てますか
+
+station_name <- c("日本テレビ", "ＴＢＳ" , "フジテレビ", "テレビ朝日" , "テレビ東京", "ＮＨＫ総合" , "ＮＨＫＥテレ")
+target_o %>%
+  group_by(station_code) %>% 
+  summarise(count= n())
+
+target_o %>%
+  group_by(station_code,house_num) %>% 
+  summarise(count= n())%>% 
+  ggplot(aes(x=station_code, y=count, fill=factor(house_num)))+
+  geom_bar(stat = "identity")+
+  labs(title = "局別視聴番組数")+
+  xlim(station_name)+
+  theme_bw()+
+  theme(legend.title = element_blank(),
+        axis.text.x = element_text(angle = 30, hjust=1))
+
+
+
+```
+
+# 時間帯別視聴行動
+```{r count_hourly}
+count_hourly <- dbGetQuery(con,"
+                           SELECT
+                             house_num,
+                             EXTRACT(HOUR FROM br_start_datetime),
+                             COUNT(*)
+                           FROM 
+                             processed.tv_orgn_p_cv
+                           WHERE
+                  			     house_num = 188 or
+                  			     house_num = 1092 or
+                  			     house_num = 2016 or
+                  			     house_num = 2796 or
+                  			     house_num = 523 or
+                  			     house_num = 1512 or
+                  			     house_num = 4231 or
+                  			     house_num = 5174 or
+                  			     house_num = 6913 or
+                  			     house_num = 948
+                           GROUP BY
+                             EXTRACT(HOUR FROM br_start_datetime),
+                             house_num
+                           ORDER BY
+                             house_num,
+                             EXTRACT(HOUR FROM br_start_datetime)
+			     ")
+
+count_hourly %>% 
+#  as_tibble() %>% 
+  rename(hour = date_part) %>% 
+  ggplot(aes(x = hour, y = count, fill = factor(house_num)))+
+  geom_bar(stat = "identity")+
+  labs(title = "視聴時間帯分布")+
+  theme_bw()+
+  theme(legend.title = element_blank())
+
+```
+
+# 曜日別
+```{r}
+week <- c("月","火","水","木","金","土","日")
+target_o %>% 
+  group_by(br_day_week,house_num) %>% 
+  summarise(count= n())%>% 
+  ggplot(aes(x=br_day_week, y=count, fill=factor(house_num)))+
+  geom_bar(stat = "identity")+
+  labs(title = "曜日別視聴番組数")+
+  xlim(week)+
+  theme_bw()+
+  theme(legend.title = element_blank())
+  
+```
+
+# タイムシフトorリアルタイム
+```{r}
+house <- c(1:10)
+target_o %>% 
+  group_by(data_agg_type,house_num) %>% 
+  summarise(count= n())%>% 
+  ggplot(aes(x=house_num, y=count, fill=factor(data_agg_type)))+
+  geom_bar(stat = "identity")+
+  labs(title = "視聴件数")+
+  xlim(house)+
+  theme_bw()+
+  theme(legend.title = element_blank())
+```
+
+

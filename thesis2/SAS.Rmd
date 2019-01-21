@@ -126,7 +126,7 @@ loadingsIS<- loadingsIS[,c(1,3,2)]
      loadingsIS)
 load1 <- ggplot(loadingsIS, aes(x = question_num, y = ML1)) +
   geom_bar(stat = "identity", position = "identity") + 
-  xlim(0,18)+
+  xlim(0,19)+
   labs(x = "question number ")+
   scale_fill_brewer(type ="seq",palette = 1)+ 
   theme_bw()+
@@ -135,7 +135,7 @@ load1 <- ggplot(loadingsIS, aes(x = question_num, y = ML1)) +
 
 load2 <- ggplot(loadingsIS, aes(x = question_num, y = ML2)) +
   geom_bar(stat = "identity", position = "identity")+
-  xlim(0,18)+
+  xlim(0,19)+
   labs(x = "question number ")+
   scale_fill_brewer(type ="seq",palette = 1)+ 
   theme_bw()+
@@ -144,7 +144,7 @@ load2 <- ggplot(loadingsIS, aes(x = question_num, y = ML2)) +
 
 load3 <- ggplot(loadingsIS, aes(x = question_num, y = ML3)) +
   geom_bar(stat = "identity", position = "identity") +
-  xlim(0,18)+
+  xlim(0,19)+
   labs(x = "question number ")+
   scale_fill_brewer(type ="seq",palette = 1)+ 
   theme_bw()+

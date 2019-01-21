@@ -27,7 +27,7 @@ knitr::opts_chunk$set(echo = TRUE,
 ```{r set_up}
 #パッケージのインストールと読み込み
 #持ってないパッケージはインストールする
-install.packages("gridExtra")
+#install.packages("gridExtra")
 library(knitr)
 library(ggplot2)
 library(DBI)
@@ -44,7 +44,7 @@ library(graphics)
 library(psych)
 library(GPArotation)
 source("/home/midori/competition/psql.R")
-source("/home/midori/competition/data_name.R")
+source("/home/midori/competition/name_data.R")
 ```
 
 # 表現嗜好
@@ -142,7 +142,7 @@ loadingsL <-
 
 loadL1 <- ggplot(loadingsL, aes(x = question_num, y = ML1)) +
   geom_bar(stat = "identity", position = "identity") +
-  xlim(0,30)+
+  xlim(0,31)+
   labs(x = "question number ")+
   scale_fill_brewer(type ="seq",palette = 1)+ 
   theme_bw()+
@@ -151,7 +151,7 @@ loadL1 <- ggplot(loadingsL, aes(x = question_num, y = ML1)) +
 
 loadL2 <- ggplot(loadingsL, aes(x = question_num, y = ML2)) +
   geom_bar(stat = "identity", position = "identity")+
-  xlim(0,30)+
+  xlim(0,31)+
   labs(x = "question number ")+
   scale_fill_brewer(type ="seq",palette = 1)+ 
   theme_bw()+
@@ -160,7 +160,7 @@ loadL2 <- ggplot(loadingsL, aes(x = question_num, y = ML2)) +
 
 loadL3 <- ggplot(loadingsL, aes(x = question_num, y = ML3)) +
   geom_bar(stat = "identity", position = "identity")+
-  xlim(0,30)+
+  xlim(0,31)+
   labs(x = "question number ")+
   scale_fill_brewer(type ="seq",palette = 1)+ 
   theme_bw()+
@@ -169,7 +169,7 @@ loadL3 <- ggplot(loadingsL, aes(x = question_num, y = ML3)) +
 
 loadL4 <- ggplot(loadingsL, aes(x = question_num, y = ML4)) +
   geom_bar(stat = "identity", position = "identity") +
-  xlim(0,30)+
+  xlim(0,31)+
   labs(x = "question number ")+
   scale_fill_brewer(type ="seq",palette = 1)+ 
   theme_bw()+

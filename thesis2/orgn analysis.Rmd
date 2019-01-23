@@ -1,0 +1,173 @@
+---
+title: "orgn analysis"
+author: "Midori Omura"
+output:
+  html_document:
+    number_sections: true
+    fig_caption: true
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    fig_width: 7
+    fig_height: 4.5
+    theme: sandstone 
+    highlight: tango
+    code_folding: hide
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      warning = FALSE,
+                      message = FALSE)
+source("/home/midori/competition/psql.R")
+source("/home/midori/competition/name_data.R")
+#source("/home/midori/competition/name_target.R")
+```
+
+```{r setup2,include=FALSE}
+library(knitr)
+library(tidyverse)
+library(dbplyr)
+```
+
+# ターゲットリスト作成
+今回ターゲットとしたのは,  
+
+- AI 1  
+- SAS 6  
+- 女性  
+- 20&30代  
+
+## house_num別データ件数と期間
+```{r}
+o_house <- dbGetQuery(con,"
+            select
+            	distinct(A.house_num),
+            	count(A.house_num),
+              min(B.br_start_datetime),
+              max(B.br_end_datetime)
+            from
+            	processed.tv_orgn_p_cv as B
+            right join
+            	(select
+            		house_num
+            	 from
+            		add_data.target) as A
+            on
+            	A.house_num = B.house_num
+            group by
+            	A.house_num;
+           ")
+o_house %>% kable()
+o_house %>% 
+  ggplot(aes(x=house_num, y=count))+
+  geom_bar(stat = "identity")+
+  theme_bw()
+
+# ログTOP10
+o_house %>% 
+  filter(count>4500)
+```
+
+## 局
+```{r}
+o_sta <- dbGetQuery(con,"
+           select
+            	distinct(B.station_code),
+            	count(B.station_code)
+            from
+            	processed.tv_orgn_p_cv as B
+            right join
+            	(select
+            		house_num
+            	 from
+            		add_data.target) as A
+            on
+            	A.house_num = B.house_num
+            group by
+            	B.station_code
+            order by 
+            	B.station_code;
+           ")
+o_sta %>% kable()
+
+station_name <- c("日本テレビ", "ＴＢＳ" , "フジテレビ", "テレビ朝日" , "テレビ東京", "ＮＨＫ総合" , "ＮＨＫＥテレ")
+
+o_sta %>%
+  ggplot(aes(x=station_code, y=count))+
+  geom_bar(stat = "identity")+
+  labs(title = "局別視聴番組数")+
+  xlim(station_name)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 30, hjust=1))
+```
+
+## 曜日
+```{r}
+o_week <- dbGetQuery(con,"
+                       select
+                      	distinct(B.br_day_week),
+                      	count(B.br_day_week)
+                      from
+                      	processed.tv_orgn_p_cv as B
+                      right join
+                      	(select
+                      		house_num
+                      	 from
+                      		add_data.target) as A
+                      on
+                      	A.house_num = B.house_num
+                      group by
+                      	B.br_day_week
+                      order by 
+                      	B.br_day_week;
+           ")
+
+o_week %>% kable()
+
+week <- c("月","火","水","木","金","土","日")
+o_week %>% 
+  ggplot(aes(x=br_day_week, y=count))+
+  geom_bar(stat = "identity")+
+  labs(title = "曜日別視聴番組数")+
+  xlim(week)+
+  theme_bw()
+```
+
+# 時間帯別
+```{r}
+o_hourly <- dbGetQuery(con,"
+                      SELECT
+                            A.house_num,
+                            EXTRACT(HOUR FROM B.br_start_datetime),
+                            COUNT(*)
+                      FROM 
+                            processed.tv_orgn_p_cv as B
+                      right join
+                      	(select
+                      		house_num
+                      	from
+                      		add_data.target) as A
+                      	on
+                      		A.house_num = B.house_num
+                      	group by
+                      		EXTRACT(HOUR FROM B.br_start_datetime),
+                      		A.house_num
+                      	ORDER BY
+                      		house_num,
+                      		EXTRACT(HOUR FROM B.br_start_datetime);
+                      ")
+o_hourly %>% 
+#  as_tibble() %>% 
+  rename(hour = date_part) %>% 
+  ggplot(aes(x = hour, y = count, fill = factor(house_num)))+
+  geom_bar(stat = "identity")+
+  labs(title = "視聴時間帯分布")+
+  theme_bw()+
+  theme(legend.title = element_blank())
+
+
+```
+

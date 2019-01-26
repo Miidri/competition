@@ -44,8 +44,8 @@ library(psych)
 library(GPArotation)
 library(proxy)
 library(MASS)
-source("/home/miidri/re1/psql.R")
-source("/home/miidri/re1/name_data.R")
+source("/home/midori/competition/psql.R")
+source("/home/midori/competition/name_data.R")
 ```
 
 
@@ -198,7 +198,7 @@ scoresIS <- data.frame(scoresIS)
 rownames(scoresIS) <- dataIS$house_num
 scoresIS <- cbind(scoresIS, index, genreIS, age_index)
 colnames(scoresIS) <- c("ML1","ML2","ML3","index","genreIS", "age_index")
-scoresIS_new <- cbind(scoresIS_new, index, genreIS, age_index)
+#scoresIS_new <- cbind(scoresIS, index, genreIS, age_index)
 
 ```
 
@@ -288,17 +288,18 @@ grid.arrange(IS12, IS13, IS23,
 ## 基本属性
 ```{r ML1ML2 indexで分解}
 scoresIS_MM<-
-  scoresIS_new%>% 
+  scoresIS%>% 
    filter(index == "既婚男性")
 scoresIS_MU<-
-  scoresIS_new%>% 
+  scoresIS%>% 
    filter(index == "未婚男性")
 scoresIS_FM<-
-  scoresIS_new%>% 
+  scoresIS%>% 
    filter(index == "既婚女性")
 scoresIS_FU<-
   scoresIS%>% 
    filter(index == "未婚女性")
+
 scoresIS_MMp <- ggplot(scoresIS_MM, aes(x=ML1, y=ML2)) +
   geom_point(size = 1, color = "#0000ff")+ ggtitle("既婚男性")+theme_bw()+
   theme(axis.text=element_text(size=12),

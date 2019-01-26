@@ -35,10 +35,9 @@ library(dbplyr)
 # ターゲットリスト作成
 今回ターゲットとしたのは,  
 
-- AI 1  
-- SAS 6  
-- 女性  
-- 20&30代  
+- AI 5,6 
+- SAS 3,4
+- 男性
 
 ## house_num別データ件数と期間
 ```{r}
@@ -54,93 +53,114 @@ o_house <- dbGetQuery(con,"
             	(select
             		house_num
             	 from
-            		add_data.target) as A
+            		add_data.target2) as A
             on
             	A.house_num = B.house_num
             group by
             	A.house_num;
            ")
 o_house %>% kable()
+# ログTOP3
+o_house %>% 
+  filter(count>10000)
+# no1の化け物発見
 o_house %>% 
   ggplot(aes(x=house_num, y=count))+
   geom_bar(stat = "identity")+
+  ylim(0,30000)+
+  xlim(3000,4000)+
   theme_bw()
-
-# ログTOP10
-o_house %>% 
-  filter(count>4500)
 ```
 
 ## 局
 ```{r}
 o_sta <- dbGetQuery(con,"
            select
-            	distinct(B.station_code),
-            	count(B.station_code)
+            	 B.data_agg_type,
+               B.station_code,
+               count(*)
             from
             	processed.tv_orgn_p_cv as B
             right join
             	(select
             		house_num
             	 from
-            		add_data.target) as A
+            		add_data.target2) as A
             on
             	A.house_num = B.house_num
             group by
-            	B.station_code
+            	B.data_agg_type,
+              B.station_code
             order by 
             	B.station_code;
            ")
+for(i in 1:15){
+  if(o_sta$data_agg_type[i]==1){
+    o_sta$data_agg_type[i]= "リアルタイム"}
+  else{
+    o_sta$data_agg_type[i]="タイムシフト"}
+}
 o_sta %>% kable()
 
 station_name <- c("日本テレビ", "ＴＢＳ" , "フジテレビ", "テレビ朝日" , "テレビ東京", "ＮＨＫ総合" , "ＮＨＫＥテレ")
 
 o_sta %>%
-  ggplot(aes(x=station_code, y=count))+
+      ggplot(aes(x=station_code, y=count, fill = factor(data_agg_type)))+
   geom_bar(stat = "identity")+
   labs(title = "局別視聴番組数")+
-  xlim(station_name)+
+  xlim(station_name)+labs(fill="視聴方法")+
   theme_bw()+
-  theme(axis.text.x = element_text(angle = 30, hjust=1))
+  theme(axis.text.x = element_text(angle = 30, hjust=1),
+        legend.title = element_blank())
 ```
 
 ## 曜日
 ```{r}
 o_week <- dbGetQuery(con,"
                        select
-                      	distinct(B.br_day_week),
-                      	count(B.br_day_week)
+                      	B.data_agg_type,
+                        B.br_day_week,
+                      	count(*)
                       from
                       	processed.tv_orgn_p_cv as B
                       right join
                       	(select
                       		house_num
                       	 from
-                      		add_data.target) as A
+                      		add_data.target2) as A
                       on
                       	A.house_num = B.house_num
                       group by
-                      	B.br_day_week
+                      	B.data_agg_type,
+                        B.br_day_week
                       order by 
                       	B.br_day_week;
            ")
 
-o_week %>% kable()
+for(i in 1:15){
+  if(o_week$data_agg_type[i]==1){
+    o_week$data_agg_type[i]= "リアルタイム"}
+  else{
+    o_week$data_agg_type[i]="タイムシフト"}
+}
+o_week %>% 
+  arrange(br_day_week) %>% 
+  kable()
 
 week <- c("月","火","水","木","金","土","日")
 o_week %>% 
-  ggplot(aes(x=br_day_week, y=count))+
+  ggplot(aes(x=br_day_week, y=count, fill=factor(data_agg_type)))+
   geom_bar(stat = "identity")+
   labs(title = "曜日別視聴番組数")+
-  xlim(week)+
-  theme_bw()
+  theme_bw()+
+  theme(legend.title = element_blank())
 ```
 
 # 時間帯別
 ```{r}
 o_hourly <- dbGetQuery(con,"
                       SELECT
-                            A.house_num,
+                            B.data_agg_type,
                             EXTRACT(HOUR FROM B.br_start_datetime),
                             COUNT(*)
                       FROM 
@@ -149,25 +169,128 @@ o_hourly <- dbGetQuery(con,"
                       	(select
                       		house_num
                       	from
-                      		add_data.target) as A
+                      		add_data.target2) as A
                       	on
                       		A.house_num = B.house_num
                       	group by
                       		EXTRACT(HOUR FROM B.br_start_datetime),
-                      		A.house_num
+                      		B.data_agg_type
                       	ORDER BY
-                      		house_num,
                       		EXTRACT(HOUR FROM B.br_start_datetime);
                       ")
+for(i in 1:49){
+  if(o_hourly$data_agg_type[i]==1){
+    o_hourly$data_agg_type[i]= "リアルタイム"}
+  else{
+    o_hourly$data_agg_type[i]="タイムシフト"}
+}
+
 o_hourly %>% 
 #  as_tibble() %>% 
   rename(hour = date_part) %>% 
-  ggplot(aes(x = hour, y = count, fill = factor(house_num)))+
+  ggplot(aes(x = hour, y = count, fill =data_agg_type))+
   geom_bar(stat = "identity")+
   labs(title = "視聴時間帯分布")+
-  theme_bw()+
-  theme(legend.title = element_blank())
+  theme_bw()
 
+```
+
+```{r genre}
+# 各番組のgenreごとの負荷量
+genre <- basis(res[[5]]) %>% 
+  as.data.frame() %>% 
+  rownames_to_column(var = "program_code") %>% 
+  as_tibble() %>% 
+  left_join(collect(distinct(program, ban_code1, program_code)),
+            by = "program_code") %>% 
+  gather(topic, value, -program_code, -ban_code1) %>% 
+  group_by(ban_code1, topic) %>% 
+  summarise(value = sum(value)) %>% 
+  left_join(collect(ban1), by = "ban_code1")
+
+genre$topic<-c(1:7)
+g<-genre %>% 
+  ggplot(aes(ban_code1_naiyou, value))+
+  geom_bar(stat="identity")+
+  facet_wrap(~topic)+
+  coord_flip()+
+  theme_bw()+
+  ylab("負荷量総和")+xlab("ジャンル")+
+  theme(strip.background =element_rect(fill = "white", colour = "black"))
+
+genre1 <- basis(res[[5]]) %>% 
+  as.data.frame() %>% 
+  rownames_to_column(var = "program_code") %>% 
+  as_tibble() %>% 
+  left_join(collect(distinct(program, ban_code1, program_code)),
+            by = "program_code") %>% 
+  gather(topic, value, -program_code, -ban_code1) %>% 
+  group_by(ban_code1, topic) %>% 
+  summarise(value = mean(value)) %>% 
+  left_join(collect(ban1), by = "ban_code1")
+
+genre1$topic<-c(1:7)
+g1<- genre1 %>% 
+  ggplot(aes(ban_code1_naiyou, value))+
+  geom_bar(stat="identity")+
+  facet_wrap(~topic)+
+  coord_flip()+
+  theme_bw()+
+  ylab("負荷量平均")+xlab("ジャンル")+
+  theme(strip.background =element_rect(fill = "white", colour = "black"))
+
+grid.arrange(g1, g, ncol=2)
+```
+
+```{r station}
+# 各番組のgenreごとの負荷量
+station <- basis(res[[5]]) %>% 
+  as.data.frame() %>% 
+  rownames_to_column(var = "program_code") %>% 
+  as_tibble() %>% 
+  left_join(collect(distinct(program, station_code, program_code)),
+            by = "program_code") %>% 
+  gather(topic, value, -program_code, -station_code) %>% 
+  group_by(station_code, topic) %>% 
+  summarise(value = sum(value)) %>% 
+  left_join(collect(sta), by = "station_code") 
+
+station$topic<-c(1:7)
+s<-station %>% 
+  ggplot(aes(station_jp, value))+
+  geom_bar(stat="identity")+
+  facet_wrap(~topic)+
+  coord_flip()+
+  theme_bw()+
+  ylab("負荷量総和")+xlab("放送局")+
+  theme(strip.background =element_rect(fill = "white", colour = "black"))
+
+station1 <- basis(res[[5]]) %>% 
+  as.data.frame() %>% 
+  rownames_to_column(var = "program_code") %>% 
+  as_tibble() %>% 
+  left_join(collect(distinct(program, station_code, program_code)),
+            by = "program_code") %>% 
+  gather(topic, value, -program_code, -station_code) %>% 
+  group_by(station_code, topic) %>% 
+  summarise(value = mean(value)) %>% 
+  left_join(collect(sta), by = "station_code") 
+
+station1$topic<-c(1:7)
+s1<- station1 %>% 
+  ggplot(aes(station_jp, value))+
+  geom_bar(stat="identity")+
+  facet_wrap(~topic)+
+  coord_flip()+
+  theme_bw()+
+  ylab("負荷量平均")+xlab("放送局")+
+  theme(strip.background =element_rect(fill = "white", colour = "black"))
+
+grid.arrange(s1, s, ncol=2)
+```
+
+```{r}
+grid.arrange(s1, g1, ncol=2)
 
 ```
 

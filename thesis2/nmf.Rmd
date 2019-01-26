@@ -73,7 +73,7 @@ sta <- con %>%
 res <- read_rds("/home/midori/competition/results_nmf.rds")
 ```
 
-```{r what's included in res}
+```{r what is included in res}
 smr <- sapply(res, function(x) summary(x)) %>% 
   t() %>% 
   as.data.frame()
@@ -119,119 +119,18 @@ pro_mst <- program %>%
   filter(row_number(desc(n)) == 1) %>% 
   mutate(program_name = str_remove_all(program_name, pattern = " "),
          program_name = str_c(station_code, ".", program_name)) %>% 
-  select(-station_code) %>% 
-  filter(n != 1)
-```
-
-# 6
-```{r top10}
-basis6 <- basis(res[[4]])
-basis6 %>% 
-  as.data.frame() %>% 
-  rownames_to_column(var = "program_code") %>% 
-  as_tibble() %>% 
-  gather(topic, value, -program_code) %>% 
-  left_join(pro_mst, by = "program_code") %>% 
-  group_by(topic) %>% 
-  mutate(rank = row_number(desc(value))) %>% 
-  filter(rank < 101) %>% 
-  select( -program_code, -n, -value) %>% 
-  spread(topic, program_name) %>% 
-  datatable(class = 'cell-border stripe',
-            rownames = FALSE,
-            extensions = 'FixedColumns',
-            options = list(scrollX = TRUE, scrollCollapse = TRUE
-  ))
-```
-
-```{r}
-p_coef6 <- coef(res[[4]]) %>% 
-  apply(2, function(x) which(x == max(x))) %>% 
-  tibble(topic = .) %>% 
-  ggplot(aes(factor(topic)))+
-  geom_bar(colour = "blue", fill = "skyblue")
-p_coef6
-```
-
-```{r}
-innov <- prof %>% 
-  filter(qu_genre_code == 25, question_code == 4) %>% 
-  select(house_num, answer, answer_code) %>% 
-  collect() %>% 
-  mutate(answer = str_remove_all(answer, pattern = " "))
-
-coef6 <- coef(res[[4]])
-
-apply(coef6, 2, function(x) which(x == max(x)) ) %>% 
-  data.frame(topic = .) %>% 
-  rownames_to_column(var = "house_num") %>% 
-  as_tibble() %>% 
-  mutate(house_num = as.integer(house_num)) %>% 
-  left_join(innov, by = "house_num") %>% 
-  drop_na(answer) %>% 
-  mutate(answer = fct_reorder(answer, answer_code)) %>% 
-  count(topic, answer) %>% 
-  ggplot(aes(axis1 = answer, axis2 = topic, y = n)) +
-  scale_x_discrete(limits = c("answer", "topic"), expand = c(.1, .05)) +
-  geom_alluvium(aes(fill = answer), alpha=.7)+
-  scale_fill_viridis_d()+
-  geom_stratum()+ 
-  geom_text(stat = "stratum", label.strata = TRUE, family = "HiraKakuPro-W3")+
-  theme_classic(base_family = "HiraKakuPro-W3")
-```
-
-```{r}
-# coef6T <- t(coef6)
-# target_coef <- merge(o_num, coef6T)
-```
-
-```{r}
-#segment6 <- c(rep(1,81)) 
-#o_num <- cbind(o_num, segment6)
-o_num %>% as.data.frame()
-o_num1 <-transform(o_num,segment6=c(rep(1,81)))
-colnames(o_num1) <- c("house_num", "segment6")
+  dplyr::select(-station_code) 
+#pro_mst
 
 
-# apply(coef6, 2, function(x) which(x == max(x)) ) %>% 
-#   data.frame(topic = .) %>% 
-#   rownames_to_column(var = "house_num") %>% 
-#   as_tibble() %>% 
-#   mutate(house_num = as.integer(house_num)) %>% 
-#   left_join(o_num1, by = "house_num") %>% 
-#   drop_na(segment6) %>% 
-# #  mutate(answer = fct_reorder(answer, answer_code)) %>% 
-#   count(topic, segment6) %>% 
-#   ggplot(aes(axis1 = segment6, axis2 = topic, y = n)) +
-#   scale_x_discrete(limits = c("segment6", "topic"), expand = c(.1, .05)) +
-#   geom_alluvium(aes(fill = factor(topic)), alpha=.7)+
-#   scale_fill_viridis_d()+
-# #  geom_stratum()+ 
-#   geom_text(stat = "stratum", label.strata = TRUE, family = "HiraKakuPro-W3")+
-#   theme_classic(base_family = "HiraKakuPro-W3")
-
-o_topic <- apply(coef6, 2, function(x) which(x == max(x)) ) %>% 
-  data.frame(topic = .) %>% 
-  rownames_to_column(var = "house_num") %>% 
-  as_tibble() %>% 
-  mutate(house_num = as.integer(house_num)) %>% 
-  left_join(o_num1, by = "house_num") %>% 
-  drop_na(segment6) %>% 
-#  mutate(answer = fct_reorder(answer, answer_code)) %>% 
-  count(topic, segment6) 
-p_target6 <- o_topic %>% ggplot(aes(x=topic,y=n))+
-  geom_bar(stat=  "identity",colour = "blue", fill = "skyblue")
 
 ```
 
-```{r}
-grid.arrange(p_coef6, p_target6,
-             ncol = 2)
-```
 
 # 7
-```{r top10}
+```{r top}
 basis7 <- basis(res[[5]])
+
 basis7 %>% 
   as.data.frame() %>% 
   rownames_to_column(var = "program_code") %>% 
@@ -241,7 +140,7 @@ basis7 %>%
   group_by(topic) %>% 
   mutate(rank = row_number(desc(value))) %>% 
   filter(rank < 101) %>% 
-  select( -program_code, -n, -value) %>% 
+  dplyr::select( -program_code, -n, -value) %>% 
   spread(topic, program_name) %>% 
   datatable(class = 'cell-border stripe',
             rownames = FALSE,
@@ -262,7 +161,7 @@ p_coef7
 ```{r}
 innov <- prof %>% 
   filter(qu_genre_code == 25, question_code == 4) %>% 
-  select(house_num, answer, answer_code) %>% 
+  dplyr::select(house_num, answer, answer_code) %>% 
   collect() %>% 
   mutate(answer = str_remove_all(answer, pattern = " "))
 
@@ -286,16 +185,12 @@ apply(coef7, 2, function(x) which(x == max(x)) ) %>%
   theme_classic(base_family = "HiraKakuPro-W3")
 ```
 
+# target
 ```{r}
-# coef6T <- t(coef6)
-# target_coef <- merge(o_num, coef6T)
-```
-
-```{r}
-
-# o_num %>% as.data.frame()
-# o_num1 <-transform(o_num,segment6=c(rep(1,81)))
-# colnames(o_num1) <- c("house_num", "segment6")
+ o_num <- o_house$house_num
+ o_num %>% as.data.frame()
+ o_num1 <-transform(o_num,segment3=c(rep(1,135)))
+ colnames(o_num1) <- c("house_num", "segment3")
 
 
 # apply(coef6, 2, function(x) which(x == max(x)) ) %>% 
@@ -321,9 +216,9 @@ o_topic7 <- apply(coef7, 2, function(x) which(x == max(x)) ) %>%
   as_tibble() %>% 
   mutate(house_num = as.integer(house_num)) %>% 
   left_join(o_num1, by = "house_num") %>% 
-  drop_na(segment6) %>% 
+  drop_na(segment3) %>% 
 #  mutate(answer = fct_reorder(answer, answer_code)) %>% 
-  count(topic, segment6) 
+  count(topic, segment3) 
 p_target7 <- o_topic7 %>% ggplot(aes(x=topic,y=n))+
   geom_bar(stat=  "identity",colour = "blue", fill = "skyblue")
 p_target7
@@ -332,5 +227,131 @@ p_target7
 ```{r}
 grid.arrange(p_coef7, p_target7,
              ncol = 2)
+```
+
+```{r}
+coef(results_nmf[[5]]) %>% 
+  t() %>% 
+  as.data.frame() %>% 
+  rownames_to_column("house_num") %>% 
+  filter(house_num %in% o_num) %>% 
+  gather(topic, value, -house_num) %>% 
+  group_by(house_num) %>% 
+  filter(value == max(value)) %>% 
+  ggplot(aes(topic))+
+  geom_bar()
+
+
+
+a <- coef(results_nmf[[5]]) %>% 
+  t() %>% 
+  as.data.frame() %>% 
+  rownames_to_column("house_num") %>% 
+  filter(house_num %in% o_num) %>% 
+  dplyr::select(-house_num) %>% 
+  apply(2, mean) %>% 
+  data.frame(topic = names(.),
+             value = .)  
+a$topic<-c(1:7)
+
+b <- coef(results_nmf[[5]]) %>% 
+  t() %>% 
+  as.data.frame() %>% 
+  rownames_to_column("house_num") %>% 
+  dplyr::select(-house_num) %>% 
+  apply(2, mean) %>% #列に対して平均
+  data.frame(topic = names(.),
+             value = .) 
+b$topic<-c(1:7)
+
+
+man <- data2 %>% 
+  filter(sex=="男性") %>% 
+  dplyr::select(house_num)  
+man<-  as.integer(man$house_num)
+
+c <- coef(results_nmf[[5]]) %>% 
+  t() %>% 
+  as.data.frame() %>% 
+  rownames_to_column("house_num") %>% 
+  filter(house_num %in% man) %>% 
+  dplyr::select(-house_num) %>% 
+  apply(2, mean) %>% 
+  data.frame(topic = names(.),
+             value = .)
+c$topic<-c(1:7)
+
+
+c %>% 
+  ggplot(aes(topic, value))+
+  geom_bar(stat = "identity")
+
+# aターゲット b全員 c男性
+a %>% 
+  ggplot(aes(topic, value))+
+  geom_bar(stat = "identity", alpha=.6, fill = "blue")+
+  geom_bar(data = b, stat = "identity", fill = "red", alpha = .5)+
+  geom_bar(data = c, stat = "identity", fill = "green", alpha = .3)+
+  scale_x_continuous(breaks=seq(0,8,1))+
+  theme(axis.text=element_text(size=12),
+          axis.title = element_text(size=15))
+```
+
+```{r}
+group<- c(rep("Target",7))
+a<-cbind(a,group)
+
+group<- c(rep("Man",7))
+b<-cbind(b,group)
+
+group<- c(rep("All",7))
+c<-cbind(c,group)
+
+d <- rbind(a,b,c)
+d %>% kable
+
+# for(i in 1:21){
+#   if(d$group[i]=="1"){
+#     d$group[i]= "Target"}
+#   else if(d$group[i]=="2"){
+#     d$group="Men"}
+#   else{
+#     d$group[i]="All"}
+# }
+
+d %>% 
+  ggplot(aes(topic, value, fill=factor(group)))+
+  geom_bar(stat = "identity", position = "dodge")+
+  scale_fill_manual(values = c( "#00cbcb","#0000ff","#ff0000"))+
+  scale_x_continuous(breaks=seq(0,8,1))+
+  theme_bw()+
+    theme(axis.text=element_text(size=12),
+          axis.title = element_text(size=15),
+        legend.title = element_blank()
+        )
+
+```
+
+
+```{r 7 top10}
+basis7 %>% 
+  as.data.frame() %>% 
+  rownames_to_column(var = "program_code") %>% 
+  as_tibble() %>% 
+  gather(topic, value, -program_code) %>% 
+  left_join(pro_mst, by = "program_code") %>% 
+  group_by(topic) %>% 
+  # mutate(rank = min_rank(desc(value))) %>% 
+  drop_na(program_name) %>% 
+  mutate(rank = row_number(desc(value))) %>%
+  filter(rank < 11) %>%
+  dplyr::select( -program_code, -n, -value) %>% 
+  spread(topic, program_name) %>% 
+  kable()
+  # datatable(class = 'cell-border stripe',
+  #           rownames = FALSE,
+  #           extensions = 'FixedColumns',
+  #           options = list(scrollX = TRUE, scrollCollapse = TRUE
+  # ))
 ```
 

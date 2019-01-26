@@ -24,7 +24,7 @@ knitr::opts_chunk$set(echo = TRUE,
 source("/home/midori/competition/psql.R")
 source("/home/midori/competition/name_data.R")
 source("/home/midori/competition/name_cluster.R")
-source("/home/midori/competition/name_target.R")
+#source("/home/midori/competition/name_target.R")
 ```
 
 ```{r setup2,include=FALSE}
@@ -35,35 +35,31 @@ library(dbplyr)
 
 # ターゲットリスト作成
 今回ターゲットとしたのは,  
--  AI 1  
--  SAS 6  
--  女性  
--  20&30代  
+-  AI 5,6   
+-  SAS 3,4 
+-  男性  
 ```{r}
-data2$house_num <- as.integer(data2$house_num)
-target_num <-as.data.frame(target_num)                 
-colnames(target_num) <- c("house_num")
+# data2$house_num <- as.integer(data2$house_num)
+# target_num <-as.data.frame(target_num)                 
+# colnames(target_num) <- c("house_num")
+# 
+# target <- merge(target_num, data2, by="house_num")
+# 
+# target <- as.data.frame(target)
+#   
 
-target <- merge(target_num, data2, by="house_num")
-
-target <- as.data.frame(target)
-  
-
-# target <- data2 %>% 
-#   filter(resultAI == 1, resultSAS==6, sex =="女性", age >= 20, age <= 39) %>% 
-#   dplyr::select(house_num, age, genreL, genreIS) 
-# target %>% kable()
-# house_num だけ格納
-  # target_num <- data2 %>% 
-  #   filter(resultAI == 1, resultSAS==6, sex =="女性", age >= 20, age <= 39) %>%
-  #   dplyr::select(house_num) 
-# target_num <- as.integer(target_num$house_num)
+ target <- data2 %>% 
+   filter(resultAI == 5|resultAI == 6, resultSAS==3, sex =="男性") %>% 
+   dplyr::select(house_num, age, genreL, genreIS) 
+ target %>% kable()
+# house_num だけ格納T
+ target_num <- target$house_num 
 ```
 
 カウントしてみる  
 ```{r}
 target$age <-  as.integer(target$age)
-
+target$house_num <- as.integer(target$house_num)
 target %>%
   dplyr::select(age, genreL, genreIS) %>% 
   group_by(genreL, genreIS) %>% 
@@ -72,11 +68,7 @@ target %>%
   kable()
 ```
 
-サンプルとして
-- タレント重視, コミュニティ同調 4人  188,1092,2016,2796  
-- タレント重視, トレンドフリーク 5人  523,1512,4231,5174,6913  
-- 機能実証派  , トレンドフリーク 1人  948
-を抽出してこようかな  
+-------------ここまで 
 
 # 各データ数と期間の確認
 ```{r}

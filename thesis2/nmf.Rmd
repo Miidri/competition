@@ -82,9 +82,12 @@ smr %>%
 ```
 
 ```{r plot1}
- smr %>% 
+smr1 <- smr %>% 
    ggplot(aes(x = rank, y=residuals))+
-   geom_line()
+   geom_line()+
+  theme_bw()+
+  theme(axis.text=element_text(size=12),
+        axis.title = element_text(size=15))
 ```
 
 ```{r mic cor}
@@ -105,9 +108,14 @@ cor <- sapply(res, function(x) {
 ```
 
 ```{r plot2}
- smr %>% 
+ smr2<- smr %>% 
    ggplot(aes(rank, cor)) +
-   geom_line()
+   geom_line()+
+  theme_bw()+
+  theme(axis.text=element_text(size=12),
+        axis.title = element_text(size=15))
+
+grid.arrange(smr1, smr2,ncol=2)
 ```
 
 
@@ -230,19 +238,64 @@ grid.arrange(p_coef7, p_target7,
 ```
 
 ```{r}
-coef(results_nmf[[5]]) %>% 
+# a_0 でtargetのmaxのtopicでの人数カウント
+a_0 <-coef(results_nmf[[5]]) %>% 
   t() %>% 
   as.data.frame() %>% 
   rownames_to_column("house_num") %>% 
   filter(house_num %in% o_num) %>% 
   gather(topic, value, -house_num) %>% 
   group_by(house_num) %>% 
-  filter(value == max(value)) %>% 
-  ggplot(aes(topic))+
-  geom_bar()
+  filter(value ==max(value)) %>% 
+  group_by(topic) %>% 
+  count(topic)
 
+a_0$topic<-c(1:7)
+colnames(a_0)<-c("topic","count")
+a_0p<-  a_0 %>% ggplot(aes(x=topic, y=count))+
+  geom_bar(stat = "identity")+
+  theme_bw()+
+    theme(axis.text=element_text(size=12),
+          axis.title = element_text(size=15),
+        legend.title = element_blank()
+        )
 
+b_0 <- coef(results_nmf[[5]]) %>% 
+  t() %>% 
+  as.data.frame() %>% 
+  rownames_to_column("house_num") %>% 
+  gather(topic, value, -house_num) %>% 
+  group_by(house_num) %>% 
+  filter(value ==max(value)) %>% 
+  group_by(topic) %>% 
+  count(topic)
+b_0$topic<-c(1:7)
+colnames(b_0)<-c("topic","count")
+b_0p<-  b_0 %>% ggplot(aes(x=topic, y=count))+
+  geom_bar(stat = "identity")+
+  theme_bw()+
+    theme(axis.text=element_text(size=12),
+          axis.title = element_text(size=15),
+        legend.title = element_blank()
+        )
 
+c_0 <- coef(results_nmf[[5]]) %>% 
+  t() %>% 
+  as.data.frame() %>% 
+  rownames_to_column("house_num") %>% 
+  filter(house_num %in% man) %>% 
+  gather(topic, value, -house_num) %>% 
+  group_by(house_num) %>% 
+  filter(value ==max(value)) %>% 
+  group_by(topic) %>% 
+  count(topic)
+c_0$topic<-c(1:7)
+colnames(c_0)<-c("topic","count")
+
+grid.arrange(a_0p, b_0p,ncol=2)
+```
+
+```{r max}
 a <- coef(results_nmf[[5]]) %>% 
   t() %>% 
   as.data.frame() %>% 
@@ -287,17 +340,6 @@ c %>%
   geom_bar(stat = "identity")
 
 # aターゲット b全員 c男性
-a %>% 
-  ggplot(aes(topic, value))+
-  geom_bar(stat = "identity", alpha=.6, fill = "blue")+
-  geom_bar(data = b, stat = "identity", fill = "red", alpha = .5)+
-  geom_bar(data = c, stat = "identity", fill = "green", alpha = .3)+
-  scale_x_continuous(breaks=seq(0,8,1))+
-  theme(axis.text=element_text(size=12),
-          axis.title = element_text(size=15))
-```
-
-```{r}
 group<- c(rep("Target",7))
 a<-cbind(a,group)
 
@@ -310,26 +352,84 @@ c<-cbind(c,group)
 d <- rbind(a,b,c)
 d %>% kable
 
-# for(i in 1:21){
-#   if(d$group[i]=="1"){
-#     d$group[i]= "Target"}
-#   else if(d$group[i]=="2"){
-#     d$group="Men"}
-#   else{
-#     d$group[i]="All"}
-# }
-
-d %>% 
+d_p<-d %>% 
   ggplot(aes(topic, value, fill=factor(group)))+
   geom_bar(stat = "identity", position = "dodge")+
   scale_fill_manual(values = c( "#00cbcb","#0000ff","#ff0000"))+
   scale_x_continuous(breaks=seq(0,8,1))+
-  theme_bw()+
+  theme_bw()+ylim(0,0.0035)+
     theme(axis.text=element_text(size=12),
           axis.title = element_text(size=15),
         legend.title = element_blank()
         )
+```
 
+```{r mean_all}
+a_1 <- coef(results_nmf[[5]]) %>% 
+  t() %>% 
+  as.data.frame() %>% 
+  rownames_to_column("house_num") %>% 
+  filter(house_num %in% o_num) %>% 
+  gather(topic, value, -house_num) %>% 
+  group_by(house_num) %>% 
+  filter(value == max(value)) %>% 
+  group_by(topic) %>% 
+  summarise(value = mean(value))
+a_1$topic<-c(1:7)
+
+b_1 <- coef(results_nmf[[5]]) %>% 
+  t() %>% 
+  as.data.frame() %>% 
+  rownames_to_column("house_num") %>% 
+  gather(topic, value, -house_num) %>% 
+  group_by(house_num) %>% 
+  filter(value == max(value)) %>% 
+  group_by(topic) %>% 
+  summarise(value = mean(value))
+b_1$topic<-c(1:7)
+
+c_1 <- coef(results_nmf[[5]]) %>% 
+  t() %>% 
+  as.data.frame() %>% 
+  rownames_to_column("house_num") %>% 
+  filter(house_num %in% man) %>% 
+  gather(topic, value, -house_num) %>% 
+  group_by(house_num) %>% 
+  filter(value == max(value)) %>% 
+  group_by(topic) %>% 
+  summarise(value = mean(value))
+c_1$topic<-c(1:7)
+
+# aターゲット b全員 c男性
+group<- c(rep("Target",7))
+a_1<-cbind(a_1,group)
+
+group<- c(rep("Man",7))
+b_1<-cbind(b_1,group)
+
+group<- c(rep("All",7))
+c_1<-cbind(c_1,group)
+
+d_1 <- rbind(a_1,b_1,c_1)
+d_1 %>% kable
+
+d_1p<-d_1 %>% 
+  ggplot(aes(topic, value, fill=factor(group)))+
+  geom_bar(stat = "identity", position = "dodge")+
+  scale_fill_manual(values = c( "#00cbcb","#0000ff","#ff0000"))+
+  scale_x_continuous(breaks=seq(0,8,1))+
+  ylim(0,0.0035)+xlab("cluster number")+
+theme_bw()+
+    theme(axis.text=element_text(size=12),
+          axis.title = element_text(size=15),
+          legend.text=element_text(size=12),
+          legend.title = element_blank())
+grid.arrange(d_p, d_1p, ncol=2)
+
+
+```
+
+```{r}
 ```
 
 
@@ -344,7 +444,7 @@ basis7 %>%
   # mutate(rank = min_rank(desc(value))) %>% 
   drop_na(program_name) %>% 
   mutate(rank = row_number(desc(value))) %>%
-  filter(rank < 11) %>%
+  filter(rank < 6) %>%
   dplyr::select( -program_code, -n, -value) %>% 
   spread(topic, program_name) %>% 
   kable()

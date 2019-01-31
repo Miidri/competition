@@ -10,7 +10,7 @@ crossAI %>%
   t() %>% 
   kable()
 plot(crossAI,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
-     ,las=1, main="", xlab="表現嗜好", ylab="A・I") 
+     ,las=1, main="", xlab="表現嗜好セグメント", ylab="Attention・Interest") 
 
 # SAS VR情報選択と答え合わせ
 crossSAS <- xtabs(~segment2 + resultSAS) 
@@ -18,7 +18,7 @@ crossSAS %>%
   t() %>% 
   kable()
 plot(crossSAS,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
-     ,las=1, main="", xlab="情報選択", ylab="S・A・S") 
+     ,las=1, main="", xlab="情報選択セグメント", ylab="Search・Action・Share") 
 # VR モザイク
 # cross0 <- xtabs(~segment1 + segment2) 
 # cross0 %>% 
@@ -32,7 +32,7 @@ cross3 %>%
   t() %>% 
   kable()
 plot(cross3,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
-     ,las=1, main="", xlab="S・A・S", ylab="A・I")
+     ,las=1, main="", xlab="Search・Action・Share", ylab="Attention・Interest")
 
 
 # 男女 モザイク
@@ -41,7 +41,7 @@ cross_sex1 %>%
   t() %>% 
   kable()
 plot(cross_sex1,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
-     ,las=1, main="", xlab="性別", ylab="A・I")
+     ,las=1, main="", xlab="性別", ylab="Attention・Interest")
 
 # 年齢 モザイク
 cross_age1 <- xtabs(~age_index + resultAI)

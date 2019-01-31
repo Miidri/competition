@@ -38,7 +38,7 @@ library(e1071)
 library(ggplot2)
 try(dbDisconnect(con))
 source("/home/midori/competition/psql.R")
-source("/home/midori/competition/data_name.R")
+source("/home/midori/competition/name_data.R")
 ```
 
 # 表現嗜好 AI
@@ -109,6 +109,7 @@ L %>% kable()
 ## k-medoid
 ```{r pam SAS}
 set.seed(4410)
+rownames(scoresIS)<- house_num
 scoresIS_new<- scoresIS[,c(1,3,2)]
 colnames(scoresIS_new)<- c("ML1", "ML2","ML3")
 pamIS <- pam(scoresIS_new[1:3], 6)
@@ -161,10 +162,13 @@ plot(crossSAS,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
 rownames(scoresIS)<- house_num
 
 pamIS$medoids # とりあえず6個のmedoidみてみる
-pamIS$id.med
-medoidIS <- pamIS$id.med 
+#pamIS$id.med
+medoidIS <- pamIS$medoids %>% 
+  rownames() %>% 
+  as.integer() # medoidのhouse_numだけ格納
 IS <- dataIS1 %>% 
-  filter(house_num %in% medoidIS) %>% 
+  filter(house_num
+    %in% medoidIS) %>% 
   left_join(tibble(house_num = medoidIS,
                    clust = 1:6),
             by = "house_num") %>% 
@@ -432,19 +436,22 @@ grid.arrange(pam_SAS, pam_SAS6,ncol=2)
 grid.arrange(pam_SAS, pam_SAS6,ncol=1)
 
 # AI medoid
-L %>% 
+med_AI<-L %>% 
   gather(question, answer, -clust, -house_num) %>% 
-  mutate(question = as.integer(str_sub(question, 2,-1))) %>% 
+  mutate(question = as.integer(question)) %>% 
   ggplot(aes(question, answer))+
   geom_bar(stat = "identity")+
-  facet_wrap(~clust)+ 
+  facet_wrap(~clust)+   labs(x = "question number ")+
   ylim(0,5)+
-  xlim(1,30)+
-  theme_bw()
+  xlim(1,31)+
+  theme_bw()+
+  theme(strip.background =element_rect(fill = "white", colour = "black"),
+        axis.text=element_text(size=12),
+        axis.title = element_text(size=15))
 # SAS medoids
-IS %>% 
+med_SAS <-IS %>% 
   gather(question, answer, -clust, -house_num) %>% 
-  # mutate(number = as.integer(str_sub(question, 2,-1)),
+   mutate(question = as.integer(question)) %>% 
   #        type = str_sub(question, 1, 1),
   #        number = if_else(type == "S", number + 9L, number)) %>% 
   ggplot(aes(question, answer))+
@@ -452,8 +459,11 @@ IS %>%
   facet_wrap(~clust)+ 
   labs(x = "question number ")+
   ylim(0,5) +
-  xlim(1,18)+
-  theme_bw()
+  xlim(1,19)+
+  theme_bw()+
+  theme(strip.background =element_rect(fill = "white", colour = "black"),
+        axis.text=element_text(size=12),
+        axis.title = element_text(size=15))
 
 # AI VR表現嗜好と答え合わせ
 plot(crossAI,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")

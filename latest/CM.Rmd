@@ -1,0 +1,188 @@
+---
+title: "CM"
+author: "Midori Omura"
+output:
+  html_document:
+    number_sections: true
+    fig_caption: true
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    fig_width: 7
+    fig_height: 4.5
+    theme: sandstone 
+    highlight: tango
+    code_folding: hide
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      warning = FALSE,
+                      message = FALSE)
+```
+
+
+```{r set_up}
+#パッケージのインストールと読み込み
+#持ってないパッケージはインストールする
+#install.packages("MASS")
+library(knitr)
+library(DBI)
+library(tidyverse)
+library(reshape2)
+library(dbplot)
+library(lubridate)
+library(DT)
+library(gridExtra)
+library(fmsb)
+library(corrplot)
+library(GGally)
+library(graphics)
+library(psych)
+library(GPArotation)
+library(proxy)
+library(MASS)
+source("/home/midori/competition/psql.R")
+source("/home/midori/competition/name_data.R")
+```
+
+# 企業イメージCM
+
+企業名と銘柄名が一致しているCM と解釈して, 用意する.
+
+## データ全容
+```{r}
+CM <-  dbGetQuery(con,"
+                     select
+                      	A.adv_code,
+                        B.brand_code,
+                      	A.adv_name,
+                      	A.adv_start,
+                      	B.brand_start,
+                      	A.adv_lastup,
+                      	B.brand_lastup
+                      from
+                      	processed.m_cm_tv_advertiser as A
+                      left join
+                      	processed.m_cm_tv_brand	as B
+                      on
+                      	A.adv_kana = B.brand_kana
+                      where
+                      	A.adv_kana = B.brand_kana;
+                     ")
+CM <- CM %>%  as.data.frame()
+CM %>% count()
+```
+
+企業名=CM名 のCMを配信している会社は1354社ある.
+
+```{r}
+jiten <-  dbGetQuery(con,"
+                     select
+                      	*
+                      from
+                      	processed.jiten_data;
+                     ")
+
+jiten_code <- jiten %>%
+  dplyr::select(adv_code, brand_code) %>% 
+  as.data.frame()
+  
+  
+jiten0 <- jiten %>% 
+  semi_join(CM, by = c("adv_code", "brand_code"))
+```
+  
+しかし, この1年間でそれらCMを出したのは 933社のみ.  
+
+```{r}
+jiten0 %>% 
+  group_by(adv_code) %>% 
+  count() %>% 
+  ggplot(aes(n))+
+  geom_histogram()+
+  theme_bw()
+
+jiten0 %>% 
+  group_by(adv_code) %>% 
+  count() %>% 
+  summary()
+```
+
+
+## 回数が多いCM
+
+2017年度の放送回数がTOP100の会社をみてみる.
+
+```{r}
+jiten0 %>% 
+  group_by(adv_code) %>% 
+  count() %>%
+  arrange(desc(n)) %>% 
+  head(20) %>% 
+  left_join(CM, "adv_code") %>% 
+  dplyr::select(adv_name, n) %>% 
+  kable()
+
+```
+
+気になる点  
+
+- 複数商品を紹介する会社（ex: ニトリ, アマゾン, セブンイレブン）  
+- サービスの広告をする会社（ソフトバンク）
+- 商品名が企業名の会社（ライザップ） 
+  
+解決策
+
+- 回数で絞る（1日に5回も企業イメージ向上CMを流している会社はJTくらいでは?）
+- 複数種類のCMを出している会社に絞る.  （例：SB食品）  
+```{r SB}
+SB<-  dbGetQuery(con,"
+                      select
+                     	adv_code,
+                     	brand_name
+                     from
+                     	processed.m_cm_tv_brand
+                     where
+                     	adv_code = '02094' 
+                     order by
+                     	adv_code;
+                      ")
+SB %>% 
+  as.data.frame() %>% 
+  kable()
+```
+  
+  → 一部の本当に企業CMしかしていない会社が排除されてしまう.    
+```{r}
+CM1<- dbGetQuery(con, "select
+                        	B.adv_code,
+                        	A.adv_name,
+                        	A.adv_kana,
+                        	B.brand_kana 
+                        from
+                                processed.m_cm_tv_advertiser as A
+                        left join
+                                processed.m_cm_tv_brand	as B
+                        on
+                                A.adv_code = B.adv_code;
+                         ") 
+
+n2 <- CM1 %>%  group_by(adv_code) %>% 
+  count() %>% 
+  filter(n>1)
+
+CM1 %>% 
+  as_tibble() %>% 
+  mutate_if(is.character, function(x) str_remove_all(x, pattern = " ")) %>% 
+  group_by(adv_code) %>% 
+  filter(n() > 1) %>% 
+  ungroup() %>% 
+  filter(adv_kana == brand_kana)
+
+
+```
+
+

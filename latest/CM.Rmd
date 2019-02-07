@@ -58,11 +58,7 @@ CM <-  dbGetQuery(con,"
                      select
                       	A.adv_code,
                         B.brand_code,
-                      	A.adv_name,
-                      	A.adv_start,
-                      	B.brand_start,
-                      	A.adv_lastup,
-                      	B.brand_lastup
+                      	A.adv_name
                       from
                       	processed.m_cm_tv_advertiser as A
                       left join
@@ -155,10 +151,16 @@ SB %>%
   kable()
 ```
   
-  → 一部の本当に企業CMしかしていない会社が排除されてしまう.    
+  → 一部の本当に企業CMしかしていない会社が排除されてしまう.   
+  
+## 改善策
+
+広告主と銘柄が一致するCMを, 銘柄数が複数のCMと一種のCMに分ける.  
+→前者(CM1_1)はイメージアップ広告, 後者(CM1_2)は保留.
 ```{r}
 CM1<- dbGetQuery(con, "select
                         	B.adv_code,
+                          B.brand_code,
                         	A.adv_name,
                         	A.adv_kana,
                         	B.brand_kana 
@@ -169,20 +171,102 @@ CM1<- dbGetQuery(con, "select
                         on
                                 A.adv_code = B.adv_code;
                          ") 
-
-n2 <- CM1 %>%  group_by(adv_code) %>% 
-  count() %>% 
-  filter(n>1)
-
-CM1 %>% 
+CM1_1<- CM1 %>% 
   as_tibble() %>% 
   mutate_if(is.character, function(x) str_remove_all(x, pattern = " ")) %>% 
   group_by(adv_code) %>% 
   filter(n() > 1) %>% 
   ungroup() %>% 
+  filter(adv_kana == brand_kana) %>% 
+  dplyr::select(adv_code, brand_code, adv_name)
+
+CM1_2<- CM1 %>% 
+  as_tibble() %>% 
+  mutate_if(is.character, function(x) str_remove_all(x, pattern = " ")) %>% 
+  group_by(adv_code) %>% 
+  filter(n() == 1) %>% 
+  ungroup() %>% 
   filter(adv_kana == brand_kana)
+```
+  
 
+```{r more than 2}
+CM1_1 <- jiten0 %>% 
+  inner_join(CM1_1, by = c("adv_code", "brand_code"))
 
+# 総本数
+CM1_1 %>% count()
+
+# 会社数
+CM1_1 %>% 
+  distinct(adv_code) %>% 
+  count()
+
+# 会社別本数
+CM1_1 %>% 
+  group_by(adv_code) %>% 
+  count() %>% 
+  arrange(desc(n))
 ```
 
+```{r only 1}
+CM1_2 <- jiten0 %>% 
+  inner_join(CM1_2, by = c("adv_code", "brand_code"))
+
+# 総本数
+CM1_2 %>% count()
+
+# 会社数
+CM1_2 %>% 
+  distinct(adv_code) %>% 
+  count()
+
+# 会社別本数
+CM1_2 %>% 
+  group_by(adv_code) %>% 
+  count() %>% 
+  arrange(desc(n))
+```
+
+
+```{r 秒数検証}
+count0 <- jiten %>%
+  group_by(cm_time) %>% 
+  count() %>% 
+  ggplot(aes(cm_time,n)) +
+  xlim(0,80)+
+  geom_bar(stat="identity")+
+  theme_bw()+
+  ggtitle("全部")
+
+count1 <- jiten0 %>%
+  group_by(cm_time) %>% 
+  count() %>% 
+  ggplot(aes(cm_time,n)) +
+  xlim(0,80)+
+  geom_bar(stat="identity")+
+  theme_bw()+ 
+  ggtitle("adv_code = brand_code")
+
+count2 <- CM1_1 %>%
+  group_by(cm_time) %>% 
+  count() %>% 
+  ggplot(aes(cm_time,n)) +
+  xlim(0,80)+
+  geom_bar(stat="identity")+
+  theme_bw()+ 
+  ggtitle("イメージCM")
+
+count3 <- CM1_2 %>%
+  group_by(cm_time) %>% 
+  count() %>% 
+  ggplot(aes(cm_time,n)) +
+  xlim(0,80)+
+  geom_bar(stat="identity")+
+  theme_bw()+ 
+  ggtitle("イメージCM?")
+
+
+grid.arrange(count0, count1,count2,count3,ncol=2)
+```
 

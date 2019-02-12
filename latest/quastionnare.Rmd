@@ -304,9 +304,12 @@ dataIS_new_sub <-  dataIS_new_sub %>%
 dataIS_new_sub <- merge(dataIS_new_sub, dataIS_new)
 dataIS_new_sub %>% count()
 ```
+ここまではname_data2に移行します
+
 
 ## 購買行動 を 分ける方法検討
 ***  
+2値化の方法検討しよう.
 
 ### value_1
  - I1 情報収集に時間をかけるのはもったいない
@@ -378,3 +381,5 @@ value_2_sub %>% count()
   
 1238/4217 =  0.2935736  
 こちらも30%くらいですね.  
+
+name_data2に移行します

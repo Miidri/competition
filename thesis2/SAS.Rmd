@@ -204,7 +204,7 @@ colnames(scoresIS) <- c("ML1","ML2","ML3","index","genreIS", "age_index")
 
 ## 男女・未婚既婚別
 ```{r}
-S12 <- ggplot(scoresIS_new, aes(x=ML1, y=ML2, col=index)) +
+S12 <- ggplot(scoresIS, aes(x=ML1, y=ML2, col=index)) +
   geom_point(size = 0.5)+
   scale_color_manual(values = c( "#ff0000","#0000ff","#ff99cc","#00cbcb"))+theme_bw()+
   theme(axis.text=element_text(size=12),
@@ -213,15 +213,22 @@ S12 <- ggplot(scoresIS_new, aes(x=ML1, y=ML2, col=index)) +
 
 S13 <- ggplot(scoresIS, aes(x=ML1, y=ML3, col=index)) +
   geom_point(size = 0.5)+
-  scale_color_manual(values = c( "#ff0000","#0000ff","#ff99cc","#00cbcb"))+theme_bw()
+  scale_color_manual(values = c( "#ff0000","#0000ff","#ff99cc","#00cbcb"))+theme_bw()+
+  theme(axis.text=element_text(size=12),
+        axis.title = element_text(size=15),
+        legend.position = 'none')
+
 S23 <- ggplot(scoresIS, aes(x=ML2, y=ML3, col=index)) +
   geom_point(size = 0.5)+
-  scale_color_manual(values = c( "#ff0000","#0000ff","#ff99cc","#00cbcb"))+theme_bw()
+  scale_color_manual(values = c( "#ff0000","#0000ff","#ff99cc","#00cbcb"))+theme_bw()+
+  theme(axis.text=element_text(size=12),
+        axis.title = element_text(size=15),
+        legend.position = 'none')
+
 grid.arrange(S12, S13, S23,
              ncol = 2)
 
 rownames(scoresIS) <- house_num 
-scoresIS <- cbind(scoresIS, index, age_index)
 
 pairsSAS1 <- ggpairs(scoresIS[,1:3],  aes(col=scoresIS$index), lower=list(continuous="points", size=0.1)) +
 #  scale_color_manual(values = c( "#ff0000","#0000ff","#ff99cc","#00cbcb"))+
@@ -273,13 +280,22 @@ grid.arrange(IS_12, IS_13, IS_23,
 # colored by IS segmemnt
 IS12 <-ggplot(scoresIS, aes(x=ML1, y=ML2, col=genreIS)) +
   geom_point(size = 1)+theme_bw()+
-  scale_color_manual(values = c( "#802AE8","#E82C0C","#2CC6FF","#FF0DFF","#C46FFF","#294BE8"))
+  scale_color_manual(values = c( "#802AE8","#E82C0C","#2CC6FF","#FF0DFF","#C46FFF","#294BE8"))+
+  theme(axis.text=element_text(size=12),
+        axis.title = element_text(size=15))
+
 IS13 <-ggplot(scoresIS, aes(x=ML1, y=ML3, col=genreIS)) +
   geom_point(size = 1)+theme_bw()+
-  scale_color_manual(values = c( "#802AE8","#E82C0C","#2CC6FF","#FF0DFF","#C46FFF","#294BE8"))
+  scale_color_manual(values = c( "#802AE8","#E82C0C","#2CC6FF","#FF0DFF","#C46FFF","#294BE8"))+
+  theme(axis.text=element_text(size=12),
+        axis.title = element_text(size=15))
+
 IS23 <-ggplot(scoresIS, aes(x=ML2, y=ML3, col=genreIS)) +
   geom_point(size = 1)+theme_bw()+
-  scale_color_manual(values = c( "#802AE8","#E82C0C","#2CC6FF","#FF0DFF","#C46FFF","#294BE8"))
+  scale_color_manual(values = c( "#802AE8","#E82C0C","#2CC6FF","#FF0DFF","#C46FFF","#294BE8"))+
+  theme(axis.text=element_text(size=12),
+        axis.title = element_text(size=15))
+
 grid.arrange(IS12, IS13, IS23,
              ncol = 2)
 ```

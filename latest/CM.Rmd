@@ -70,6 +70,9 @@ CM <-  dbGetQuery(con,"
                      ")
 CM <- CM %>%  as.data.frame()
 CM %>% count()
+
+sta <- con %>% 
+  tbl(from = dbplyr::in_schema("processed", "sta_mst"))
 ```
 
 企業名=CM名 のCMを配信している会社は1354社ある.
@@ -187,10 +190,11 @@ CM1_2<- CM1 %>%
   filter(n() == 1) %>% 
   ungroup() %>% 
   filter(adv_kana == brand_kana)
+
 ```
   
-
-```{r more than 2}
+### CM 2種類以上, かつ, 3650回以上
+```{r more than 2 and more than 3650}
 CM1_1 <- jiten0 %>% 
   inner_join(CM1_1, by = c("adv_code", "brand_code"))
 
@@ -204,14 +208,40 @@ CM1_1 %>%
 
 # 会社別本数
 CM1_1 %>% 
-  group_by(adv_code) %>% 
-  count() %>% 
-  arrange(desc(n))
+  group_by(adv_code) %>%
+  count()  
 ```
 
+### CM 2種類以上, かつ, 3650回未満
+```{r more than 2 and less than 3650}
+CM1_3 <- CM1_1 %>% 
+  group_by(adv_code) %>% 
+  filter(n()<3650) %>% 
+  ungroup() 
+
+# 総本数
+CM1_3 %>% count()
+
+# 会社数
+CM1_3 %>% 
+  distinct(adv_code) %>% 
+  count()
+
+# 会社別本数
+CM1_3 %>% 
+  distinct(adv_code) %>% 
+  count()
+```
+
+### CM 1種類のみ
 ```{r only 1}
 CM1_2 <- jiten0 %>% 
   inner_join(CM1_2, by = c("adv_code", "brand_code"))
+
+CM1_2 %>% 
+  group_by(adv_code) %>% 
+  filter(n()<3650) %>% 
+  ungroup() 
 
 # 総本数
 CM1_2 %>% count()
@@ -228,7 +258,10 @@ CM1_2 %>%
   arrange(desc(n))
 ```
 
+# 検証してみよう
+全体, CM1_3でやってみた
 
+## 検証1 秒数
 ```{r 秒数検証}
 count0 <- jiten %>%
   group_by(cm_time) %>% 
@@ -239,16 +272,16 @@ count0 <- jiten %>%
   theme_bw()+
   ggtitle("全部")
 
-count1 <- jiten0 %>%
-  group_by(cm_time) %>% 
-  count() %>% 
-  ggplot(aes(cm_time,n)) +
-  xlim(0,80)+
-  geom_bar(stat="identity")+
-  theme_bw()+ 
-  ggtitle("adv_code = brand_code")
+# count1 <- jiten0 %>%
+#   group_by(cm_time) %>% 
+#   count() %>% 
+#   ggplot(aes(cm_time,n)) +
+#   xlim(0,80)+
+#   geom_bar(stat="identity")+
+#   theme_bw()+ 
+#   ggtitle("adv_code = brand_code")
 
-count2 <- CM1_1 %>%
+count2 <- CM1_3 %>%
   group_by(cm_time) %>% 
   count() %>% 
   ggplot(aes(cm_time,n)) +
@@ -267,6 +300,179 @@ count3 <- CM1_2 %>%
   ggtitle("イメージCM?")
 
 
-grid.arrange(count0, count1,count2,count3,ncol=2)
+grid.arrange(count0, count2, count3, ncol=3)
+```
+
+## 検証2 広告種類
+```{r adv_type}
+adv_type<- c(0,2,5)
+adv_t_name<- c("タイムCM", "PT", "ステブレ")
+adv_t <- cbind(adv_type, adv_t_name)
+adv_t <- adv_t %>% 
+  as.tibble()  
+adv_t$adv_type <- adv_t$adv_type %>% as.integer()
+
+count0t <- jiten %>%
+  group_by(adv_type) %>% 
+  count() %>% 
+  left_join(adv_t, by = "adv_type") %>% 
+  ggplot(aes(adv_t_name,n)) +
+  geom_bar(stat="identity")+
+  theme_bw()+
+  ggtitle("全部")
+
+# count1t <- jiten0 %>%
+#   group_by(adv_type) %>% 
+#   count() %>% 
+#   ggplot(aes(adv_type,n)) +
+#   geom_bar(stat="identity")+
+#   theme_bw()+ 
+#   ggtitle("adv_code = brand_code")
+
+count2t <- CM1_3 %>%
+  group_by(adv_type) %>% 
+  count() %>% 
+  left_join(adv_t, by = "adv_type") %>% 
+  ggplot(aes(adv_t_name,n)) +
+  geom_bar(stat="identity")+
+  theme_bw()+ 
+  ggtitle("イメージCM")
+
+count3t <- CM1_2 %>%
+  group_by(adv_type) %>% 
+  count() %>% 
+  left_join(adv_t, by = "adv_type") %>% 
+  ggplot(aes(adv_t_name,n)) +
+  geom_bar(stat="identity")+
+  theme_bw()+ 
+  ggtitle("イメージCM?")
+
+grid.arrange(count0t, count2t, count3t,ncol=3)
+
+```
+
+## 検証3 日付別
+```{r date}
+count0d <- jiten %>%
+  group_by(cm_date) %>% 
+  count() %>% 
+  ggplot(aes(cm_date,n)) +
+  geom_bar(stat="identity")+
+  theme_bw()+
+  ggtitle("全部")
+
+# count1d <- jiten0 %>%
+#   group_by(cm_date) %>% 
+#   count() %>% 
+#   ggplot(aes(cm_date,n)) +
+#   geom_bar(stat="identity")+
+#   theme_bw()+ 
+#   ggtitle("adv_code = brand_code")
+
+count2d <- CM1_3 %>%
+  group_by(cm_date) %>% 
+  count() %>% 
+  ggplot(aes(cm_date,n)) +
+  geom_bar(stat="identity")+
+  theme_bw()+ 
+  ggtitle("イメージCM")
+
+count3d <- CM1_2 %>%
+  group_by(cm_date) %>% 
+  count() %>% 
+  ggplot(aes(cm_date,n)) +
+  geom_bar(stat="identity")+
+  theme_bw()+ 
+  ggtitle("イメージCM?")
+
+
+grid.arrange(count0d, count2d, count3d,ncol=3)
+```
+
+## 検証4 局別
+```{r station}
+sta_minpo <-sta %>%
+  as.data.frame() %>% 
+  filter(station_code <6) %>% 
+  arrange(station_code) 
+
+count0s <- jiten %>%
+  group_by(station_code) %>% 
+  count() %>% 
+  left_join(sta_minpo, by = "station_code") %>% 
+  ggplot(aes(station_jp,n)) +
+  geom_bar(stat="identity")+
+  theme_bw()+
+  ggtitle("全部")
+
+# count1s <- jiten0 %>%
+#   group_by(station_code) %>% 
+#   count() %>% 
+#   left_join(sta_minpo, by = "station_code") %>% 
+#   ggplot(aes(station_jp,n)) +
+#   geom_bar(stat="identity")+
+#   theme_bw()+ 
+#   ggtitle("adv_code = brand_code")
+
+count2s <- CM1_1 %>%
+  group_by(station_code) %>% 
+  count() %>% 
+  left_join(sta_minpo, by = "station_code") %>% 
+  ggplot(aes(station_jp,n)) +
+  geom_bar(stat="identity")+
+  theme_bw()+ 
+  ggtitle("イメージCM")
+
+count3s <- CM1_2 %>%
+  group_by(station_code) %>% 
+  count() %>% 
+  left_join(sta_minpo, by = "station_code") %>% 
+  ggplot(aes(station_jp,n)) +
+  geom_bar(stat="identity")+
+  theme_bw()+ 
+  ggtitle("イメージCM?")
+
+
+grid.arrange(count0s, count2s, count3s,ncol=3)
+```
+
+## 検証5 時間帯別
+```{r hour}
+count0h <- jiten %>%
+  mutate(hour =jiten$cm_start_time %>% hour()) %>% 
+  group_by(hour) %>% 
+  as.tibble() %>% 
+  count() %>% 
+  ggplot(aes(hour,n)) +
+  geom_bar(stat="identity")+
+  theme_bw()+ 
+  ggtitle("全部")
+
+count2h <- CM1_3 %>%
+  mutate(hour =CM1_3$cm_start_time %>% hour()) %>% 
+  group_by(hour) %>% 
+  as.tibble() %>% 
+  count() %>% 
+  ggplot(aes(hour,n)) +
+  geom_bar(stat="identity")+
+  theme_bw()+ 
+  ggtitle("イメージCM")
+
+count3h <- CM1_2 %>%
+  mutate(hour =CM1_2$cm_start_time %>% hour()) %>% 
+  group_by(hour) %>% 
+  as.tibble() %>% 
+  count() %>% 
+  ggplot(aes(hour,n)) +
+  geom_bar(stat="identity")+
+  theme_bw()+  
+  ggtitle("イメージCM?")
+
+
+grid.arrange(count0h, count2h, count3h,ncol=3)
+```
+
+```{r }
+
 ```
 

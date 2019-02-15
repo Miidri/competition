@@ -52,6 +52,38 @@ try(dbDisconnect(con))
 source("/home/midori/competition/psql.R")
 source("/home/midori/competition/name_data2.R")
 ```
+# 目的
+***
+
+卒論で全部同じ回答の人で1クラスタできてしまった. (なんなら結論の1つは, これ...)  
+→ すべて同じ回答をする回答者を省きたい.  
+→ とりあえず情報特性と購買特性のアンケートを考える.    
+→ 全部orどちから（情報or購買）の回答が全部同じ回答者のhouse_numを用意.    
+→ 抜いて, dataIS_new とか名づけました.(dataIS_new_subは片方全部同じ回答をした回答者)  
+→改めてクラスタリング(5つに)
+
+# 質問
+***
+- 1 情報収集に時間をかけるのはもったいない
+- 2 最低限の情報を持っていれば十分だ
+- 3 情報は広く浅く知っていれば十分だと思う
+- 4 口コミ情報を参考にすることが多い
+- 5 良いと思った情報はできるだけ多くの人と共有することが多い
+- 6 趣味や興味関心ごとなどのうんちくはたくさん持っている
+- 7 面白いと思った情報は周りの人に話したくなる
+- 8 情報収集は自ら積極的に行うほうだ
+- 9 情報は人より早く知っていることが多い  
+***
+- 10 どうしても必要なもの以外、買わないほうだ
+- 11 丈夫で長持ちするモノを選ぶことが多い
+- 12 流行に左右されない、長年使い続けられるものを選ぶことが多い
+- 13 周りの人が持っているモノなどを見て思わず自分も欲しくなってしまうことが多い
+- 14 周りのみんなが持っているモノを自分だけ持っていないと不安に感じる
+- 15 周りの人がみんな買っているならその商品は間違いなく良いモノだと思う
+- 16 買い物をすること自体が楽しく、好きだ
+- 17 「限定モノ」や「流行モノ」に弱く、すぐ欲しくなる
+- 18 一流・有名ブランド、メーカーの商品を買うのが好きだ（衣料品、バッグ、時計など）
+***
 
 only_all → 全部の回答が一致 →269人  
 only_all_sub → 情報特性か購買特性のどちらかで回答一致 →226人  
@@ -69,6 +101,12 @@ dataIS_new_sub %>%
 
 dataIS_new %>% count()
 dataIS_new_sub %>% count()
+
+
+dataIS_new <- dataIS_new %>% 
+  as.data.frame()
+dataIS_new_sub <- dataIS_new_sub %>% 
+  as.data.frame()
 ```
 
 - dataIS_new → 4443人.  
@@ -95,13 +133,18 @@ eigenIS_new
 # Minimum Average Partial, BIC
 VSS(dataIS_new[,-1], n=10)
 # 平行分析
-#fa.parallel(dataIS_new[,-1], main = "")
+#fa.parallel(dataIS_new[,-1],
+#            n.obs = 4443,
+#            main = "",
+#            n.iter = 10)
+# スクリープロット
+plot(eigenIS_new,type="lines") 
 ```  
 - MAP:3  
 - BIC:7  
 - PC:?
 - FA:?  
-第3固有値までで行ってみる.  
+第4固有値までで行ってみる.  
 ちょっと平行分析長いのであきらめる.
 
 # 因子分析
@@ -109,14 +152,12 @@ VSS(dataIS_new[,-1], n=10)
 データ数が多いため, 最尤法を用いる.  
 また心理尺度であるため, 斜交回転 (promax)を行う.  
 
-```{r promax}
-dataIS_new <- dataIS_new %>% 
-  as.data.frame() 
-ml1	<-	fa(r=dataIS_new[,-1],	nfactors=3,	rotate="promax",	fm="ml")
+```{r promax} 
+ml1	<-	fa(r=dataIS_new[,-1],	nfactors=4,	rotate="promax",	fm="ml")
 print(ml1)
-loadings1 <- ml1$loadings[,1:3]
-loadings1<- loadings1[,c(1,3,2)]
- loadings <- 
+loadings1 <- ml1$loadings[,1:4]
+loadings1<- loadings1[,c(2,4,3,1)]
+loadings1 <- 
    data.frame(
      question_num = c(1:18),
      loadings1)
@@ -147,27 +188,49 @@ load3 <- ggplot(loadings1, aes(x = question_num, y = ML3)) +
   theme(axis.text=element_text(size=12),
         axis.title = element_text(size=15))
 
-loadT1 <- ggplot(loadings1, aes(x = ML1, y = ML2, label = question_num)) +
+load4 <- ggplot(loadings1, aes(x = question_num, y = ML4)) +
+  geom_bar(stat = "identity", position = "identity") +
+  xlim(0,19)+
+  labs(x = "question number ")+
+  scale_fill_brewer(type ="seq",palette = 1)+ 
+  theme_bw()+
+  theme(axis.text=element_text(size=12),
+        axis.title = element_text(size=15))
+
+loadT12 <- ggplot(loadings1, aes(x = ML1, y = ML2, label = question_num)) +
   geom_point() +theme_bw()+ geom_label(position = "nudge" )+
   theme(axis.text=element_text(size=12),
         axis.title = element_text(size=15))
 
-loadT2 <- ggplot(loadings1, aes(x = ML1, y = ML3, label = question_num)) +
+loadT13 <- ggplot(loadings1, aes(x = ML1, y = ML3, label = question_num)) +
   geom_point() +theme_bw()+ geom_label(position = "nudge" )+
   theme(axis.text=element_text(size=12),
         axis.title = element_text(size=15))
 
-loadT3 <- ggplot(loadings1, aes(x = ML2, y = ML3, label = question_num)) +
+loadT14 <- ggplot(loadings1, aes(x = ML1, y = ML4, label = question_num)) +
   geom_point() +theme_bw()+ geom_label(position = "nudge" ) +
   theme(axis.text=element_text(size=12),
         axis.title = element_text(size=15))
 
+loadT23 <- ggplot(loadings1, aes(x = ML2, y = ML3, label = question_num)) +
+  geom_point() +theme_bw()+ geom_label(position = "nudge" ) +
+  theme(axis.text=element_text(size=12),
+        axis.title = element_text(size=15))
+
+loadT24 <- ggplot(loadings1, aes(x = ML2, y = ML4, label = question_num)) +
+  geom_point() +theme_bw()+ geom_label(position = "nudge" ) +
+  theme(axis.text=element_text(size=12),
+        axis.title = element_text(size=15))
+
+loadT34 <- ggplot(loadings1, aes(x = ML3, y = ML4, label = question_num)) +
+  geom_point() +theme_bw()+ geom_label(position = "nudge" ) +
+  theme(axis.text=element_text(size=9),
+        axis.title = element_text(size=15))
+
 # slide 3_SAS
-grid.arrange(load1, load2, load3,
-             ncol = 3)
-# fa faIS1
-grid.arrange(load1, load2, load3,
+grid.arrange(load1, load2, load3, load4,
              ncol = 2)
+
 
 # fa num_SAS
 pairsSAS <- ggpairs(loadings1[,-1],  aes(label = loadings1$question_num))+
@@ -177,22 +240,26 @@ pairsSAS <- ggpairs(loadings1[,-1],  aes(label = loadings1$question_num))+
         strip.background =element_rect(fill = "white", colour = "black"),
         strip.text = element_text(size=10))
 
-pairsSAS <- putPlot(pairsSAS, loadT1, 2, 1)  
-pairsSAS <- putPlot(pairsSAS, loadT2, 3, 1)
-pairsSAS <- putPlot(pairsSAS, loadT3, 3, 2) 
+pairsSAS <- putPlot(pairsSAS, loadT12, 2, 1)  
+pairsSAS <- putPlot(pairsSAS, loadT13, 3, 1)
+pairsSAS <- putPlot(pairsSAS, loadT14, 4, 1)
+pairsSAS <- putPlot(pairsSAS, loadT23, 3, 2) 
+pairsSAS <- putPlot(pairsSAS, loadT24, 4, 2)
+pairsSAS <- putPlot(pairsSAS, loadT34, 4, 3)
 
 pairsSAS
 ```
 
 ## biplot
 ```{r biplot}
-scores1 <- ml1$scores[,1:3]
-scores1 <- scores1[,c(1,3,2)]
+scores1 <- ml1$scores[,1:4]
+scores1 <- scores1[,c(2,4,3,1)]
 scores1 <- data.frame(scores1)
 rownames(scores1) <- dataIS_new$house_num
 scores1 <- cbind(scores1, index, genreIS, age_index)
-colnames(scores1) <- c("ML1","ML2","ML3","index","genreIS", "age_index")
 #scores1_new <- cbind(scores1, index, genreIS, age_index)
+
+#biplot(ml1$scores, ml1$loadings, choices(ML1,ML2))
 
 ```
 
@@ -205,14 +272,25 @@ IS12 <-ggplot(scores1, aes(x=ML1, y=ML2, col=genreIS)) +
 IS13 <-ggplot(scores1, aes(x=ML1, y=ML3, col=genreIS)) +
   geom_point(size = 1)+theme_bw()+
   scale_color_manual(values = c( "#802AE8","#E82C0C","#2CC6FF","#FF0DFF","#C46FFF","#294BE8"))
+IS14 <-ggplot(scores1, aes(x=ML1, y=ML4, col=genreIS)) +
+  geom_point(size = 1)+theme_bw()+
+  scale_color_manual(values = c( "#802AE8","#E82C0C","#2CC6FF","#FF0DFF","#C46FFF","#294BE8"))
 IS23 <-ggplot(scores1, aes(x=ML2, y=ML3, col=genreIS)) +
   geom_point(size = 1)+theme_bw()+
   scale_color_manual(values = c( "#802AE8","#E82C0C","#2CC6FF","#FF0DFF","#C46FFF","#294BE8"))
-grid.arrange(IS12, IS13, IS23,
+IS24 <-ggplot(scores1, aes(x=ML2, y=ML4, col=genreIS)) +
+  geom_point(size = 1)+theme_bw()+
+  scale_color_manual(values = c( "#802AE8","#E82C0C","#2CC6FF","#FF0DFF","#C46FFF","#294BE8"))
+IS34 <-ggplot(scores1, aes(x=ML3, y=ML4, col=genreIS)) +
+  geom_point(size = 1)+theme_bw()+
+  scale_color_manual(values = c( "#802AE8","#E82C0C","#2CC6FF","#FF0DFF","#C46FFF","#294BE8"))
+grid.arrange(IS12, IS13, IS14, IS23, IS24, IS34,
              ncol = 2)
 ```
 
 # 距離行列
+
+distatisしないならいりません.
 ```{r dist}
 dE <- proxy::dist(ml1$scores, method="Euclidean")
 head(dE,5)
@@ -220,33 +298,30 @@ dE1 <- as.matrix(dE)
 #write.csv(dES1, file= "/home/miidri/competition/dEI1.csv")
 rownames(dE1) <- dataIS_new$house_num
 colnames(dE1) <- dataIS_new$house_num
-dE1[1:5,1:5]
+#dE1[1:5,1:5]
 ```
 
 # クラスタリング
 ## k-medoid
 
-どちらともいえないでクラスタ1つ生成されていたので, 今回は1個減らしてみようかな, てきな.  
-6にすると真ん中にもう1クラスタできた.
+どちらともいえないでクラスタ1つ生成されていたので, 今回は1個減らしてみようかな, って思ってたら4で十分だった.
 ```{r pam}
 set.seed(4410)
 rownames(scores1)<- house_num
-scores1_new<- scores1[,c(1,3,2)]
-colnames(scores1_new)<- c("ML1", "ML2","ML3")
 
-pam5 <- pam(scores1_new[1:3], 5)
-#pam6 <- pam(scores1_new[1:3], 6)
+pam5 <- pam(scores1[1:4], 5)
+pam4 <- pam(scores1[1:4], 4)
 
 # 全容
-pam5$data %>% 
+pam4$data %>% 
   as_tibble() %>% 
-  mutate(clust = pam6$clustering) %>% 
+  mutate(clust = pam4$clustering) %>% 
   ggplot(aes(ML1, ML2, colour = factor(clust), fill=factor(clust)))+
   # geom_density_2d()+
   geom_point(size=.5, alpha = .5)+
   stat_ellipse(geom = "polygon", alpha=.3, type = "norm")+
   theme_bw()
-# クラスタ別
+
 pam5$data %>% 
   as_tibble() %>% 
   mutate(clust = pam5$clustering) %>% 
@@ -254,32 +329,43 @@ pam5$data %>%
   # geom_density_2d()+
   geom_point(size=.5, alpha = .5)+
   stat_ellipse(geom = "polygon", alpha=.3, type = "norm")+
-  facet_wrap(~clust)+
   theme_bw()
-clus5 <- pam5$clustering
-clus5 <- data.frame(clus5)
-clus5 <- cbind(scores1_new, clus5)
+
+# クラスタ別
+pam4$data %>% 
+  as_tibble() %>% 
+  mutate(clust = pam4$clustering) %>% 
+  ggplot(aes(ML1, ML2, colour = factor(clust), fill=factor(clust)))+
+  # geom_density_2d()+
+  geom_point(size=.5, alpha = .5)+
+  stat_ellipse(geom = "polygon", alpha=.3, type = "norm")+
+  facet_wrap(~clust)+
+  theme_bw()+
+  theme(strip.background =element_rect(fill = "white", colour = "black"),
+        axis.text=element_text(size=12),
+        axis.title = element_text(size=15))
+clus4 <- pam4$clustering
+clus4 <- data.frame(clus4)
+clus4 <- cbind(scores1, clus4)
 ```
 
 
 ## 特徴
 ```{r medoids}
-rownames(scores1_new)<- house_num
-
-pam5$medoids # とりあえず6個のmedoidみてみる
+pam4$medoids # とりあえず6個のmedoidみてみる
 #pamIS$id.med
-medoid <- pam5$medoids %>% 
+medoid4 <- pam4$medoids %>% 
   rownames() %>% 
   as.integer() # medoidのhouse_numだけ格納
-IS <- dataIS_new %>% 
+IS_new <- dataIS_new %>% 
   filter(house_num
-    %in% medoidIS) %>% 
-  left_join(tibble(house_num = medoidIS,
-                   clust = 1:5),
+    %in% medoid4) %>% 
+  left_join(tibble(house_num = medoid4,
+                   clust = 1:4),
             by = "house_num") %>% 
   arrange(clust)
 
-IS %>% 
+IS_new %>% 
   gather(question, answer, -clust, -house_num) %>% 
    mutate(question = as.integer(question)) %>% 
   #        type = str_sub(question, 1, 1),
@@ -297,11 +383,41 @@ IS %>%
 ```
 
 ```{r cross5}
-result5 <- pam5$clustering #clusIS の clusIS と同じ
-cross5 <- xta:bs(~genreIS + result5) 
-cross5 %>% 
+result4 <- pam4$clustering #clusIS の clusIS と同じ
+cross4 <- xtabs(~result4 + genreIS) 
+cross4 %>% 
   kable()
-plot(cross5,col=c("pink",  "orange", "yellow", "lightgreen",  "skyblue")
+plot(cross4,col=c("pink", "yellow", "lightgreen",  "skyblue")
      ,las=1) #VR情報選択と答え合わせ
+```
+
+AIとくっつけましょう
+```{r}
+result4_sub <- cbind(house_num, result4) %>% 
+  as.data.frame()
+result4_sub[!complete.cases(result4),]
+# NAないことを確認
+
+result_final<-result4_sub %>% 
+  inner_join(result4L_sub, by = "house_num")
+
+# どちらもまじめに答えた人のクラスタリング結果をいれた
+# AIの4331人とSASの4443人かどれくらい減ってるのかチェック
+result_clus %>% count()
+AI_cluster <- result_final$result4L
+SAS_cluster <-result_final$result4
+cross_final <- xtabs(~AI_cluster + SAS_cluster )
+cross_final %>% 
+  kable()
+plot(cross_final,col=c("pink", "yellow", "lightgreen",  "skyblue")
+     ,las=1)
+```
+
+clus1 情報・購買
+clus2 表現嗜好
+```{r}
+colnames(result_final) <- c("house_num", "clus1", "clus2")
+write.csv(result_final, "clus.csv")
+
 ```
 

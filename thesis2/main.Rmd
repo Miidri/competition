@@ -60,7 +60,10 @@ pamL$data %>%
   stat_ellipse(geom = "polygon", alpha=.3, type = "norm")+
 #  scale_color_manual(values = c( "#ff0000","#0000ff","#ffcc99","#99cbcb","#ff99cc","#00cbcb"))+
   facet_wrap(~clust)+
-  theme_bw()
+  theme_bw()+
+  theme(strip.background =element_rect(fill = "white", colour = "black"),
+        axis.text=element_text(size=12),
+        axis.title = element_text(size=15))
 pamL$data %>% 
   as_tibble() %>% 
   mutate(clust = pamL$clustering) %>% 
@@ -103,6 +106,19 @@ L <- dataL1 %>%
             by = "house_num") %>% 
   arrange(clust)
 L %>% kable()
+
+L %>% 
+  gather(question, answer, -clust, -house_num) %>% 
+  mutate(question = as.integer(question)) %>% 
+  ggplot(aes(question, answer))+
+  geom_bar(stat = "identity")+
+  facet_wrap(~clust)+   labs(x = "question number ")+
+  ylim(0,5)+
+  xlim(1,31)+
+  theme_bw()+
+  theme(strip.background =element_rect(fill = "white", colour = "black"),
+        axis.text=element_text(size=12),
+        axis.title = element_text(size=15))
 ```
 
 # 情報選択 SAS
@@ -124,7 +140,10 @@ pamIS$data %>%
   geom_point(size=.5, alpha = .5)+
   stat_ellipse(geom = "polygon", alpha=.3, type = "norm")+
   facet_wrap(~clust)+
-  theme_bw()
+  theme_bw()+
+  theme(strip.background =element_rect(fill = "white", colour = "black"),
+        axis.text=element_text(size=12),
+        axis.title = element_text(size=15))
 pamIS$data %>% 
   as_tibble() %>% 
   mutate(clust = pamIS$clustering) %>% 
@@ -150,7 +169,7 @@ resultSAS <- pamIS$clustering #clusIS の clusIS と同じ
 # ctblIS1 <- table(segment1, resultSAS)
 # ctblIS1 %>% 
 #   kable()
-crossSAS <- xtabs(~segment2 + resultSAS) 
+crossSAS <- xtabs(~resultSAS + segment2) 
 crossSAS %>% 
   kable()
 plot(crossSAS,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
@@ -176,7 +195,7 @@ IS <- dataIS1 %>%
 IS %>% kable()
 
 # SAS medoids
-med_SAS <-IS %>% 
+IS %>% 
   gather(question, answer, -clust, -house_num) %>% 
    mutate(question = as.integer(question)) %>% 
   #        type = str_sub(question, 1, 1),
@@ -200,15 +219,6 @@ cross0 %>%
   kable()
 plot(cross0,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
      ,las=1)
-#ctbl <- table(segment1, segment2) 
-#ctbl <- data.frame(ctbl)
-# ggplot だとあまりx軸が均一でよく伝わらないかなぁ
-# cross1 <- ggplot(ctbl, aes(x=segment2, y=Freq, fill=segment1)) +
-#   geom_bar(stat = "identity", position="fill") + theme_bw()
-# cross1
-# cross2 <- ggplot(ctbl, aes(x=segment1, y=Freq, fill=segment2)) +
-#   geom_bar(stat = "identity", position="fill") + theme_bw()
-# cross2
 ```
 
 # 情報選択・表現選択 クロス分析
@@ -333,40 +343,6 @@ pam4 <- pamIS$data %>%
         legend.position = 'none')
 grid.arrange(pam2, pam1, ncol = 2)
 grid.arrange(pam4, pam3, ncol = 2)
-# AI medoid
-med1 <- L %>% 
-  gather(question, answer, -clust, -house_num) %>% 
-  mutate(question = as.integer(str_sub(question, 2,-1))) %>% 
-  ggplot(aes(question, answer))+
-  geom_bar(stat = "identity")+
-  facet_wrap(~clust)+ 
-  ylim(0,5)+
-  xlim(1,30)+ 
-  labs(x = "question number ")+
-  theme_bw()+
-  theme(axis.text=element_text(size=12),
-        axis.title = element_text(size=15),
-        strip.background =element_rect(fill = "white", colour = "black"),
-        strip.text = element_text(size=10))
-# SAS medoids
-med2 <-IS %>% 
-  gather(question, answer, -clust, -house_num) %>% 
-  mutate(number = as.integer(str_sub(question, 2,-1)),
-         type = str_sub(question, 1, 1),
-         number = if_else(type == "S", number + 9L, number)) %>% 
-  ggplot(aes(number, answer))+
-  geom_bar(stat = "identity")+
-  facet_wrap(~clust)+ 
-  labs(x = "question number ")+
-  ylim(0,5) +
-  xlim(1,18)+
-  theme_bw()+
-  theme(axis.text=element_text(size=12),
-        axis.title = element_text(size=15),
-        strip.background =element_rect(fill = "white", colour = "black"),
-        strip.text = element_text(size=10))
-grid.arrange(med1, med2, ncol = 2)
-par(mfrow=c(1,4))
 # AI VR表現嗜好と答え合わせ
 plot(crossAI,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
      ,cex.lab=2,las=1, main="",cex.axis=1.3) 

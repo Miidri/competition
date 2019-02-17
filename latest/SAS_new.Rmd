@@ -309,27 +309,27 @@ colnames(dE1) <- dataIS_new$house_num
 set.seed(4410)
 rownames(scores1)<- house_num
 
-pam5 <- pam(scores1[1:4], 5)
+#pam5 <- pam(scores1[1:4], 5)
 pam4 <- pam(scores1[1:4], 4)
 
 # 全容
 pam4$data %>% 
   as_tibble() %>% 
   mutate(clust = pam4$clustering) %>% 
-  ggplot(aes(ML1, ML2, colour = factor(clust), fill=factor(clust)))+
+  ggplot(aes(ML1, ML4, colour = factor(clust), fill=factor(clust)))+
   # geom_density_2d()+
   geom_point(size=.5, alpha = .5)+
   stat_ellipse(geom = "polygon", alpha=.3, type = "norm")+
   theme_bw()
 
-pam5$data %>% 
-  as_tibble() %>% 
-  mutate(clust = pam5$clustering) %>% 
-  ggplot(aes(ML1, ML2, colour = factor(clust), fill=factor(clust)))+
-  # geom_density_2d()+
-  geom_point(size=.5, alpha = .5)+
-  stat_ellipse(geom = "polygon", alpha=.3, type = "norm")+
-  theme_bw()
+# pam5$data %>% 
+#   as_tibble() %>% 
+#   mutate(clust = pam5$clustering) %>% 
+#   ggplot(aes(ML1, ML2, colour = factor(clust), fill=factor(clust)))+
+#   # geom_density_2d()+
+#   geom_point(size=.5, alpha = .5)+
+#   stat_ellipse(geom = "polygon", alpha=.3, type = "norm")+
+#   theme_bw()
 
 # クラスタ別
 pam4$data %>% 
@@ -388,7 +388,7 @@ cross4 <- xtabs(~result4 + genreIS)
 cross4 %>% 
   kable()
 plot(cross4,col=c("pink", "yellow", "lightgreen",  "skyblue")
-     ,las=1) #VR情報選択と答え合わせ
+     ,las=1, main="") #VR情報選択と答え合わせ
 ```
 
 AIとくっつけましょう
@@ -399,25 +399,104 @@ result4_sub[!complete.cases(result4),]
 # NAないことを確認
 
 result_final<-result4_sub %>% 
-  inner_join(result4L_sub, by = "house_num")
+  inner_join(result4_sub, by = "house_num")
 
 # どちらもまじめに答えた人のクラスタリング結果をいれた
 # AIの4331人とSASの4443人かどれくらい減ってるのかチェック
-result_clus %>% count()
-AI_cluster <- result_final$result4L
-SAS_cluster <-result_final$result4
-cross_final <- xtabs(~AI_cluster + SAS_cluster )
+result_final %>% count()
+clus1 <- result_final$clus1
+clus2 <-result_final$clus2
+cross_final <- xtabs(~clus1 + clus2 )
 cross_final %>% 
   kable()
 plot(cross_final,col=c("pink", "yellow", "lightgreen",  "skyblue")
-     ,las=1)
+     ,las=1, main="")
 ```
 
 clus1 情報・購買
 clus2 表現嗜好
 ```{r}
 colnames(result_final) <- c("house_num", "clus1", "clus2")
-write.csv(result_final, "clus.csv")
+#write.csv(result_final, "clus.csv")
 
 ```
 
+# pairs
+```{r}
+pairs1 <- ggpairs(loadings1[,-1],  aes(label = loadings1$question_num))+
+  theme_bw() +
+  theme(axis.text=element_text(size=12),
+        axis.title = element_text(size=15),
+        strip.background =element_rect(fill = "white", colour = "black"),
+        strip.text = element_text(size=10))
+
+load1_12 <- pam4$data %>% 
+  as_tibble() %>% 
+  mutate(clust = pam4$clustering) %>% 
+  ggplot(aes(ML1, ML2, colour = factor(clust), fill=factor(clust)))+
+  # geom_density_2d()+
+  geom_point(size=.1, alpha = .5)+
+  stat_ellipse(geom = "polygon", alpha=.3, type = "norm")+
+  theme_bw() +
+  theme(legend.position = 'none')
+  
+load1_13 <- pam4$data %>% 
+  as_tibble() %>% 
+  mutate(clust = pam4$clustering) %>% 
+  ggplot(aes(ML1, ML3, colour = factor(clust), fill=factor(clust)))+
+  # geom_density_2d()+
+  geom_point(size=.1, alpha = .5)+
+  stat_ellipse(geom = "polygon", alpha=.3, type = "norm")+
+  theme_bw() +
+  theme(legend.position = 'none')
+  
+load1_14 <- pam4$data %>% 
+  as_tibble() %>% 
+  mutate(clust = pam4$clustering) %>% 
+  ggplot(aes(ML1, ML4, colour = factor(clust), fill=factor(clust)))+
+  # geom_density_2d()+
+  geom_point(size=.1, alpha = .5)+
+  stat_ellipse(geom = "polygon", alpha=.3, type = "norm")+
+  theme_bw() +
+  theme(legend.position = 'none')
+  
+load1_23 <- pam4$data %>% 
+  as_tibble() %>% 
+  mutate(clust = pam4$clustering) %>% 
+  ggplot(aes(ML2, ML3, colour = factor(clust), fill=factor(clust)))+
+  # geom_density_2d()+
+  geom_point(size=.1, alpha = .5)+
+  stat_ellipse(geom = "polygon", alpha=.3, type = "norm")+
+  theme_bw() +
+  theme(legend.position = 'none')
+  
+load1_24 <- pam4$data %>% 
+  as_tibble() %>% 
+  mutate(clust = pam4$clustering) %>% 
+  ggplot(aes(ML2, ML4, colour = factor(clust), fill=factor(clust)))+
+  # geom_density_2d()+
+  geom_point(size=.1, alpha = .5)+
+  stat_ellipse(geom = "polygon", alpha=.3, type = "norm")+
+  theme_bw() +
+  theme(legend.position = 'none')
+  
+load1_34 <- pam4$data %>% 
+  as_tibble() %>% 
+  mutate(clust = pam4$clustering) %>% 
+  ggplot(aes(ML3, ML4, colour = factor(clust), fill=factor(clust)))+
+  # geom_density_2d()+
+  geom_point(size=.1, alpha = .5)+
+  stat_ellipse(geom = "polygon", alpha=.3, type = "norm")+
+  theme_bw() +
+  theme(legend.position = 'none')
+    
+  
+  
+pairs1 <- putPlot(pairs1, load1_12, 2, 1)  
+pairs1 <- putPlot(pairs1, load1_13, 3, 1)
+pairs1 <- putPlot(pairs1, load1_14, 4, 1) 
+pairs1 <- putPlot(pairs1, load1_23, 3, 2)  
+pairs1 <- putPlot(pairs1, load1_24, 4, 2)  
+pairs1 <- putPlot(pairs1, load1_34, 4, 3)  
+pairs1
+```

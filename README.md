@@ -8,31 +8,37 @@ For the working process
 ### Directory
 ```
 ├── Qdefine
-├── data_name
+├── name_data
+├── name_data2
+├── name_data3
+├── name_cluster
+├── name_target
 ├── genre
 ├── report
 │   ├── jiten
 │   ├── pro_per
-│   ├── program
 │   └── tv_program
 │─ ModelThesis
-│   ├── ModelThesis
+│   ├── distatis
+│   ├── ModelThesis
 │   └── Thesis
 ├── add_data
 │   ├── house_num_challenge
 │   └── perrformer_report
-└── thesis
-    ├── cluster
-    ├── distatis
-    ├── factor
-    ├── factorI
-    ├── factorS    
-    ├── factorL
-    ├── profile
-    ├── question
-    ├── VRcluster
-    ├── sample
-    └── sample_new
+├── thesis-clushed
+├── thesis2
+│   ├── AI
+│   ├── SAS
+│   ├── nmf
+│   ├── orgn_analyis
+│   ├── target_analysis    
+│   └── main
+└── latest
+    ├── AI_new
+    ├── SAS_new
+    ├── CM  
+    └── quastionnare
+    
 ```
 
 # data name

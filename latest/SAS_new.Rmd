@@ -27,7 +27,7 @@ knitr::opts_chunk$set(echo = TRUE,
 ```{r set_up}
 #パッケージのインストールと読み込み
 #持ってないパッケージはインストールする
-#install.packages("MASS")
+#install.packages("ggthemes")
 library(knitr)
 library(DBI)
 library(tidyverse)
@@ -48,6 +48,7 @@ library(ggmosaic)
 library(cluster)
 library(e1071)
 library(ggplot2)
+library(factoextra)
 try(dbDisconnect(con))
 source("/home/midori/competition/psql.R")
 source("/home/midori/competition/name_data2.R")
@@ -131,14 +132,24 @@ eigenIS_new
 ## 因子数決定
 ```{r dataIS_new plot}
 # Minimum Average Partial, BIC
-VSS(dataIS_new[,-1], n=10)
+VSS(dataIS_new[,-1], n=10, rotate = "promax")
 # 平行分析
-#fa.parallel(dataIS_new[,-1],
-#            n.obs = 4443,
-#            main = "",
-#            n.iter = 10)
+fa.parallel(dataIS_new[,-1],
+            n.obs = 4443,
+            main = "",
+            n.iter = 8)
 # スクリープロット
-plot(eigenIS_new,type="lines") 
+index <- c(1:18)
+scree<- cbind(index, eigenIS_new)  
+scree %>% 
+  as.data.frame() %>% 
+  ggplot(aes(x=index, y=eigenIS_new))+
+  geom_line()+
+  geom_point()+
+  theme_bw()+
+  labs(y="固有値", x="因子")+
+  theme(axis.text=element_text(size=12),
+        axis.title = element_text(size=15))
 ```  
 - MAP:3  
 - BIC:7  
@@ -309,6 +320,11 @@ colnames(dE1) <- dataIS_new$house_num
 set.seed(4410)
 rownames(scores1)<- house_num
 
+クラスタ数
+reuslt <- clusGap(scores1[,1:4], kmeans, K.max=5, B=10, verbose = interactive())
+result1 <- scores1[,1:4] %>% fviz_nbclust(kmeans, method = "gap_stat", k.max=5, nboot =  10)
+plot(result)
+
 #pam5 <- pam(scores1[1:4], 5)
 pam4 <- pam(scores1[1:4], 4)
 
@@ -320,7 +336,8 @@ pam4$data %>%
   # geom_density_2d()+
   geom_point(size=.5, alpha = .5)+
   stat_ellipse(geom = "polygon", alpha=.3, type = "norm")+
-  theme_bw()
+  theme_bw() + 
+  guides(fill=guide_legend(title="New Legend Title"), colour=guide_legend(title="New Legend Title"))
 
 # pam5$data %>% 
 #   as_tibble() %>% 
@@ -376,8 +393,10 @@ IS_new %>%
   labs(x = "question number ")+
   ylim(0,5) +
   xlim(1,19)+
+  labs(x="設問番号",y="回答")+
   theme_bw()+
   theme(strip.background =element_rect(fill = "white", colour = "black"),
+        strip.text = element_text(size=12),
         axis.text=element_text(size=12),
         axis.title = element_text(size=15))
 ```
@@ -387,50 +406,36 @@ result4 <- pam4$clustering #clusIS の clusIS と同じ
 cross4 <- xtabs(~result4 + genreIS) 
 cross4 %>% 
   kable()
-plot(cross4,col=c("pink", "yellow", "lightgreen",  "skyblue")
-     ,las=1, main="") #VR情報選択と答え合わせ
-```
-
-AIとくっつけましょう
-```{r}
-result4_sub <- cbind(house_num, result4) %>% 
-  as.data.frame()
-result4_sub[!complete.cases(result4),]
-# NAないことを確認
-
-result_final<-result4_sub %>% 
-  inner_join(result4_sub, by = "house_num")
-
-# どちらもまじめに答えた人のクラスタリング結果をいれた
-# AIの4331人とSASの4443人かどれくらい減ってるのかチェック
-result_final %>% count()
-clus1 <- result_final$clus1
-clus2 <-result_final$clus2
-cross_final <- xtabs(~clus1 + clus2 )
-cross_final %>% 
-  kable()
-plot(cross_final,col=c("pink", "yellow", "lightgreen",  "skyblue")
-     ,las=1, main="")
-```
-
-clus1 情報・購買
-clus2 表現嗜好
-```{r}
-colnames(result_final) <- c("house_num", "clus1", "clus2")
-#write.csv(result_final, "clus.csv")
-
+plot(cross4,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
+     ,las=1, main="", xlab="クラスタ" ,ylab="情報選択セグメント", cex=1) #VR情報選択と答え合わせ
 ```
 
 # pairs
-```{r}
-pairs1 <- ggpairs(loadings1[,-1],  aes(label = loadings1$question_num))+
+```{r pam4}
+pairs_data <- pam4$data %>% 
+  as_tibble() %>% 
+  mutate(clust = pam4$clustering)
+colnames(pairs_data) <- c("情報発信度合い","長期使用嗜好","情報収集消極性","同調度合い", "clust")
+
+pairs1 <- ggpairs(pairs_data[,1:4], aes(col=factor(pairs_data$clust), alpha = .5),upper = list(continuous='cor')) +
   theme_bw() +
   theme(axis.text=element_text(size=12),
         axis.title = element_text(size=15),
         strip.background =element_rect(fill = "white", colour = "black"),
-        strip.text = element_text(size=10))
+        strip.text = element_text(size=12))
 
-load1_12 <- pam4$data %>% 
+for(i in 1:pairs1$nrow) {
+  for(j in 1:pairs1$ncol){
+    pairs1[i,j] <- pairs1[i,j] + 
+        scale_colour_viridis_d()+
+        scale_fill_viridis_d()
+  }
+}
+  
+
+
+
+load1_12 <-pam4$data %>% 
   as_tibble() %>% 
   mutate(clust = pam4$clustering) %>% 
   ggplot(aes(ML1, ML2, colour = factor(clust), fill=factor(clust)))+
@@ -438,7 +443,9 @@ load1_12 <- pam4$data %>%
   geom_point(size=.1, alpha = .5)+
   stat_ellipse(geom = "polygon", alpha=.3, type = "norm")+
   theme_bw() +
-  theme(legend.position = 'none')
+  theme(legend.position = 'none')+
+  scale_colour_viridis_d()+
+  scale_fill_viridis_d()
   
 load1_13 <- pam4$data %>% 
   as_tibble() %>% 
@@ -448,7 +455,9 @@ load1_13 <- pam4$data %>%
   geom_point(size=.1, alpha = .5)+
   stat_ellipse(geom = "polygon", alpha=.3, type = "norm")+
   theme_bw() +
-  theme(legend.position = 'none')
+  theme(legend.position = 'none')+
+  scale_colour_viridis_d()+
+  scale_fill_viridis_d()
   
 load1_14 <- pam4$data %>% 
   as_tibble() %>% 
@@ -458,7 +467,9 @@ load1_14 <- pam4$data %>%
   geom_point(size=.1, alpha = .5)+
   stat_ellipse(geom = "polygon", alpha=.3, type = "norm")+
   theme_bw() +
-  theme(legend.position = 'none')
+  theme(legend.position = 'none')+
+  scale_colour_viridis_d()+
+  scale_fill_viridis_d()
   
 load1_23 <- pam4$data %>% 
   as_tibble() %>% 
@@ -468,7 +479,9 @@ load1_23 <- pam4$data %>%
   geom_point(size=.1, alpha = .5)+
   stat_ellipse(geom = "polygon", alpha=.3, type = "norm")+
   theme_bw() +
-  theme(legend.position = 'none')
+  theme(legend.position = 'none')+
+  scale_colour_viridis_d()+
+  scale_fill_viridis_d()
   
 load1_24 <- pam4$data %>% 
   as_tibble() %>% 
@@ -478,7 +491,9 @@ load1_24 <- pam4$data %>%
   geom_point(size=.1, alpha = .5)+
   stat_ellipse(geom = "polygon", alpha=.3, type = "norm")+
   theme_bw() +
-  theme(legend.position = 'none')
+  theme(legend.position = 'none')+
+  scale_colour_viridis_d()+
+  scale_fill_viridis_d()
   
 load1_34 <- pam4$data %>% 
   as_tibble() %>% 
@@ -488,15 +503,17 @@ load1_34 <- pam4$data %>%
   geom_point(size=.1, alpha = .5)+
   stat_ellipse(geom = "polygon", alpha=.3, type = "norm")+
   theme_bw() +
-  theme(legend.position = 'none')
+  theme(legend.position = 'none')+
+  scale_colour_viridis_d()+
+  scale_fill_viridis_d()
     
-  
-  
 pairs1 <- putPlot(pairs1, load1_12, 2, 1)  
 pairs1 <- putPlot(pairs1, load1_13, 3, 1)
 pairs1 <- putPlot(pairs1, load1_14, 4, 1) 
 pairs1 <- putPlot(pairs1, load1_23, 3, 2)  
 pairs1 <- putPlot(pairs1, load1_24, 4, 2)  
 pairs1 <- putPlot(pairs1, load1_34, 4, 3)  
+
 pairs1
 ```
+

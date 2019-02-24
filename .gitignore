@@ -14,3 +14,4 @@ garvage.Rmd
 report/tv_play.Rmd
 *.rds
 draft.Rmd
+*.RDS

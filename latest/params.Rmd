@@ -1,0 +1,192 @@
+---
+title: "paramator"
+author: "Midori Omura"
+date: "2019/2/22"
+output:
+  html_document:
+    number_sections: true
+    fig_caption: true
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    fig_width: 7
+    fig_height: 4.5
+    theme: sandstone 
+    highlight: tango
+    code_folding: hide
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      warning = FALSE,
+                      message = FALSE)
+```
+
+読み込む
+```{r}
+params<-read_rds("latest/params.RDS")
+```
+
+
+```{r}
+params %>% group_by(genre) %>% 
+  count()
+
+# c
+para_c <- params %>%
+  ggplot(aes(c, fill=genre))+
+  geom_histogram(binwidth = 0.1,position="dodge")+
+  theme_bw()
+
+# a
+para_a <- params %>%
+  ggplot(aes(a, fill=genre))+
+  geom_histogram(binwidth = 0.1,position="dodge")+
+  theme_bw()
+
+# k
+para_k <- params %>%
+  ggplot(aes(k, fill=genre))+
+  geom_density(alpha=0.5)+  theme_bw()
+
+# c
+para_c <- params %>%
+  ggplot(aes(c, fill=genre))+
+  geom_density(alpha=0.5)+  theme_bw()
+
+# a
+para_a <- params %>%
+  ggplot(aes(a, fill=genre))+
+  geom_density(alpha=0.5)+  theme_bw()
+
+# k
+para_k <- params %>%
+  ggplot(aes(k, fill=genre,col=genre))+
+  geom_density(alpha=0.5)+
+  theme_bw()
+
+grid.arrange(para_c, para_a, para_k, ncol=3)
+
+params %>% filter(genre=="anime") %>% 
+  dplyr::select(-program_code, -program_name, -genre) %>%
+  cor%>% round(2)
+
+params %>% filter(genre=="drama") %>% 
+  dplyr::select(-program_code, -program_name, -genre) %>%
+  cor %>% round(2)
+
+params %>% filter(genre=="anime") %>% 
+  dplyr::select(-program_code, -program_name, -genre) %>%
+ggpairs()
+
+params %>% filter(genre=="drama") %>% 
+  dplyr::select(-program_code, -program_name, -genre) %>%
+ggpairs()
+```
+
+```{r}
+# ぜーんぶ
+params %>% 
+  dplyr::select(-program_code, -program_name) %>%
+  ggpairs( aes(col=factor(genre), alpha = .5),upper = list(continuous='cor')) +
+  theme_bw() +
+  theme(axis.text=element_text(size=12),
+        axis.title = element_text(size=15),
+        strip.background =element_rect(fill = "white", colour = "black"),
+        strip.text = element_text(size=12))
+
+# c, a, k, genre
+params %>% 
+  dplyr::select(-program_code, -program_name, -beta1, -beta2, -beta3, -beta4) %>%
+  ggpairs( aes(col=factor(genre), alpha = .5),upper = list(continuous='cor')) +
+  theme_bw() +
+  theme(axis.text=element_text(size=12),
+        axis.title = element_text(size=15),
+        strip.background =element_rect(fill = "white", colour = "black"),
+        strip.text = element_text(size=12))
+
+# anime clust つまんない
+params %>% filter(genre=="anime") %>% 
+  dplyr::select(-program_code, -program_name, -c, -a, -k) %>%
+  ggpairs(upper = list(continuous='cor')) +
+  theme_bw() +
+  theme(axis.text=element_text(size=12),
+        axis.title = element_text(size=15),
+        strip.background =element_rect(fill = "white", colour = "black"),
+        strip.text = element_text(size=12))
+
+# drama clust
+params %>% filter(genre=="drama") %>% 
+  dplyr::select(-program_code, -program_name, -c, -a, -k, -genre) %>%
+  ggpairs( aes(),upper = list(continuous='cor')) +
+  theme_bw() +
+  theme(strip.background =element_rect(fill = "white", colour = "black"),
+        )
+```
+
+```{r drama}
+beta1 <- params %>% filter(genre=="drama") %>% 
+  dplyr::select(-program_code, -c, -a, -k) %>% 
+  ggplot(aes(x=program_name, y =beta1))+
+  geom_point()+theme_bw()
+
+beta2 <- params %>% filter(genre=="drama") %>% 
+  dplyr::select(-program_code, -c, -a, -k) %>% 
+  ggplot(aes(x=program_name, y =beta2))+
+  geom_point()+theme_bw()
+
+beta3 <- params %>% filter(genre=="drama") %>% 
+  dplyr::select(-program_code, -c, -a, -k) %>% 
+  ggplot(aes(x=program_name, y =beta3))+
+  geom_point()+theme_bw()
+
+beta4 <- params %>% filter(genre=="drama") %>% 
+  dplyr::select(-program_code, -c, -a, -k) %>% 
+  ggplot(aes(x=program_name, y =beta4))+
+  geom_point()+theme_bw()
+
+grid.arrange(beta1,beta2,beta3,beta4,ncol=1)
+```
+
+```{r drama}
+betaa1 <- params %>% filter(genre=="anime") %>% 
+  dplyr::select(-program_code, -c, -a, -k) %>% 
+  ggplot(aes(x=program_name, y =beta1))+
+  geom_point()+theme_bw()
+
+betaa2 <- params %>% filter(genre=="anime") %>% 
+  dplyr::select(-program_code, -c, -a, -k) %>% 
+  ggplot(aes(x=program_name, y =beta2))+
+  geom_point()+theme_bw()
+
+betaa3 <- params %>% filter(genre=="anime") %>% 
+  dplyr::select(-program_code, -c, -a, -k) %>% 
+  ggplot(aes(x=program_name, y =beta3))+
+  geom_point()+theme_bw()
+
+betaa4 <- params %>% filter(genre=="anime") %>% 
+  dplyr::select(-program_code, -c, -a, -k) %>% 
+  ggplot(aes(x=program_name, y =beta4))+
+  geom_point()+theme_bw()
+
+grid.arrange(betaa1,betaa2,betaa3,betaa4,ncol=1)
+```
+
+```{r}
+params %>% filter(genre=="anime", beta1>=3) 
+
+params %>% filter(genre=="anime", beta3>=0.1)
+
+params %>% filter(genre=="anime", beta1<=3, beta3<=0.1) %>% 
+  dplyr::select(-program_code, -program_name, -c, -a, -k, -genre) %>%
+  ggpairs(upper = list(continuous='cor')) +
+  theme_bw() +
+  theme(strip.background =element_rect(fill = "white", colour = "black"))
+  
+
+```
+
+
+

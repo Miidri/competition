@@ -141,9 +141,14 @@ pamIS$data %>%
   stat_ellipse(geom = "polygon", alpha=.3, type = "norm")+
   facet_wrap(~clust)+
   theme_bw()+
-  theme(strip.background =element_rect(fill = "white", colour = "black"),
-        axis.text=element_text(size=12),
-        axis.title = element_text(size=15))
+  labs(x="第1因子", y="第2因子") +
+  guides(fill=guide_legend(title="クラスタ"), colour=guide_legend(title="クラスタ"))+
+  theme(axis.text=element_text(size=12),
+        axis.title = element_text(size=15),
+        legend.text= element_text(size=12),
+        legend.title = element_text(size=15),
+        strip.background =element_rect(fill = "white", colour = "black"),
+        strip.text = element_text(size=12))
 pamIS$data %>% 
   as_tibble() %>% 
   mutate(clust = pamIS$clustering) %>% 
@@ -151,7 +156,14 @@ pamIS$data %>%
   # geom_density_2d()+
   geom_point(size=.5, alpha = .5)+
   stat_ellipse(geom = "polygon", alpha=.3, type = "norm")+
-  theme_bw()
+  theme_bw() +
+  labs(x="第1因子", y="第2因子") +
+  guides(fill=guide_legend(title="クラスタ"), colour=guide_legend(title="クラスタ"))+
+  theme(axis.text=element_text(size=12),
+        axis.title = element_text(size=15),
+        legend.text=element_text(size=12),
+        legend.title = element_text(size=15))
+
 clusIS <- pamIS$clustering
 clusIS <- data.frame(clusIS)
 clusIS <- cbind(scoresIS, clusIS)
@@ -173,7 +185,7 @@ crossSAS <- xtabs(~resultSAS + segment2)
 crossSAS %>% 
   kable()
 plot(crossSAS,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
-     ,las=1) #VR情報選択と答え合わせ
+     ,las=1, ylab="情報選択セグメント", xlab="クラスタ", main="") #VR情報選択と答え合わせ
 ```
 
 ## 特徴
@@ -206,8 +218,10 @@ IS %>%
   labs(x = "question number ")+
   ylim(0,5) +
   xlim(1,19)+
+  labs(x="設問番号",y="回答")+
   theme_bw()+
   theme(strip.background =element_rect(fill = "white", colour = "black"),
+        strip.text=element_text(size=12),
         axis.text=element_text(size=12),
         axis.title = element_text(size=15))
 ```
@@ -218,7 +232,7 @@ cross0 <- xtabs(~segment1 + segment2)
 cross0 %>% 
   kable()
 plot(cross0,col=c("pink", "red", "orange", "yellow", "lightgreen",  "skyblue")
-     ,las=1)
+     ,las=1, xlab="表現嗜好",ylab="情報選択")
 ```
 
 # 情報選択・表現選択 クロス分析
@@ -540,3 +554,103 @@ ggplot(data = data2) +
         axis.text=element_text(size=12),
         axis.title = element_text(size=15))
 ```
+
+# pairs pamIS
+```{r pamIS}
+
+pairs_dataIS <- pamIS$data %>% 
+  as_tibble() %>% 
+  mutate(clust = pamIS$clustering)
+#colnames(pairs_dataIS) <- c("情報発信度合い","長期使用嗜好","情報収集消極性","同調度合い", "clust")
+
+pairsIS <- pairs_dataIS %>% 
+  dplyr::select(ML1,ML2,ML3) %>% 
+  ggpairs(aes(col=factor(pairs_dataIS$clust), alpha = .5),
+          upper = list(continuous = wrap("cor", alignPercent = 0.65))) +
+  theme_bw() +
+  theme(axis.text=element_text(size=12),
+        axis.title = element_text(size=15),
+        strip.background =element_rect(fill = "white", colour = "black"),
+        strip.text = element_text(size=12))
+
+loadIS_12 <-pamIS$data %>% 
+  as_tibble() %>% 
+  mutate(clust = pamIS$clustering) %>% 
+  ggplot(aes(ML1, ML2, colour = factor(clust), fill=factor(clust)))+
+  # geom_density_2d()+
+  geom_point(size=.1, alpha = .5)+
+  stat_ellipse(geom = "polygon", alpha=.3, type = "norm")+
+  theme_bw() +
+  theme(legend.position = 'none')
+  
+loadIS_13 <- pamIS$data %>% 
+  as_tibble() %>% 
+  mutate(clust = pamIS$clustering) %>% 
+  ggplot(aes(ML1, ML3, colour = factor(clust), fill=factor(clust)))+
+  # geom_density_2d()+
+  geom_point(size=.1, alpha = .5)+
+  stat_ellipse(geom = "polygon", alpha=.3, type = "norm")+
+  theme_bw() +
+  theme(legend.position = 'none')
+
+loadIS_23 <- pamIS$data %>% 
+  as_tibble() %>% 
+  mutate(clust = pamIS$clustering) %>% 
+  ggplot(aes(ML2, ML3, colour = factor(clust), fill=factor(clust)))+
+  # geom_density_2d()+
+  geom_point(size=.1, alpha = .5)+
+  stat_ellipse(geom = "polygon", alpha=.3, type = "norm")+
+  theme_bw() +
+  theme(legend.position = 'none')
+  
+
+    
+pairsIS <- putPlot(pairsIS, loadIS_12, 2, 1)  
+pairsIS <- putPlot(pairsIS, loadIS_13, 3, 1)
+pairsIS <- putPlot(pairsIS, loadIS_23, 3, 2) 
+
+pairsIS
+```
+
+AIとくっつけましょう
+```{r}
+result4_sub <- cbind(house_num, result4) %>% 
+  as.data.frame()
+result4_sub[!complete.cases(result4_sub
+                            ),]
+# NAないことを確認
+
+result_final<-result4_sub %>% 
+  inner_join(result4_sub, by = "house_num")
+
+# どちらもまじめに答えた人のクラスタリング結果をいれた
+# AIの4331人とSASの4443人かどれくらい減ってるのかチェック
+colnames(result_final) <- c("house_num", "clus1", "clus2")
+
+result_final %>% count()
+clus1 <- result_final$clus1
+clus2 <-result_final$clus2
+cross_final <- xtabs(~clus1 + clus2 )
+cross_final %>% 
+  kable()
+plot(cross_final,col=c("pink", "yellow", "lightgreen",  "skyblue")
+     ,las=1, main="")
+```
+
+clus1 情報・購買
+clus2 表現嗜好
+```{r}
+result_final <- merge(result_final, data, by="house_num")
+result_final[!complete.cases(result_final),]
+
+#write.csv(result_final, "result.csv")
+```
+
+```{r 数字検証}
+ data2 %>% group_by(genreIS) %>% count
+ only_all2 <- merge(only_all, data2)
+ only_all2 %>% 
+   group_by(genreIS) %>% 
+   count()
+```
+

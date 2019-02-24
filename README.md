@@ -37,6 +37,7 @@ For the working process
     ├── AI_new
     ├── SAS_new
     ├── CM  
-    └── quastionnare
+    ├── quastionnare  
+    └── params  
     
 ```

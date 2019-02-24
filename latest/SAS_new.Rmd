@@ -49,6 +49,7 @@ library(cluster)
 library(e1071)
 library(ggplot2)
 library(factoextra)
+library(plotly)
 try(dbDisconnect(con))
 source("/home/midori/competition/psql.R")
 source("/home/midori/competition/name_data2.R")
@@ -103,7 +104,7 @@ dataIS_new_sub %>%
 dataIS_new %>% count()
 dataIS_new_sub %>% count()
 
-
+  
 dataIS_new <- dataIS_new %>% 
   as.data.frame()
 dataIS_new_sub <- dataIS_new_sub %>% 
@@ -515,5 +516,50 @@ pairs1 <- putPlot(pairs1, load1_24, 4, 2)
 pairs1 <- putPlot(pairs1, load1_34, 4, 3)  
 
 pairs1
+```
+
+```{r デモグラ}
+dataIS1_new %>% count
+
+sex_count <- dplyr::count(dataIS1_new,sex)
+
+plot_ly(sex_count, labels = ~sex , values = ~n , type = 'pie',
+             textposition = 'inside',
+             textinfo = 'label+percent',size=0.5,
+             insidetextfont = list(color = '#000000'),
+             showlegend = FALSE) %>%
+  layout(title = '性別',
+         colorway=c("skyblue","pink"),
+         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+
+index_count <- dplyr::count(dataIS1_new,index)
+plot_ly(index_count, labels = ~index , values = ~n , type = 'pie',
+             textposition = 'inside',
+             textinfo = 'label+percent',size=0.5,
+             insidetextfont = list(color = '#000000'),
+             showlegend = FALSE) %>%
+  layout(title = '性別',
+         colorway=c("blue", "red","skyblue","pink"),
+         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+
+age_count <- dplyr::count(dataIS1_new,age_index)
+plot_ly(age_count, labels = ~age_index , values = ~n , type = 'pie',
+             textposition = 'inside',
+             textinfo = 'label+percent',size=0.5,
+             insidetextfont = list(color = '#000000'),
+             showlegend = FALSE) %>%
+  layout(title = '性別',
+         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+
+age_count <- dplyr::count(dataIS1_new,age_index)
+age_count %>% ggplot(aes(x=age_index, y=n))+
+  geom_bar(stat="identity")+
+  theme_bw()+
+  labs(x="年齢", y="人数")+
+  theme(axis.text=element_text(size=15),
+        axis.title = element_text(size=20))
 ```
 
